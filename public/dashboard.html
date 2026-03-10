@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--vert:#006633;--or:#FFD700;--rouge:#c0392b;--violet:#5E35B1;--bg:#fff8f0;--card:#fff;--texte:#0d1f0d;--texte-light:#5a7a5a;--border:#e0ece0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);min-height:100vh}
+
+/* LOGIN PIN */
+#login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#c0392b,#e74c3c);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.login-box{background:white;border-radius:24px;padding:36px 28px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-logo{font-size:52px;margin-bottom:8px}
+.login-title{font-size:20px;font-weight:900;color:#c0392b;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;margin-bottom:24px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#e0e0e0;transition:background 0.2s}
+.pin-dot.filled{background:#c0392b}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.num-btn{background:#f8f8f8;border:none;border-radius:14px;padding:16px;font-size:20px;font-weight:900;cursor:pointer;font-family:inherit;color:#0d0d0d;transition:background 0.15s}
+.num-btn:active{background:#c0392b;color:white}
+.login-hint{font-size:11px;color:#aaa;margin-top:8px}
+#login-error{color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none}
+
+/* SET PIN */
+#setpin-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#c0392b,#e74c3c);z-index:998;display:none;align-items:center;justify-content:center}
+
+/* NAV */
+.nav{background:white;border-bottom:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:22px;font-weight:900;color:#c0392b}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{background:none;border:none;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;border-radius:10px;color:var(--texte-light);font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-tab.active,.nav-tab:hover{background:#fff0f0;color:#c0392b}
+.nav-tab span{font-size:16px}
+
+/* HEADER */
+.page-header{background:linear-gradient(135deg,#c0392b,#e74c3c);padding:16px;color:white}
+.page-header h1{font-size:18px;font-weight:900}
+.page-header p{font-size:11px;opacity:0.8;margin-top:2px}
+.header-actions{display:flex;gap:8px;margin-top:10px}
+.btn-header{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 14px;border-radius:50px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
+
+/* KPIS */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+.kpi{background:white;border-radius:14px;padding:14px;border-left:4px solid #c0392b;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.kpi-val{font-size:24px;font-weight:900;color:#c0392b}
+.kpi-lbl{font-size:10px;color:#888;margin-top:2px}
+.kpi-badge{font-size:9px;background:#fff0f0;color:#c0392b;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px;font-weight:700}
+
+/* SECTIONS */
+.section{padding:0 14px 14px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-title{font-size:14px;font-weight:900}
+.btn-add{background:#c0392b;color:white;border:none;padding:7px 16px;border-radius:50px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
+
+/* COMMANDES */
+.cmd-card{background:white;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.cmd-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cmd-ref{font-size:13px;font-weight:900;color:#c0392b}
+.cmd-client{font-size:11px;color:#888}
+.cmd-items{font-size:12px;color:#444;margin:4px 0}
+.cmd-total{font-size:14px;font-weight:900;color:#006633}
+.cmd-adresse{font-size:11px;color:#888;margin-top:2px}
+.badge{font-size:9px;font-weight:800;padding:3px 9px;border-radius:10px}
+.b-nouveau{background:#fff9e6;color:#cc9900}
+.b-confirmé{background:#e8f5e9;color:#006633}
+.b-preparation{background:#e3f2fd;color:#1565C0}
+.b-route{background:#f3e5f5;color:#5E35B1}
+.b-livré{background:#e8f5e9;color:#006633}
+.b-annulé{background:#fce4ec;color:#c0392b}
+.statut-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.statut-btn{background:#f5f5f5;color:#444;border:none;padding:5px 10px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.statut-btn:hover{background:#c0392b;color:white}
+
+/* MENUS */
+.menu-card{background:white;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.menu-emoji{font-size:32px;width:48px;text-align:center}
+.menu-info{flex:1}
+.menu-nom{font-size:13px;font-weight:900}
+.menu-desc{font-size:11px;color:#888;margin-top:2px}
+.menu-prix{font-size:15px;font-weight:900;color:#c0392b}
+.menu-actions{display:flex;gap:6px}
+.menu-btn{background:#f5f5f5;border:none;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.cat-badge{font-size:9px;background:#fff0f0;color:#c0392b;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:3px;font-weight:800}
+
+/* CLIENTS */
+.client-card{background:white;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.client-avatar{width:40px;height:40px;border-radius:50%;background:#c0392b;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0}
+.client-info{flex:1}
+.client-phone{font-size:13px;font-weight:800}
+.client-stats{font-size:11px;color:#888;margin-top:2px}
+.client-total{font-size:14px;font-weight:900;color:#006633}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.form-input,.form-select{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:12px;font-size:14px;font-family:inherit;outline:none}
+.form-input:focus,.form-select:focus{border-color:#c0392b}
+.btn-submit{background:#c0392b;color:white;border:none;padding:14px;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;width:100%}
+.btn-cancel{background:#f5f5f5;color:#444;border:none;padding:14px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-top:8px}
+
+/* TABS CONTENT */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* LAST UPDATE */
+#last-update{font-size:10px;opacity:0.7;margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PIN -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">🍽️</div>
+    <div class="login-title">TraiteurPro</div>
+    <div class="login-sub">Entrez votre PIN pour accéder à votre dashboard</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="saisirPin('1')">1</button>
+      <button class="num-btn" onclick="saisirPin('2')">2</button>
+      <button class="num-btn" onclick="saisirPin('3')">3</button>
+      <button class="num-btn" onclick="saisirPin('4')">4</button>
+      <button class="num-btn" onclick="saisirPin('5')">5</button>
+      <button class="num-btn" onclick="saisirPin('6')">6</button>
+      <button class="num-btn" onclick="saisirPin('7')">7</button>
+      <button class="num-btn" onclick="saisirPin('8')">8</button>
+      <button class="num-btn" onclick="saisirPin('9')">9</button>
+      <button class="num-btn" onclick="effacerPin()">⌫</button>
+      <button class="num-btn" onclick="saisirPin('0')">0</button>
+      <button class="num-btn" onclick="validerPin()" style="background:#c0392b;color:white">✓</button>
+    </div>
+    <div class="login-hint">Première connexion ? PIN par défaut : 1234</div>
+    <div id="login-error">❌ PIN incorrect</div>
+  </div>
+</div>
+
+<!-- SET PIN -->
+<div id="setpin-overlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#c0392b,#e74c3c);z-index:998;display:none;align-items:center;justify-content:center">
+  <div class="login-box">
+    <div class="login-logo">🔐</div>
+    <div class="login-title">Créez votre PIN</div>
+    <div class="login-sub">Choisissez un PIN de 4 chiffres pour sécuriser votre dashboard</div>
+    <input type="password" id="new-pin" maxlength="4" placeholder="Nouveau PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:12px;font-family:inherit">
+    <input type="password" id="confirm-pin" maxlength="4" placeholder="Confirmer PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:16px;font-family:inherit">
+    <button onclick="confirmerNouveauPin()" style="width:100%;background:#c0392b;color:white;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit">✅ Valider mon PIN</button>
+    <div id="setpin-error" style="color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">🍽️ TraiteurPro</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="afficherTab('dashboard',this)"><span>📊</span>Dashboard</button>
+    <button class="nav-tab" onclick="afficherTab('commandes',this)"><span>📋</span>Commandes</button>
+    <button class="nav-tab" onclick="afficherTab('menus',this)"><span>🍽️</span>Menus</button>
+    <button class="nav-tab" onclick="afficherTab('clients',this)"><span>👥</span>Clients</button>
+  </div>
+</nav>
+
+<!-- DASHBOARD TAB -->
+<div id="tab-dashboard" class="tab-content active">
+  <div class="page-header">
+    <h1>Tableau de bord</h1>
+    <p id="last-update">Chargement...</p>
+    <div class="header-actions">
+      <button class="btn-header" onclick="chargerDashboard()">🔄 Actualiser</button>
+      <button class="btn-header" onclick="envoyerPromo()">📣 Promo flash</button>
+      <button class="btn-header" onclick="seDeconnecter()">🔒 Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-val" id="kpi-commandes">—</div><div class="kpi-lbl">📋 Commandes totales</div><div class="kpi-badge" id="kpi-nouvelles">— nouvelles</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-revenus">—</div><div class="kpi-lbl">💰 Revenus FCFA</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-clients">—</div><div class="kpi-lbl">👥 Clients actifs</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-plat">—</div><div class="kpi-lbl">⭐ Plat star</div></div>
+  </div>
+
+  <!-- NOUVELLES COMMANDES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">🕐 Nouvelles commandes</div>
+    </div>
+    <div id="nouvelles-commandes">
+      <div style="text-align:center;color:#888;font-size:13px;padding:20px">Aucune nouvelle commande</div>
+    </div>
+  </div>
+
+  <!-- PLATS POPULAIRES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">🔥 Plats populaires</div>
+    </div>
+    <div id="plats-top" style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">
+      <div style="text-align:center;color:#888;font-size:13px">Chargement...</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMANDES TAB -->
+<div id="tab-commandes" class="tab-content">
+  <div class="page-header">
+    <h1>📋 Commandes</h1>
+    <p>Gérez toutes vos commandes</p>
+    <div class="header-actions">
+      <button class="btn-header" onclick="afficherModalCommande()">+ Nouvelle</button>
+    </div>
+  </div>
+  <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="statut-btn" style="background:#c0392b;color:white" onclick="filtrerCommandes('tous')">Toutes</button>
+    <button class="statut-btn" onclick="filtrerCommandes('nouveau')">🕐 Nouvelles</button>
+    <button class="statut-btn" onclick="filtrerCommandes('confirmé')">✅ Confirmées</button>
+    <button class="statut-btn" onclick="filtrerCommandes('preparation')">👨‍🍳 Préparation</button>
+    <button class="statut-btn" onclick="filtrerCommandes('en route')">🚚 En route</button>
+    <button class="statut-btn" onclick="filtrerCommandes('livré')">✅ Livrées</button>
+  </div>
+  <div class="section">
+    <div id="commandes-liste">
+      <div style="text-align:center;color:#888;font-size:13px;padding:20px">Chargement commandes...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MENUS TAB -->
+<div id="tab-menus" class="tab-content">
+  <div class="page-header">
+    <h1>🍽️ Mes Menus</h1>
+    <p>Gérez votre carte</p>
+    <div class="header-actions">
+      <button class="btn-header" onclick="afficherModalMenu()">+ Ajouter plat</button>
+    </div>
+  </div>
+  <div class="section" style="padding-top:14px">
+    <div id="menus-liste">
+      <div style="text-align:center;color:#888;font-size:13px;padding:20px">Chargement menus...</div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENTS TAB -->
+<div id="tab-clients" class="tab-content">
+  <div class="page-header">
+    <h1>👥 Mes Clients</h1>
+    <p>Clients WhatsApp fidèles</p>
+    <div class="header-actions">
+      <button class="btn-header" onclick="envoyerRelances()">📲 Relancer inactifs</button>
+    </div>
+  </div>
+  <div class="section" style="padding-top:14px">
+    <div id="clients-liste">
+      <div style="text-align:center;color:#888;font-size:13px;padding:20px">Chargement clients...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MENU -->
+<div class="modal-overlay" id="modal-menu">
+  <div class="modal">
+    <div class="modal-title">🍽️ Ajouter un plat</div>
+    <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="menu-emoji" value="🍽️" maxlength="2"></div>
+    <div class="form-group"><label class="form-label">Nom du plat *</label><input class="form-input" id="menu-nom" placeholder="Ex: Thiéboudienne"></div>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="menu-desc" placeholder="Riz au poisson avec légumes..."></div>
+    <div class="form-group"><label class="form-label">Prix (FCFA) *</label><input class="form-input" id="menu-prix" type="number" placeholder="5000"></div>
+    <div class="form-group"><label class="form-label">Catégorie</label>
+      <select class="form-select" id="menu-cat">
+        <option value="plat">🍽️ Plat individuel</option>
+        <option value="famille">👨‍👩‍👧 Formule famille</option>
+        <option value="evenement">🎊 Événement</option>
+        <option value="cantine">🏢 Cantine entreprise</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Nombre de personnes</label><input class="form-input" id="menu-pers" type="number" value="1" min="1"></div>
+    <button class="btn-submit" onclick="sauvegarderMenu()">✅ Ajouter au menu</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-menu')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL COMMANDE -->
+<div class="modal-overlay" id="modal-commande">
+  <div class="modal">
+    <div class="modal-title">📋 Nouvelle commande</div>
+    <div class="form-group"><label class="form-label">Téléphone client *</label><input class="form-input" id="cmd-phone" placeholder="221771234567"></div>
+    <div class="form-group"><label class="form-label">Nom client</label><input class="form-input" id="cmd-nom" placeholder="Aminata Diallo"></div>
+    <div class="form-group"><label class="form-label">Plat *</label><select class="form-select" id="cmd-plat"></select></div>
+    <div class="form-group"><label class="form-label">Quantité</label><input class="form-input" id="cmd-qte" type="number" value="1" min="1"></div>
+    <div class="form-group"><label class="form-label">Adresse livraison</label><input class="form-input" id="cmd-adresse" placeholder="Rue 10, Médina, Dakar"></div>
+    <div class="form-group"><label class="form-label">Date livraison</label><input class="form-input" id="cmd-date" type="date"></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="cmd-notes" placeholder="Sans piment..."></div>
+    <button class="btn-submit" onclick="sauvegarderCommande()">✅ Créer commande</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-commande')">Annuler</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://traiteurpro.up.railway.app';
+const TRAITEUR_ID = 1;
+let currentPin = '';
+let allCommandes = [];
+
+// ============================================
+// PIN SYSTEM
+// ============================================
+function getSession() { return sessionStorage.getItem('tp_session'); }
+function setSession(data) { sessionStorage.setItem('tp_session', JSON.stringify(data)); }
+
+function checkLogin() {
+  const s = getSession();
+  if (s) { document.getElementById('login-overlay').style.display = 'none'; return true; }
+  return false;
+}
+
+function saisirPin(n) {
+  if (currentPin.length >= 4) return;
+  currentPin += n;
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('dot-'+i).classList.toggle('filled', i < currentPin.length);
+  }
+  if (currentPin.length === 4) setTimeout(validerPin, 200);
+}
+
+function effacerPin() {
+  currentPin = currentPin.slice(0, -1);
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('dot-'+i).classList.toggle('filled', i < currentPin.length);
+  }
+}
+
+async function validerPin() {
+  if (currentPin.length < 4) return;
+  try {
+    const r = await fetch(`${API}/api/traiteur/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ traiteur_id: TRAITEUR_ID, pin: currentPin })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      setSession(d);
+      document.getElementById('login-overlay').style.display = 'none';
+      if (d.first_login) {
+        document.getElementById('setpin-overlay').style.display = 'flex';
+      } else {
+        demarrer();
+      }
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      currentPin = '';
+      for (let i = 0; i < 4; i++) document.getElementById('dot-'+i).classList.remove('filled');
+      setTimeout(() => { document.getElementById('login-error').style.display = 'none'; }, 2000);
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = '❌ Erreur réseau';
+    document.getElementById('login-error').style.display = 'block';
+    currentPin = '';
+  }
+}
+
+async function confirmerNouveauPin() {
+  const np = document.getElementById('new-pin').value;
+  const cp = document.getElementById('confirm-pin').value;
+  if (np.length !== 4 || isNaN(np)) { showSetPinError('PIN doit être 4 chiffres'); return; }
+  if (np !== cp) { showSetPinError('Les PINs ne correspondent pas'); return; }
+  try {
+    const r = await fetch(`${API}/api/traiteur/set-pin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ traiteur_id: TRAITEUR_ID, ancien_pin: '1234', nouveau_pin: np })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById('setpin-overlay').style.display = 'none';
+      demarrer();
+    }
+  } catch(e) { showSetPinError('Erreur réseau'); }
+}
+
+function showSetPinError(msg) {
+  const el = document.getElementById('setpin-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function seDeconnecter() {
+  sessionStorage.removeItem('tp_session');
+  location.reload();
+}
+
+// ============================================
+// NAVIGATION TABS
+// ============================================
+function afficherTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tab === 'commandes') chargerCommandes('tous');
+  if (tab === 'menus') chargerMenus();
+  if (tab === 'clients') chargerClients();
+}
+
+// ============================================
+// DASHBOARD
+// ============================================
+async function chargerDashboard() {
+  try {
+    const r = await fetch(`${API}/api/dashboard/${TRAITEUR_ID}`);
+    const d = await r.json();
+    const { commandes, revenus, clients, nouvelles } = d.kpis;
+    document.getElementById('kpi-commandes').textContent = commandes;
+    document.getElementById('kpi-nouvelles').textContent = nouvelles + ' nouvelles';
+    document.getElementById('kpi-revenus').textContent = revenus >= 1000000
+      ? (revenus/1000000).toFixed(1)+'M' : revenus >= 1000 ? (revenus/1000).toFixed(0)+'k' : revenus;
+    document.getElementById('kpi-clients').textContent = clients;
+    const plat = d.plats_top?.[0];
+    document.getElementById('kpi-plat').textContent = plat ? (plat.emoji||'🍽️') + ' ' + plat.nom?.split(' ')[0] : '—';
+    document.getElementById('last-update').textContent = 'Mis à jour à ' + new Date().toLocaleTimeString('fr-FR');
+
+    // Nouvelles commandes
+    const r2 = await fetch(`${API}/api/commandes/${TRAITEUR_ID}?statut=nouveau&limit=5`);
+    const cmds = await r2.json();
+    const el = document.getElementById('nouvelles-commandes');
+    if (!cmds.length) { el.innerHTML = '<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune nouvelle commande</div>'; }
+    else { el.innerHTML = cmds.map(c => renderCommande(c, true)).join(''); }
+
+    // Plats top
+    const platsEl = document.getElementById('plats-top');
+    if (!d.plats_top?.length) { platsEl.innerHTML = '<div style="text-align:center;color:#888;font-size:13px">Pas encore de données</div>'; }
+    else {
+      platsEl.innerHTML = d.plats_top.map(p => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+          <span style="font-size:13px">${p.emoji||'🍽️'} ${p.nom}</span>
+          <span style="font-weight:800;color:#c0392b">${p.total} cmd</span>
+        </div>`).join('');
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ============================================
+// COMMANDES
+// ============================================
+function renderCommande(c, mini = false) {
+  const items = Array.isArray(c.items) ? c.items : (typeof c.items === 'string' ? JSON.parse(c.items) : []);
+  const produits = items.map(i => `${i.emoji||'🍽️'} ${i.quantite}x ${i.nom}`).join(', ');
+  const statuts = { nouveau:'b-nouveau', confirmé:'b-confirmé', preparation:'b-preparation', 'en route':'b-route', livré:'b-livré', annulé:'b-annulé' };
+  const labels = { nouveau:'🕐 Nouveau', confirmé:'✅ Confirmé', preparation:'👨‍🍳 Préparation', 'en route':'🚚 En route', livré:'✅ Livré', annulé:'❌ Annulé' };
+  const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  return `<div class="cmd-card">
+    <div class="cmd-top">
+      <div><div class="cmd-ref">${c.reference||'#'+c.id}</div><div class="cmd-client">📱 ${c.client_nom||c.client_phone} · ${date}</div></div>
+      <span class="badge ${statuts[c.statut]||'b-nouveau'}">${labels[c.statut]||c.statut}</span>
+    </div>
+    <div class="cmd-items">${produits||'Commande'}</div>
+    ${c.adresse_livraison ? `<div class="cmd-adresse">📍 ${c.adresse_livraison}</div>` : ''}
+    <div class="cmd-total">💰 ${Number(c.total).toLocaleString('fr-FR')} FCFA</div>
+    ${!mini ? `<div class="statut-btns">
+      <button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button>
+      <button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button>
+      <button class="statut-btn" onclick="changerStatut(${c.id},'en route')">🚚 En route</button>
+      <button class="statut-btn" onclick="changerStatut(${c.id},'livré')">🎉 Livré</button>
+      <button class="statut-btn" style="color:#c0392b" onclick="changerStatut(${c.id},'annulé')">❌ Annuler</button>
+    </div>` : `<div class="statut-btns">
+      <button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button>
+      <button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button>
+    </div>`}
+  </div>`;
+}
+
+async function chargerCommandes(statut = 'tous') {
+  try {
+    const url = statut === 'tous' ? `${API}/api/commandes/${TRAITEUR_ID}` : `${API}/api/commandes/${TRAITEUR_ID}?statut=${statut}`;
+    const r = await fetch(url);
+    allCommandes = await r.json();
+    const el = document.getElementById('commandes-liste');
+    if (!allCommandes.length) { el.innerHTML = '<div style="text-align:center;color:#888;font-size:13px;padding:20px">Aucune commande</div>'; return; }
+    el.innerHTML = allCommandes.map(c => renderCommande(c)).join('');
+  } catch(e) { console.error(e); }
+}
+
+function filtrerCommandes(statut) {
+  chargerCommandes(statut);
+}
+
+async function changerStatut(id, statut) {
+  try {
+    await fetch(`${API}/api/commandes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ statut, traiteur_id: TRAITEUR_ID })
+    });
+    chargerCommandes('tous');
+    chargerDashboard();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+// ============================================
+// MENUS
+// ============================================
+async function chargerMenus() {
+  try {
+    const r = await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
+    const menus = await r.json();
+    const el = document.getElementById('menus-liste');
+    const cats = { plat:'🍽️ Plats', famille:'👨‍👩‍👧 Famille', evenement:'🎊 Événements', cantine:'🏢 Cantine' };
+    if (!menus.length) { el.innerHTML = '<div style="text-align:center;color:#888;padding:20px">Aucun plat — ajoutez votre premier menu !</div>'; return; }
+    const grouped = {};
+    menus.forEach(m => { if (!grouped[m.categorie]) grouped[m.categorie] = []; grouped[m.categorie].push(m); });
+    let html = '';
+    for (const [cat, items] of Object.entries(grouped)) {
+      html += `<div style="font-size:12px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px">${cats[cat]||cat}</div>`;
+      html += items.map(m => `
+        <div class="menu-card">
+          <div class="menu-emoji">${m.emoji||'🍽️'}</div>
+          <div class="menu-info">
+            <div class="menu-nom">${m.nom}</div>
+            ${m.description ? `<div class="menu-desc">${m.description}</div>` : ''}
+            <div class="cat-badge">${m.nb_personnes > 1 ? m.nb_personnes+' pers.' : 'Individuel'}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="menu-prix">${Number(m.prix).toLocaleString('fr-FR')} F</div>
+            <div class="menu-actions" style="margin-top:6px">
+              <button class="menu-btn" onclick="toggleDispo(${m.id},${!m.disponible})" style="color:${m.disponible?'#006633':'#c0392b'}">${m.disponible?'✅':'❌'}</button>
+              <button class="menu-btn" style="color:#c0392b" onclick="supprimerMenu(${m.id})">🗑️</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+    el.innerHTML = html;
+  } catch(e) { console.error(e); }
+}
+
+function afficherModalMenu() {
+  document.getElementById('modal-menu').classList.add('open');
+}
+
+async function sauvegarderMenu() {
+  const nom = document.getElementById('menu-nom').value;
+  const prix = document.getElementById('menu-prix').value;
+  if (!nom || !prix) { alert('Nom et prix obligatoires'); return; }
+  try {
+    const r = await fetch(`${API}/api/menus`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        traiteur_id: TRAITEUR_ID,
+        nom, prix: parseInt(prix),
+        description: document.getElementById('menu-desc').value,
+        categorie: document.getElementById('menu-cat').value,
+        emoji: document.getElementById('menu-emoji').value,
+        nb_personnes: parseInt(document.getElementById('menu-pers').value) || 1
+      })
+    });
+    const d = await r.json();
+    if (d.ok) { fermerModal('modal-menu'); chargerMenus(); }
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function toggleDispo(id, dispo) {
+  await fetch(`${API}/api/menus/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ disponible: dispo })
+  });
+  chargerMenus();
+}
+
+async function supprimerMenu(id) {
+  if (!confirm('Supprimer ce plat ?')) return;
+  await fetch(`${API}/api/menus/${id}`, { method: 'DELETE' });
+  chargerMenus();
+}
+
+// ============================================
+// COMMANDE MANUELLE
+// ============================================
+async function afficherModalCommande() {
+  const r = await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
+  const menus = await r.json();
+  const sel = document.getElementById('cmd-plat');
+  sel.innerHTML = menus.map(m => `<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');
+  document.getElementById('modal-commande').classList.add('open');
+}
+
+async function sauvegarderCommande() {
+  const phone = document.getElementById('cmd-phone').value;
+  const sel = document.getElementById('cmd-plat');
+  const option = sel.options[sel.selectedIndex];
+  const prix = parseInt(option?.dataset?.prix || 0);
+  const qte = parseInt(document.getElementById('cmd-qte').value) || 1;
+  if (!phone) { alert('Téléphone obligatoire'); return; }
+  try {
+    const r = await fetch(`${API}/api/commandes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        traiteur_id: TRAITEUR_ID,
+        client_phone: phone,
+        client_nom: document.getElementById('cmd-nom').value,
+        items: [{ nom: option?.text?.split('—')[0].trim(), quantite: qte, prix }],
+        total: prix * qte,
+        adresse_livraison: document.getElementById('cmd-adresse').value,
+        date_livraison: document.getElementById('cmd-date').value || null,
+        notes: document.getElementById('cmd-notes').value
+      })
+    });
+    const d = await r.json();
+    if (d.ok) { fermerModal('modal-commande'); chargerCommandes('tous'); chargerDashboard(); }
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+// ============================================
+// CLIENTS
+// ============================================
+async function chargerClients() {
+  try {
+    const r = await fetch(`${API}/api/clients/${TRAITEUR_ID}`);
+    const clients = await r.json();
+    const el = document.getElementById('clients-liste');
+    if (!clients.length) { el.innerHTML = '<div style="text-align:center;color:#888;padding:20px">Aucun client pour l\'instant</div>'; return; }
+    el.innerHTML = clients.map(c => `
+      <div class="client-card">
+        <div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div>
+        <div class="client-info">
+          <div class="client-phone">${c.nom||c.phone}</div>
+          <div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div>
+        </div>
+        <div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function envoyerRelances() {
+  if (!confirm('Envoyer des relances aux clients inactifs depuis 7 jours ?')) return;
+  try {
+    const r = await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(prompt('Secret admin :'))}`);
+    const d = await r.json();
+    alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`);
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function envoyerPromo() {
+  const msg = prompt('Message de la promotion flash :');
+  if (!msg) return;
+  try {
+    const r = await fetch(`${API}/api/promo/${TRAITEUR_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    const d = await r.json();
+    alert(`✅ Promo envoyée à ${d.envoyes} client(s) !`);
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+// ============================================
+// MODAL
+// ============================================
+function fermerModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ============================================
+// DÉMARRAGE
+// ============================================
+function demarrer() {
+  chargerDashboard();
+  setInterval(chargerDashboard, 30000);
+}
+
+if (!checkLogin()) {
+  // Afficher login
+} else {
+  demarrer();
+}
+</script>
+</body>
+</html>
