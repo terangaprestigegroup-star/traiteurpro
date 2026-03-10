@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — Le SaaS des Traiteurs Sénégalais</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800;900&family=DM+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--rouge:#c0392b;--or:#FFD700;--vert:#006633;--bg:#fff8f0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#0d0d0d}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#c0392b 0%,#e74c3c 50%,#c0392b 100%);color:white;padding:28px 20px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-logo{font-size:60px;margin-bottom:8px;position:relative}
+.hero-badge{background:var(--or);color:#1a1a1a;font-size:10px;font-weight:900;padding:4px 14px;border-radius:20px;display:inline-block;margin-bottom:14px;letter-spacing:1px}
+.hero h1{font-family:'Syne',sans-serif;font-size:30px;font-weight:900;line-height:1.15;margin-bottom:10px;position:relative}
+.hero h1 span{color:var(--or)}
+.hero p{font-size:14px;opacity:0.9;line-height:1.6;margin-bottom:24px;position:relative}
+.hero-btns{display:flex;flex-direction:column;gap:10px;position:relative}
+.btn-primary{background:var(--or);color:#1a1a1a;padding:16px;border-radius:50px;font-size:15px;font-weight:900;text-decoration:none;display:block;text-align:center}
+.btn-secondary{background:rgba(255,255,255,0.15);color:white;padding:14px;border-radius:50px;font-size:14px;font-weight:700;text-decoration:none;display:block;text-align:center;border:2px solid rgba(255,255,255,0.3)}
+.hero-stats{display:flex;justify-content:center;gap:24px;margin-top:24px;position:relative}
+.stat{text-align:center}
+.stat-val{font-size:22px;font-weight:900;color:var(--or)}
+.stat-lbl{font-size:10px;opacity:0.7}
+
+/* FEATURES */
+.features{padding:28px 20px}
+.features h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;text-align:center;margin-bottom:6px}
+.features p.sub{font-size:13px;color:#888;text-align:center;margin-bottom:20px}
+.feature-card{background:white;border-radius:18px;padding:18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 2px 12px rgba(192,57,43,0.08)}
+.feature-icon{font-size:32px;flex-shrink:0;width:52px;height:52px;background:linear-gradient(135deg,#fff0ee,#ffe0de);border-radius:14px;display:flex;align-items:center;justify-content:center}
+.feature-title{font-size:14px;font-weight:900;margin-bottom:4px;color:#c0392b}
+.feature-desc{font-size:12px;color:#666;line-height:1.5}
+
+/* CIBLES */
+.cibles{background:linear-gradient(135deg,#fff0ee,#fff8f0);padding:28px 20px}
+.cibles h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;text-align:center;margin-bottom:20px}
+.cible-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cible{background:white;border-radius:16px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.cible-emoji{font-size:36px;margin-bottom:8px}
+.cible-nom{font-size:12px;font-weight:900;color:#c0392b}
+.cible-desc{font-size:10px;color:#888;margin-top:4px}
+
+/* PLANS */
+.plans{padding:28px 20px}
+.plans h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;text-align:center;margin-bottom:6px}
+.plans p.sub{font-size:13px;color:#888;text-align:center;margin-bottom:20px}
+.plan-card{background:white;border-radius:20px;padding:22px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,0.06);border:2px solid transparent}
+.plan-card.pro{border-color:#c0392b;position:relative}
+.plan-badge{background:#c0392b;color:white;font-size:10px;font-weight:900;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:10px}
+.plan-name{font-size:18px;font-weight:900;margin-bottom:4px}
+.plan-price{font-size:28px;font-weight:900;color:#c0392b;margin-bottom:14px}
+.plan-price span{font-size:13px;font-weight:600;color:#888}
+.plan-feature{font-size:12px;color:#444;padding:5px 0;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px}
+.plan-btn{display:block;text-align:center;padding:14px;border-radius:50px;font-size:14px;font-weight:900;text-decoration:none;margin-top:16px}
+.plan-btn-pro{background:#c0392b;color:white}
+.plan-btn-free{background:#f5f5f5;color:#444}
+
+/* INSCRIPTION */
+.inscription{background:linear-gradient(135deg,#c0392b,#e74c3c);padding:28px 20px;color:white}
+.inscription h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;text-align:center;margin-bottom:6px}
+.inscription p.sub{font-size:13px;opacity:0.85;text-align:center;margin-bottom:20px}
+.form-group{margin-bottom:12px}
+.form-input{width:100%;padding:14px;border-radius:14px;border:none;font-size:14px;font-family:inherit;outline:none}
+.form-select{width:100%;padding:14px;border-radius:14px;border:none;font-size:14px;font-family:inherit;outline:none;background:white}
+.btn-inscrire{background:var(--or);color:#1a1a1a;padding:16px;border-radius:50px;font-size:15px;font-weight:900;border:none;cursor:pointer;font-family:inherit;width:100%}
+#success-msg{background:rgba(255,255,255,0.2);border-radius:14px;padding:16px;text-align:center;margin-top:16px;display:none}
+
+/* FOOTER */
+footer{background:#1a1a1a;color:white;padding:24px 20px;text-align:center}
+footer p{font-size:12px;opacity:0.6;line-height:1.8}
+footer a{color:var(--or);text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">🍽️</div>
+  <div class="hero-badge">🇸🇳 MADE IN SENEGAL</div>
+  <h1>Le SaaS des <span>Traiteurs</span> Sénégalais</h1>
+  <p>Bot WhatsApp IA + Dashboard complet pour gérer vos commandes automatiquement. De Dakar à Saint-Louis.</p>
+  <div class="hero-btns">
+    <a href="#inscription" class="btn-primary">🍽️ Démarrer gratuitement</a>
+    <a href="https://wa.me/221771234567" class="btn-secondary">📲 Voir une démo WhatsApp</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Bot actif</div></div>
+    <div class="stat"><div class="stat-val">+50%</div><div class="stat-lbl">Commandes</div></div>
+    <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Setup requis</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features">
+  <h2>Tout ce dont vous avez besoin</h2>
+  <p class="sub">En moins de 5 minutes, votre traiteur est en ligne</p>
+
+  <div class="feature-card">
+    <div class="feature-icon">🤖</div>
+    <div><div class="feature-title">Bot WhatsApp IA</div><div class="feature-desc">Vos clients commandent directement sur WhatsApp. L'IA comprend les commandes en français, traite et confirme automatiquement 24h/24.</div></div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">📊</div>
+    <div><div class="feature-title">Dashboard temps réel</div><div class="feature-desc">Visualisez toutes vos commandes, revenus et clients. Changez les statuts (confirmé → préparation → en route → livré) depuis votre téléphone.</div></div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">🍽️</div>
+    <div><div class="feature-title">Menu digital personnalisé</div><div class="feature-desc">Créez votre carte (plats, menus famille, événements, cantine). Activez/désactivez les plats en un clic selon disponibilité.</div></div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">📲</div>
+    <div><div class="feature-title">Notifications automatiques</div><div class="feature-desc">Le client reçoit une notification WhatsApp à chaque étape : confirmé, en préparation, en route, livré. Zéro appel à gérer.</div></div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">📣</div>
+    <div><div class="feature-title">Promotions flash</div><div class="feature-desc">Envoyez une promo à tous vos clients en 1 clic. "Thiéboudienne à 3500F aujourd'hui seulement !" → Tous vos clients reçoivent.</div></div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon">🔄</div>
+    <div><div class="feature-title">Relances automatiques</div><div class="feature-desc">Les clients inactifs depuis 7 jours reçoivent un message de relance automatique. Récupérez vos clients perdus sans effort.</div></div>
+  </div>
+</div>
+
+<!-- CIBLES -->
+<div class="cibles">
+  <h2>Pour tous les traiteurs</h2>
+  <div class="cible-grid">
+    <div class="cible"><div class="cible-emoji">🏠</div><div class="cible-nom">Traiteur à domicile</div><div class="cible-desc">Gérez vos commandes sans secrétaire</div></div>
+    <div class="cible"><div class="cible-emoji">🍴</div><div class="cible-nom">Restaurant livraison</div><div class="cible-desc">Plus de commandes WhatsApp perdues</div></div>
+    <div class="cible"><div class="cible-emoji">🏢</div><div class="cible-nom">Cantine entreprise</div><div class="cible-desc">Menus et plateaux automatisés</div></div>
+    <div class="cible"><div class="cible-emoji">🎊</div><div class="cible-nom">Traiteur événements</div><div class="cible-desc">Mariages, baptêmes, cérémonies</div></div>
+  </div>
+</div>
+
+<!-- PLANS -->
+<div class="plans">
+  <h2>Nos tarifs</h2>
+  <p class="sub">Commencez gratuitement, payez quand vous grandissez</p>
+
+  <div class="plan-card">
+    <div class="plan-name">🆓 Gratuit</div>
+    <div class="plan-price">0 FCFA <span>/mois</span></div>
+    <div class="plan-feature">✅ 30 commandes/mois</div>
+    <div class="plan-feature">✅ Bot WhatsApp IA</div>
+    <div class="plan-feature">✅ Menu digital</div>
+    <div class="plan-feature">✅ Dashboard basique</div>
+    <div class="plan-feature">❌ Promotions flash</div>
+    <div class="plan-feature">❌ Relances auto</div>
+    <a href="#inscription" class="plan-btn plan-btn-free">Démarrer gratuitement</a>
+  </div>
+
+  <div class="plan-card pro">
+    <div class="plan-badge">⭐ STARTER</div>
+    <div class="plan-name">Starter</div>
+    <div class="plan-price">15 000 <span>FCFA/mois</span></div>
+    <div class="plan-feature">✅ 500 commandes/mois</div>
+    <div class="plan-feature">✅ Bot WhatsApp IA</div>
+    <div class="plan-feature">✅ Menu complet</div>
+    <div class="plan-feature">✅ Promotions flash</div>
+    <div class="plan-feature">✅ Relances automatiques</div>
+    <div class="plan-feature">✅ Support WhatsApp</div>
+    <a href="#inscription" class="plan-btn plan-btn-pro">Choisir Starter</a>
+  </div>
+
+  <div class="plan-card">
+    <div class="plan-badge" style="background:#FFD700;color:#1a1a1a">👑 PRO</div>
+    <div class="plan-name">Pro</div>
+    <div class="plan-price">35 000 <span>FCFA/mois</span></div>
+    <div class="plan-feature">✅ Commandes illimitées</div>
+    <div class="plan-feature">✅ Multi-livreurs</div>
+    <div class="plan-feature">✅ Statistiques avancées</div>
+    <div class="plan-feature">✅ Gestion événements</div>
+    <div class="plan-feature">✅ Paiement échelonné</div>
+    <div class="plan-feature">✅ Support 24h/24</div>
+    <a href="#inscription" class="plan-btn plan-btn-pro">Choisir Pro</a>
+  </div>
+</div>
+
+<!-- INSCRIPTION -->
+<div class="inscription" id="inscription">
+  <h2>Commencer maintenant</h2>
+  <p class="sub">Votre bot WhatsApp sera actif dans 5 minutes</p>
+  <div class="form-group"><input class="form-input" id="i-nom" placeholder="Nom de votre traiteur *"></div>
+  <div class="form-group"><input class="form-input" id="i-proprio" placeholder="Votre nom"></div>
+  <div class="form-group"><input class="form-input" id="i-phone" placeholder="Numéro WhatsApp * (ex: 221771234567)"></div>
+  <div class="form-group"><input class="form-input" id="i-ville" placeholder="Ville (ex: Dakar)"></div>
+  <div class="form-group">
+    <select class="form-select" id="i-cuisine">
+      <option value="sénégalaise">🍚 Cuisine sénégalaise</option>
+      <option value="internationale">🌍 Cuisine internationale</option>
+      <option value="asiatique">🍜 Cuisine asiatique</option>
+      <option value="libanaise">🥙 Cuisine libanaise</option>
+      <option value="mixte">🍽️ Cuisine mixte</option>
+    </select>
+  </div>
+  <div class="form-group"><input class="form-input" id="i-zone" placeholder="Zone de livraison (ex: Dakar, Plateau, Médina)"></div>
+  <button class="btn-inscrire" onclick="inscrire()">🍽️ Créer mon espace traiteur</button>
+  <div id="success-msg">✅ <strong>Félicitations !</strong><br>Votre espace est créé. Vous recevez un message WhatsApp avec vos accès dans quelques secondes !</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p style="font-size:20px;margin-bottom:8px">🍽️</p>
+  <p><strong>TraiteurPro</strong> · Terangaprestige Group 🇸🇳</p>
+  <p>📞 <a href="https://wa.me/221711288439">+221 71 128 84 39</a></p>
+  <p style="margin-top:8px">© 2026 TraiteurPro · Dakar, Sénégal</p>
+</footer>
+
+<script>
+const API = 'https://traiteurpro.up.railway.app';
+
+async function inscrire() {
+  const nom = document.getElementById('i-nom').value.trim();
+  const phone = document.getElementById('i-phone').value.trim();
+  if (!nom || !phone) { alert('Nom et numéro WhatsApp obligatoires'); return; }
+  try {
+    const r = await fetch(`${API}/api/inscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nom_boutique: nom,
+        proprietaire: document.getElementById('i-proprio').value,
+        whatsapp: phone,
+        ville: document.getElementById('i-ville').value || 'Dakar',
+        type_cuisine: document.getElementById('i-cuisine').value,
+        zone_livraison: document.getElementById('i-zone').value
+      })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById('success-msg').style.display = 'block';
+      ['i-nom','i-proprio','i-phone','i-ville','i-zone'].forEach(id => document.getElementById(id).value = '');
+    } else { alert('Erreur : ' + (d.error || 'Réessayez')); }
+  } catch(e) { alert('Erreur réseau. Réessayez.'); }
+}
+</script>
+</body>
+</html>
