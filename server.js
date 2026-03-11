@@ -794,6 +794,29 @@ function planifierRelances() {
 
 
 
+
+// ============================================
+// MIGRATION DB
+// ============================================
+app.get('/api/admin/migrate', async (req, res) => {
+  const secret = req.query.secret || req.headers['x-admin-secret'];
+  if (secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Non autorisé' });
+  try {
+    await pool.query(`
+      ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS essai_expire TIMESTAMP;
+      ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS parrain_id INTEGER;
+      ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS abonnement_expire TIMESTAMP;
+      ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS seuil_commandes INTEGER DEFAULT 30;
+    `);
+    // Activer essai 14j pour traiteurs existants sans essai_expire
+    await pool.query(`
+      UPDATE traiteurs SET essai_expire = NOW() + INTERVAL '14 days'
+      WHERE essai_expire IS NULL AND plan != 'pro'
+    `);
+    res.json({ ok: true, message: '✅ Migration réussie ! Colonnes ajoutées et essais activés.' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ============================================
 // ESSAI + SUSPENSION DOUCE + PARRAINAGE
 // ============================================
