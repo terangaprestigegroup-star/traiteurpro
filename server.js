@@ -560,9 +560,94 @@ app.post('/api/inscription', async (req, res) => {
 });
 
 // ============================================
+// ROUTES ADMIN
+// ============================================
+
+// Stats globales
+app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
+  try {
+    const [traiteurs, commandes, clients, actifs, plans] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM traiteurs'),
+      pool.query('SELECT COUNT(*) FROM commandes_traiteur'),
+      pool.query('SELECT COUNT(DISTINCT client_phone) FROM commandes_traiteur'),
+      pool.query('SELECT COUNT(*) FROM traiteurs WHERE actif=true'),
+      pool.query('SELECT plan, COUNT(*) as nb FROM traiteurs GROUP BY plan')
+    ]);
+    const plansMap = {};
+    plans.rows.forEach(p => { plansMap[p.plan] = parseInt(p.nb); });
+    res.json({
+      traiteurs: parseInt(traiteurs.rows[0].count),
+      commandes: parseInt(commandes.rows[0].count),
+      clients: parseInt(clients.rows[0].count),
+      actifs: parseInt(actifs.rows[0].count),
+      plans: plansMap
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Liste tous les traiteurs avec stats
+app.get('/api/admin/traiteurs', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT t.*, 
+        COUNT(c.id) as nb_commandes,
+        COALESCE(SUM(c.total),0) as revenus
+      FROM traiteurs t
+      LEFT JOIN commandes_traiteur c ON c.traiteur_id = t.id
+      GROUP BY t.id
+      ORDER BY t.created_at DESC
+    `);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Modifier un traiteur
+app.put('/api/admin/traiteur/:id', adminMiddleware, async (req, res) => {
+  try {
+    const { plan, actif, pin } = req.body;
+    let q = 'UPDATE traiteurs SET plan=COALESCE($1,plan), actif=COALESCE($2,actif)';
+    const params = [plan, actif];
+    if (pin) { q += `, pin=$${params.length+1}`; params.push(pin); }
+    q += ` WHERE id=$${params.length+1} RETURNING *`;
+    params.push(req.params.id);
+    const r = await pool.query(q, params);
+    res.json({ ok: true, traiteur: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Activité récente (7 jours)
+app.get('/api/admin/activite', adminMiddleware, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT t.nom_boutique, t.whatsapp,
+        COUNT(c.id) as nb,
+        COALESCE(SUM(c.total),0) as revenus,
+        MAX(c.created_at) as created_at
+      FROM commandes_traiteur c
+      JOIN traiteurs t ON t.id = c.traiteur_id
+      WHERE c.created_at > NOW()-INTERVAL '7 days'
+      GROUP BY t.id, t.nom_boutique, t.whatsapp
+      ORDER BY created_at DESC
+      LIMIT 20
+    `);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Envoyer message WhatsApp à un traiteur
+app.post('/api/admin/message', adminMiddleware, async (req, res) => {
+  try {
+    const { phone, message } = req.body;
+    await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, phone, message);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
 // PAGES
 // ============================================
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 
