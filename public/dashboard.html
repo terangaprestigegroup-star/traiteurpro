@@ -186,9 +186,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 
 
 <!-- BANNIERE ESSAI/SUSPENSION -->
-<div id="banner-essai" class="banner-essai">
-  <span id="banner-text" class="banner-essai-text"></span>
-  <button class="banner-essai-btn" onclick="afficherTab('finance',null);afficherSousTab('abonnement',document.querySelector('.sous-tab:last-child'))">💳 S'abonner</button>
+<div id="banner-essai" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;padding:12px 16px;display:none;align-items:center;gap:10px;position:sticky;top:56px;z-index:99;flex-wrap:wrap">
+  <span id="banner-text" style="flex:1;font-size:12px;font-weight:700;color:white;min-width:150px"></span>
+  <button onclick="afficherTab('finance',null)" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -602,7 +602,7 @@ function copierCode(code){
 }
 
 function fermerModal(id){document.getElementById(id).classList.remove('open')}
-function demarrer(){chargerDashboard();verifierEssai();setInterval(chargerDashboard,30000)}
+function demarrer(){chargerDashboard();setTimeout(verifierEssai,500);setInterval(chargerDashboard,30000)}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
