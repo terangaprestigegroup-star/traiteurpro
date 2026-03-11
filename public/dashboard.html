@@ -215,10 +215,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     </div>
   </div>
   <!-- CARTE ESSAI -->
-  <div id="essai-card" style="display:none;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap">
-    <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px"></div>
+  <div id="essai-card" style="display:flex;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#95a5a6,#7f8c8d)">
+    <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px">⏳ Chargement essai...</div>
     <button onclick="afficherTab('finance',null)" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
   </div>
+  <script>
+    // Affichage immédiat de la carte essai
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(function(){
+        if(typeof verifierEssai === 'function') verifierEssai();
+      }, 800);
+    });
+  </script>
   <div class="kpis">
     <div class="kpi"><div class="kpi-val" id="kpi-commandes">—</div><div class="kpi-lbl">📋 Commandes totales</div><div class="kpi-badge" id="kpi-nouvelles">— nouvelles</div></div>
     <div class="kpi"><div class="kpi-val" id="kpi-revenus">—</div><div class="kpi-lbl">💰 Revenus FCFA</div></div>
@@ -612,7 +620,7 @@ function copierCode(code){
 }
 
 function fermerModal(id){document.getElementById(id).classList.remove('open')}
-function demarrer(){chargerDashboard();setTimeout(verifierEssai,500);setInterval(chargerDashboard,30000)}
+function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000)}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
