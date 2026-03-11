@@ -1,6 +1,6 @@
 {
   "name": "traiteurpro",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "SaaS Traiteurs Sénégalais",
   "main": "server.js",
   "scripts": {
