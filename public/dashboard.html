@@ -214,6 +214,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
       <button class="btn-bv" onclick="afficherTab('menus',null);setTimeout(afficherModalMenu,100)">🍽️ Ajouter mon premier plat</button>
     </div>
   </div>
+  <!-- CARTE ESSAI -->
+  <div id="essai-card" style="display:none;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap">
+    <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px"></div>
+    <button onclick="afficherTab('finance',null)" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
+  </div>
   <div class="kpis">
     <div class="kpi"><div class="kpi-val" id="kpi-commandes">—</div><div class="kpi-lbl">📋 Commandes totales</div><div class="kpi-badge" id="kpi-nouvelles">— nouvelles</div></div>
     <div class="kpi"><div class="kpi-val" id="kpi-revenus">—</div><div class="kpi-lbl">💰 Revenus FCFA</div></div>
@@ -555,23 +560,23 @@ async function verifierEssai(){
   try{
     const r=await fetch(`${API}/api/essai/${TRAITEUR_ID}`);
     const d=await r.json();
-    const banner=document.getElementById('banner-essai');
-    const text=document.getElementById('banner-text');
-    if(!banner||!text)return;
+    const card=document.getElementById('essai-card');
+    const text=document.getElementById('essai-card-text');
+    if(!card||!text)return;
     let bg='', msg='';
     if(d.suspendu_doux){
       bg='linear-gradient(135deg,#c0392b,#e74c3c)';
-      msg='🔴 Votre essai est terminé. Votre bot est en pause — abonnez-vous pour continuer.';
+      msg='🔴 Votre essai est terminé — abonnez-vous pour réactiver votre bot.';
     } else if(d.essai_actif && d.jours_essai<=3){
       bg='linear-gradient(135deg,#e67e22,#f39c12)';
-      msg=`⏰ Essai gratuit : ${d.jours_essai} jour(s) restant(s). Abonnez-vous pour continuer.`;
+      msg='⏰ Essai gratuit : '+d.jours_essai+' jour(s) restant(s). Abonnez-vous pour continuer.';
     } else if(d.essai_actif){
       bg='linear-gradient(135deg,#27ae60,#2ecc71)';
-      msg=`✅ Essai Starter gratuit — expire le ${d.essai_expire} · ${d.jours_essai}j restants`;
+      msg='✅ Essai Starter gratuit · expire le '+d.essai_expire+' ('+d.jours_essai+'j)';
     }
     if(msg){
       text.textContent=msg;
-      banner.setAttribute('style','display:flex;align-items:center;gap:10px;padding:10px 16px;position:sticky;top:56px;z-index:99;flex-wrap:wrap;background:'+bg);
+      card.setAttribute('style','display:flex;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap;background:'+bg);
     }
   }catch(e){console.log('Essai:',e)}
 }
