@@ -188,7 +188,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 <!-- BANNIERE ESSAI/SUSPENSION -->
 <div id="banner-essai" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;padding:12px 16px;display:none;align-items:center;gap:10px;position:sticky;top:56px;z-index:99;flex-wrap:wrap">
   <span id="banner-text" style="flex:1;font-size:12px;font-weight:700;color:white;min-width:150px"></span>
-  <button onclick="afficherTab('finance',null)" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
+  <button onclick="afficherTab('finance',null);setTimeout(()=>{document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));const aBtn=document.querySelector('.sous-tab:nth-child(3)');if(aBtn){aBtn.classList.add('active');afficherSousTab('abonnement',aBtn)}},100)" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -217,7 +217,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
   <!-- CARTE ESSAI -->
   <div id="essai-card" style="display:flex;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#95a5a6,#7f8c8d)">
     <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px">⏳ Chargement essai...</div>
-    <button onclick="afficherTab('finance',null)" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
+    <button onclick="afficherTab('finance',null);setTimeout(()=>{document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));const aBtn=document.querySelector('.sous-tab:nth-child(3)');if(aBtn){aBtn.classList.add('active');afficherSousTab('abonnement',aBtn)}},100)" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
   </div>
   <script>
     // Affichage immédiat de la carte essai
@@ -529,12 +529,21 @@ async function envoyerPromo(){const msg=prompt('Message de la promotion flash :'
 
 async function chargerAbonnement(){
   try{
-    const r=await fetch(`${API}/api/abonnement/${TRAITEUR_ID}`);
-    const d=await r.json();
+    // Récupérer statut essai + abonnement
+    const [rA, rE] = await Promise.all([
+      fetch(`${API}/api/abonnement/${TRAITEUR_ID}`),
+      fetch(`${API}/api/essai/${TRAITEUR_ID}`)
+    ]);
+    const d=await rA.json();
+    const essai=await rE.json();
+    // Injecter infos essai dans d
+    if(!d.plan) d.plan='gratuit';
+    if(essai.essai_actif) d.essai={actif:true,expire:essai.essai_expire,jours:essai.jours_essai};
     const plans={gratuit:{label:'Gratuit',prix:'0 FCFA',couleur:'#888'},starter:{label:'Starter',prix:'15 000 FCFA',couleur:'#1565C0'},pro:{label:'Pro',prix:'35 000 FCFA',couleur:'#c0392b'}};
     const p=plans[d.plan]||plans.gratuit;
     const pct=d.seuil>900000?100:Math.round((d.utilise/d.seuil)*100);
     document.getElementById('abonnement-content').innerHTML=`
+      ${d.essai&&d.essai.actif?`<div style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center"><div style="font-size:13px;font-weight:900">✅ Essai gratuit Starter actif</div><div style="font-size:12px;opacity:0.9;margin-top:4px">Expire le ${d.essai.expire} · ${d.essai.jours} jours restants</div></div>`:''}
       <div class="bilan-card">
         <div class="bilan-titre">💳 Mon abonnement</div>
         <div style="text-align:center;padding:12px 0">
