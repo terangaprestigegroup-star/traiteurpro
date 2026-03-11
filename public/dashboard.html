@@ -184,6 +184,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
   </div>
 </nav>
 
+
+<!-- BANNIERE ESSAI/SUSPENSION -->
+<div id="banner-essai" class="banner-essai">
+  <span id="banner-text" class="banner-essai-text"></span>
+  <button class="banner-essai-btn" onclick="afficherTab('finance',null);afficherSousTab('abonnement',document.querySelector('.sous-tab:last-child'))">💳 S'abonner</button>
+</div>
+
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab-content active">
   <div class="page-header">
@@ -274,6 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     <button class="sous-tab active" onclick="afficherSousTab('bilan',this)">📊 Bilan mensuel</button>
     <button class="sous-tab" onclick="afficherSousTab('echelonne',this)">⏳ Échelonnés</button>
     <button class="sous-tab" onclick="afficherSousTab('abonnement',this)">💳 Abonnement</button>
+    <button class="sous-tab" onclick="afficherSousTab('parrainage',this)">🎁 Parrainage</button>
   </div>
   <div id="sous-bilan" class="section" style="padding-top:14px"><div id="bilan-content"></div></div>
   <div id="sous-echelonne" style="display:none">
@@ -410,9 +418,11 @@ function afficherSousTab(id,btn){
   document.getElementById('sous-bilan').style.display=id==='bilan'?'block':'none';
   document.getElementById('sous-echelonne').style.display=id==='echelonne'?'block':'none';
   document.getElementById('sous-abonnement').style.display=id==='abonnement'?'block':'none';
+  document.getElementById('sous-parrainage').style.display=id==='parrainage'?'block':'none';
   if(id==='bilan')chargerBilan();
   if(id==='echelonne')chargerEchelonnes();
   if(id==='abonnement')chargerAbonnement();
+  if(id==='parrainage')chargerParrainage();
 }
 
 async function chargerDashboard(){
@@ -541,8 +551,58 @@ async function payerAbonnement(plan){
   }catch(e){alert('Erreur: '+e.message)}
 }
 
+async function verifierEssai(){
+  try{
+    const r=await fetch(`${API}/api/essai/${TRAITEUR_ID}`);
+    const d=await r.json();
+    const banner=document.getElementById('banner-essai');
+    const text=document.getElementById('banner-text');
+    if(d.suspendu_doux){
+      banner.style.display='flex';
+      banner.classList.add('rouge');
+      text.textContent='🔴 Votre essai est terminé. Votre bot est en pause — abonnez-vous pour continuer.';
+    } else if(d.essai_actif && d.jours_essai<=3){
+      banner.style.display='flex';
+      text.textContent=`⏰ Essai gratuit : ${d.jours_essai} jour(s) restant(s). Abonnez-vous pour continuer sans interruption.`;
+    } else if(d.essai_actif){
+      banner.style.display='flex';
+      text.textContent=`✅ Essai gratuit Starter actif — expire le ${d.essai_expire} (${d.jours_essai}j restants)`;
+    }
+  }catch(e){console.log('Essai check:',e)}
+}
+
+async function chargerParrainage(){
+  try{
+    const r=await fetch(`${API}/api/parrainage/${TRAITEUR_ID}`);
+    const d=await r.json();
+    document.getElementById('parrainage-content').innerHTML=`
+      <div class="bilan-card">
+        <div class="bilan-titre">🎁 Mon code de parrainage</div>
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:28px;font-weight:900;color:#c0392b;letter-spacing:4px;background:#fff0f0;border-radius:12px;padding:12px;margin-bottom:12px">${d.code}</div>
+          <div style="font-size:12px;color:#888;margin-bottom:16px">Partagez ce code à d'autres traiteurs</div>
+        </div>
+        <div class="bilan-row"><span>👥 Traiteurs parrainés</span><span>${d.filleuls}</span></div>
+        <div class="bilan-row total"><span>🎁 Mois offerts gagnés</span><span>${d.mois_gagnes}</span></div>
+      </div>
+      <div class="bilan-card" style="margin-top:10px">
+        <div class="bilan-titre">📲 Partager mon lien</div>
+        <div style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.6">Envoyez ce lien à un ami traiteur. Quand il s'inscrit, vous gagnez tous les deux <strong>1 mois offert</strong> !</div>
+        <button onclick="partagerParrainage('${d.lien}')" style="width:100%;background:#25D366;color:white;border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit">📲 Partager sur WhatsApp</button>
+        <button onclick="copierCode('${d.code}')" style="width:100%;background:#f5f5f5;color:#444;border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px">📋 Copier le code</button>
+      </div>`;
+  }catch(e){document.getElementById('parrainage-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur chargement parrainage</div>'}
+}
+function partagerParrainage(lien){
+  const msg=encodeURIComponent(`🍽️ Rejoins TraiteurPro !\n\nGère tes commandes automatiquement sur WhatsApp.\n\n🎁 Utilise mon code pour 14 jours d'essai gratuit :\n\n${lien}\n\n_TraiteurPro 🇸🇳_`);
+  window.open(`https://wa.me/?text=${msg}`,'_blank');
+}
+function copierCode(code){
+  navigator.clipboard.writeText(code).then(()=>alert(`✅ Code ${code} copié !`));
+}
+
 function fermerModal(id){document.getElementById(id).classList.remove('open')}
-function demarrer(){chargerDashboard();setInterval(chargerDashboard,30000)}
+function demarrer(){chargerDashboard();verifierEssai();setInterval(chargerDashboard,30000)}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
