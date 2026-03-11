@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — Carte des Traiteurs</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800;900&family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#fff8f0;color:#0d0d0d}
+.header{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;padding:16px 20px}
+.header h1{font-family:'Syne',sans-serif;font-size:20px;font-weight:900}
+.header p{font-size:11px;opacity:0.8;margin-top:2px}
+.filtres{padding:12px 16px;display:flex;gap:8px;overflow-x:auto;background:white;border-bottom:1px solid #f0e0e0}
+.filtre-btn{background:#f5f5f5;color:#444;border:none;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0}
+.filtre-btn.active{background:#c0392b;color:white}
+#carte{height:300px}
+.traiteurs-liste{padding:14px}
+.traiteur-card{background:white;border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(192,57,43,0.08);display:flex;gap:12px;align-items:flex-start}
+.t-avatar{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#c0392b,#e74c3c);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.t-info{flex:1}
+.t-nom{font-size:14px;font-weight:900;color:#c0392b}
+.t-cuisine{font-size:11px;color:#888;margin-top:2px}
+.t-ville{font-size:11px;color:#444;margin-top:4px}
+.t-zone{font-size:10px;color:#888;margin-top:2px}
+.t-actions{display:flex;gap:6px;margin-top:8px}
+.t-btn{background:#fff0ee;color:#c0392b;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block}
+.t-btn.wa{background:#25D366;color:white}
+.stats-bar{background:white;padding:12px 16px;border-bottom:1px solid #f0e0e0;display:flex;gap:16px}
+.stat{text-align:center}
+.stat-val{font-size:18px;font-weight:900;color:#c0392b}
+.stat-lbl{font-size:10px;color:#888}
+.empty{text-align:center;color:#888;padding:32px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🗺️ Traiteurs Sénégal</h1>
+  <p>Trouvez un traiteur près de chez vous</p>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val" id="nb-total">—</div><div class="stat-lbl">Traiteurs</div></div>
+  <div class="stat"><div class="stat-val" id="nb-villes">—</div><div class="stat-lbl">Villes</div></div>
+  <div class="stat"><div class="stat-val" id="nb-cmd">—</div><div class="stat-lbl">Commandes</div></div>
+</div>
+
+<div class="filtres" id="filtres-villes">
+  <button class="filtre-btn active" onclick="filtrer('toutes',this)">🇸🇳 Toutes</button>
+</div>
+
+<div id="carte"></div>
+
+<div class="traiteurs-liste" id="liste-traiteurs">
+  <div class="empty">Chargement...</div>
+</div>
+
+<script>
+const API = 'https://traiteurpro-production.up.railway.app';
+let tousTraiteurs = [];
+let carte;
+
+// Coordonnées villes Sénégal
+const coordVilles = {
+  'Dakar': [14.6937, -17.4441],
+  'Thiès': [14.7919, -16.9255],
+  'Saint-Louis': [16.0179, -16.4896],
+  'Ziguinchor': [12.5681, -16.2719],
+  'Kaolack': [14.1520, -16.0726],
+  'Mbour': [14.3946, -16.9658],
+  'Touba': [14.8535, -15.8774],
+  'Plateau': [14.6953, -17.4439],
+  'Médina': [14.6900, -17.4600],
+  'Almadies': [14.7463, -17.5210],
+  'Parcelles': [14.7757, -17.4296],
+  'Guédiawaye': [14.7703, -17.3927]
+};
+
+function getCoord(ville) {
+  for (const [k, v] of Object.entries(coordVilles)) {
+    if (ville?.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return [14.6937 + (Math.random()-0.5)*0.1, -17.4441 + (Math.random()-0.5)*0.1];
+}
+
+async function charger() {
+  try {
+    const [tr, villes] = await Promise.all([
+      fetch(`${API}/api/traiteurs-public`).then(r=>r.json()),
+      fetch(`${API}/api/villes-traiteurs`).then(r=>r.json())
+    ]);
+    tousTraiteurs = tr;
+
+    // Stats
+    document.getElementById('nb-total').textContent = tr.length;
+    document.getElementById('nb-villes').textContent = villes.length;
+    document.getElementById('nb-cmd').textContent = tr.reduce((s,t) => s + parseInt(t.nb_commandes||0), 0);
+
+    // Filtres villes
+    const filtresEl = document.getElementById('filtres-villes');
+    villes.forEach(v => {
+      const btn = document.createElement('button');
+      btn.className = 'filtre-btn';
+      btn.textContent = `📍 ${v.ville} (${v.nb})`;
+      btn.onclick = () => filtrer(v.ville, btn);
+      filtresEl.appendChild(btn);
+    });
+
+    // Carte
+    initCarte(tr);
+    afficherListe(tr);
+  } catch(e) { console.error(e); }
+}
+
+function initCarte(traiteurs) {
+  carte = L.map('carte').setView([14.6937, -17.4441], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(carte);
+
+  traiteurs.forEach(t => {
+    const coord = getCoord(t.ville);
+    const marker = L.marker(coord).addTo(carte);
+    marker.bindPopup(`
+      <div style="font-family:'DM Sans',sans-serif;min-width:160px">
+        <div style="font-size:24px;text-align:center">${t.logo_emoji||'🍽️'}</div>
+        <div style="font-weight:900;color:#c0392b;margin:4px 0">${t.nom_boutique}</div>
+        <div style="font-size:11px;color:#888">${t.type_cuisine} · ${t.ville}</div>
+        ${t.frais_livraison > 0 ? `<div style="font-size:11px;margin-top:4px">🚚 Livraison : ${Number(t.frais_livraison).toLocaleString('fr-FR')} FCFA</div>` : '<div style="font-size:11px;color:#006633;margin-top:4px">🚚 Livraison gratuite</div>'}
+        <a href="https://wa.me/${t.whatsapp}" style="display:block;background:#25D366;color:white;text-align:center;padding:6px;border-radius:8px;margin-top:8px;font-size:12px;font-weight:700;text-decoration:none">📲 Commander</a>
+      </div>
+    `);
+  });
+}
+
+function filtrer(ville, btn) {
+  document.querySelectorAll('.filtre-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtre = ville === 'toutes' ? tousTraiteurs : tousTraiteurs.filter(t => t.ville?.toLowerCase().includes(ville.toLowerCase()));
+  afficherListe(filtre);
+  if (carte && filtre.length > 0) {
+    const coord = ville === 'toutes' ? [14.6937, -17.4441] : getCoord(ville);
+    carte.setView(coord, ville === 'toutes' ? 11 : 13);
+  }
+}
+
+function afficherListe(traiteurs) {
+  const el = document.getElementById('liste-traiteurs');
+  if (!traiteurs.length) { el.innerHTML = '<div class="empty">Aucun traiteur dans cette ville</div>'; return; }
+  el.innerHTML = traiteurs.map(t => `
+    <div class="traiteur-card">
+      <div class="t-avatar">${t.logo_emoji||'🍽️'}</div>
+      <div class="t-info">
+        <div class="t-nom">${t.nom_boutique}</div>
+        <div class="t-cuisine">🍽️ ${t.type_cuisine}</div>
+        <div class="t-ville">📍 ${t.ville}${t.zone_livraison ? ' · '+t.zone_livraison : ''}</div>
+        ${t.description ? `<div class="t-zone">${t.description}</div>` : ''}
+        ${t.frais_livraison > 0 ? `<div class="t-zone">🚚 Livraison : ${Number(t.frais_livraison).toLocaleString('fr-FR')} FCFA · Min : ${Number(t.min_commande).toLocaleString('fr-FR')} FCFA</div>` : '<div class="t-zone" style="color:#006633">🚚 Livraison gratuite</div>'}
+        <div class="t-actions">
+          <a href="https://wa.me/${t.whatsapp}" class="t-btn wa">📲 Commander</a>
+          <button class="t-btn" onclick="voirMenu(${t.id})">🍽️ Menu</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function voirMenu(id) {
+  // Envoie un message WhatsApp pour demander le menu
+  const traiteur = tousTraiteurs.find(t => t.id === id);
+  if (traiteur) window.open(`https://wa.me/${traiteur.whatsapp}?text=menu`, '_blank');
+}
+
+charger();
+</script>
+</body>
+</html>
