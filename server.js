@@ -29,6 +29,8 @@ async function initDB() {
       pin VARCHAR(10),
       actif BOOLEAN DEFAULT true,
       referral_code VARCHAR(20),
+      essai_expire TIMESTAMP,
+      parrain_id INTEGER,
       logo_emoji VARCHAR(10) DEFAULT '🍽️',
       description TEXT,
       zone_livraison TEXT,
@@ -542,20 +544,47 @@ app.post('/api/admin/reset-pin-traiteur', adminMiddleware, async (req, res) => {
 // ============================================
 app.post('/api/inscription', async (req, res) => {
   try {
-    const { nom_boutique, proprietaire, whatsapp, ville, type_cuisine, description, zone_livraison } = req.body;
+    const { nom_boutique, proprietaire, whatsapp, ville, type_cuisine, description, zone_livraison, parrain_code } = req.body;
     if (!nom_boutique || !whatsapp) return res.status(400).json({ error: 'Données manquantes' });
     const wa = whatsapp.replace(/\D/g, '');
     const ref = 'TP' + Math.random().toString(36).substring(2,7).toUpperCase();
+
+    // Essai 14 jours
+    const essaiExpire = new Date();
+    essaiExpire.setDate(essaiExpire.getDate() + 14);
+
+    // Parrainage
+    let parrainId = null;
+    if (parrain_code) {
+      const parrain = await pool.query('SELECT id FROM traiteurs WHERE referral_code=$1', [parrain_code.toUpperCase()]);
+      if (parrain.rows.length > 0) parrainId = parrain.rows[0].id;
+    }
+
     const r = await pool.query(
-      `INSERT INTO traiteurs (nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, description, zone_livraison)
-       VALUES ($1,$2,$3,$4,$5,'gratuit',$6,$7,$8) RETURNING *`,
-      [nom_boutique, proprietaire||'', wa, ville||'Dakar', type_cuisine||'sénégalaise', ref, description, zone_livraison]
+      `INSERT INTO traiteurs (nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, description, zone_livraison, essai_expire, parrain_id)
+       VALUES ($1,$2,$3,$4,$5,'starter',$6,$7,$8,$9,$10) RETURNING *`,
+      [nom_boutique, proprietaire||'', wa, ville||'Dakar', type_cuisine||'sénégalaise', ref, description, zone_livraison, essaiExpire, parrainId]
     );
     const t = r.rows[0];
-    // Bienvenue
-    const msg = `🍽️ *Bienvenue sur TraiteurPro !*\n\nBonjour ${proprietaire||nom_boutique} 👋\n\nVotre espace traiteur est actif !\n\n🔗 Dashboard : traiteurpro-production.up.railway.app/app\n🆔 Votre ID : ${t.id}\n🔐 PIN par défaut : 1234\n\n_TraiteurPro · Terangaprestige Group 🇸🇳_`;
+
+    // Si parrainage valide → offrir 1 mois au parrain
+    if (parrainId) {
+      await pool.query(`
+        UPDATE traiteurs SET abonnement_expire = COALESCE(abonnement_expire, NOW()) + INTERVAL '1 month'
+        WHERE id=$1
+      `, [parrainId]);
+      const parrain = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [parrainId]);
+      if (parrain.rows[0]) {
+        const msgParrain = `🎉 *Bonne nouvelle !*\n\nVotre filleul *${nom_boutique}* vient de s'inscrire sur TraiteurPro !\n\n🎁 Vous gagnez *1 mois offert* sur votre abonnement !\n\nMerci de nous recommander 🙏\n\n_TraiteurPro 🇸🇳_`;
+        await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, parrain.rows[0].whatsapp, msgParrain);
+      }
+    }
+
+    // Message bienvenue avec essai
+    const msg = `🍽️ *Bienvenue sur TraiteurPro !*\n\nBonjour ${proprietaire||nom_boutique} 👋\n\n✅ Votre essai *Starter gratuit* est activé pour *14 jours* !\n\n🔗 Dashboard : https://traiteurpro-production.up.railway.app/app?id=${t.id}\n🔐 PIN par défaut : 1234\n📅 Essai jusqu'au : ${essaiExpire.toLocaleDateString('fr-FR')}\n\n💡 *3 étapes pour démarrer :*\n1️⃣ Connectez-vous avec votre PIN\n2️⃣ Ajoutez vos plats au menu\n3️⃣ Partagez votre numéro à vos clients\n\n_TraiteurPro · Terangaprestige Group 🇸🇳_`;
     await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, wa, msg);
-    res.json({ ok: true, traiteur: t });
+
+    res.json({ ok: true, id: t.id, traiteur: t, essai_expire: essaiExpire });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -763,6 +792,87 @@ function planifierRelances() {
   }, demain - now);
 }
 
+
+
+// ============================================
+// ESSAI + SUSPENSION DOUCE + PARRAINAGE
+// ============================================
+
+// Vérifier statut essai du traiteur
+app.get('/api/essai/:traiteur_id', async (req, res) => {
+  try {
+    const t = await pool.query('SELECT id, nom_boutique, plan, essai_expire, abonnement_expire, actif FROM traiteurs WHERE id=$1', [req.params.traiteur_id]);
+    if (!t.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
+    const tr = t.rows[0];
+    const now = new Date();
+    const essaiActif = tr.essai_expire && new Date(tr.essai_expire) > now;
+    const abonnementActif = tr.abonnement_expire && new Date(tr.abonnement_expire) > now;
+
+    // Jours restants essai
+    const joursEssai = tr.essai_expire
+      ? Math.max(0, Math.ceil((new Date(tr.essai_expire) - now) / (1000*60*60*24)))
+      : 0;
+
+    // Suspension douce : essai expiré + pas d'abonnement
+    const suspenduDoux = !essaiActif && !abonnementActif && tr.plan === 'starter';
+
+    res.json({
+      plan: tr.plan,
+      essai_actif: essaiActif,
+      essai_expire: tr.essai_expire ? new Date(tr.essai_expire).toLocaleDateString('fr-FR') : null,
+      jours_essai: joursEssai,
+      abonnement_actif: abonnementActif,
+      suspendu_doux: suspenduDoux,
+      actif: tr.actif
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Alerte essai J-3
+async function alertesEssai() {
+  try {
+    // Essais expirant dans 3 jours
+    const r = await pool.query(`
+      SELECT * FROM traiteurs
+      WHERE essai_expire BETWEEN NOW() + INTERVAL '2 days' AND NOW() + INTERVAL '3 days'
+      AND actif=true
+    `);
+    for (const t of r.rows) {
+      const msg = `⏰ *Votre essai TraiteurPro expire bientôt !*\n\nBonjour ${t.proprietaire||t.nom_boutique} !\n\nVotre essai gratuit *Starter* expire dans *3 jours*.\n\n💳 *Continuez pour seulement 15 000 FCFA/mois* et gardez :\n✅ Commandes illimitées\n✅ Bot WhatsApp IA\n✅ Promotions flash\n\n👉 Abonnez-vous maintenant :\nhttps://traiteurpro-production.up.railway.app/app?id=${t.id}\n\n_TraiteurPro 🇸🇳_`;
+      await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, t.whatsapp, msg);
+      console.log(`⏰ Alerte essai J-3 → ${t.nom_boutique}`);
+    }
+
+    // Essais expirés aujourd'hui → suspension douce
+    const expir = await pool.query(`
+      SELECT * FROM traiteurs
+      WHERE essai_expire BETWEEN NOW() - INTERVAL '1 hour' AND NOW()
+      AND abonnement_expire IS NULL AND actif=true
+    `);
+    for (const t of expir.rows) {
+      const msg = `🔴 *Votre essai TraiteurPro est terminé*\n\nBonjour ${t.proprietaire||t.nom_boutique} !\n\nVotre essai de 14 jours est terminé. Votre bot est en *pause*.\n\n💳 *Réactivez pour 15 000 FCFA/mois* :\nhttps://traiteurpro-production.up.railway.app/app?id=${t.id}\n\n_Vos données sont conservées 30 jours._\n_TraiteurPro 🇸🇳_`;
+      await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, t.whatsapp, msg);
+      console.log(`🔴 Suspension douce → ${t.nom_boutique}`);
+    }
+  } catch(e) { console.error('Alertes essai:', e.message); }
+}
+setInterval(alertesEssai, 6*60*60*1000); // toutes les 6h
+
+// Parrainage — récupérer son code + stats
+app.get('/api/parrainage/:traiteur_id', async (req, res) => {
+  try {
+    const t = await pool.query('SELECT id, nom_boutique, referral_code FROM traiteurs WHERE id=$1', [req.params.traiteur_id]);
+    if (!t.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
+    const filleuls = await pool.query('SELECT COUNT(*) FROM traiteurs WHERE parrain_id=$1', [req.params.traiteur_id]);
+    const nb = parseInt(filleuls.rows[0].count);
+    res.json({
+      code: t.rows[0].referral_code,
+      lien: `https://traiteurpro-production.up.railway.app?ref=${t.rows[0].referral_code}`,
+      filleuls: nb,
+      mois_gagnes: nb
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // ============================================
 // PWA — manifest + service worker
