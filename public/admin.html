@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --noir:#0a0a0a;--rouge:#c0392b;--or:#f5a623;--vert:#00b894;
+  --bg:#0f0f0f;--card:#1a1a1a;--border:#2a2a2a;--texte:#f0f0f0;--gris:#888
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);min-height:100vh}
+
+/* LOGIN */
+#login{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center}
+.login-box{width:320px;text-align:center}
+.login-logo{font-size:48px;margin-bottom:16px}
+.login-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:900;color:var(--rouge);margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--gris);margin-bottom:32px;font-family:'DM Mono',monospace}
+.login-input{width:100%;background:var(--card);border:2px solid var(--border);color:var(--texte);padding:16px;border-radius:12px;font-size:16px;font-family:'DM Mono',monospace;text-align:center;letter-spacing:4px;outline:none;margin-bottom:12px}
+.login-input:focus{border-color:var(--rouge)}
+.login-btn{width:100%;background:var(--rouge);color:white;border:none;padding:16px;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:1px}
+.login-btn:hover{background:#a93226}
+#login-err{color:var(--rouge);font-size:12px;margin-top:8px;font-family:'DM Mono',monospace;display:none}
+
+/* NAV */
+.nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-brand{font-family:'Syne',sans-serif;font-size:18px;font-weight:900;color:var(--rouge)}
+.nav-brand span{color:var(--or)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-badge{background:var(--rouge);color:white;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;font-family:'DM Mono',monospace}
+.btn-logout{background:var(--border);color:var(--gris);border:none;padding:8px 14px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit}
+
+/* LAYOUT */
+.main{padding:20px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.rouge::before{background:var(--rouge)}
+.kpi.or::before{background:var(--or)}
+.kpi.vert::before{background:var(--vert)}
+.kpi.bleu::before{background:#4a9eff}
+.kpi-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:900;margin-bottom:4px}
+.kpi.rouge .kpi-val{color:var(--rouge)}
+.kpi.or .kpi-val{color:var(--or)}
+.kpi.vert .kpi-val{color:var(--vert)}
+.kpi.bleu .kpi-val{color:#4a9eff}
+.kpi-lbl{font-size:10px;color:var(--gris);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+
+/* SECTION */
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.section-head{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--texte)}
+.section-badge{font-size:10px;color:var(--gris);font-family:'DM Mono',monospace}
+
+/* TRAITEUR ROWS */
+.traiteur-row{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.traiteur-row:last-child{border-bottom:none}
+.traiteur-avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--rouge),#e74c3c);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.traiteur-info{flex:1;min-width:0}
+.traiteur-nom{font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.traiteur-meta{font-size:10px;color:var(--gris);font-family:'DM Mono',monospace;margin-top:2px}
+.traiteur-right{text-align:right;flex-shrink:0}
+.plan-tag{font-size:9px;font-weight:900;padding:3px 8px;border-radius:6px;display:inline-block;margin-bottom:4px;font-family:'DM Mono',monospace}
+.plan-gratuit{background:rgba(136,136,136,0.2);color:var(--gris)}
+.plan-starter{background:rgba(245,166,35,0.2);color:var(--or)}
+.plan-pro{background:rgba(192,57,43,0.2);color:var(--rouge)}
+.statut-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.dot-actif{background:var(--vert)}
+.dot-inactif{background:var(--rouge)}
+
+/* ACTIONS */
+.actions-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.action-btn{background:var(--border);color:var(--texte);border:none;padding:5px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.action-btn:hover{background:var(--rouge);color:white}
+.action-btn.vert:hover{background:var(--vert)}
+.action-btn.or:hover{background:var(--or);color:var(--noir)}
+
+/* REVENUS */
+.revenu-row{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.revenu-row:last-child{border-bottom:none}
+.revenu-plan{font-size:12px;font-weight:700}
+.revenu-count{font-size:10px;color:var(--gris);font-family:'DM Mono',monospace}
+.revenu-montant{font-family:'Syne',sans-serif;font-size:16px;font-weight:900;color:var(--vert)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:900;margin-bottom:16px;color:var(--rouge)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:10px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;font-family:'DM Mono',monospace}
+.form-input,.form-select{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--texte);outline:none}
+.form-input:focus,.form-select:focus{border-color:var(--rouge)}
+.form-select option{background:var(--card)}
+.btn-submit{background:var(--rouge);color:white;border:none;padding:14px;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;width:100%}
+.btn-cancel{background:var(--border);color:var(--gris);border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-top:8px}
+
+/* MSG */
+.msg-row{padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-family:'DM Mono',monospace;color:var(--gris)}
+.msg-row:last-child{border-bottom:none}
+.msg-time{color:var(--rouge);margin-right:8px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:16px 16px 0}
+.tab{background:none;border:none;color:var(--gris);font-size:11px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit}
+.tab.active{background:var(--rouge);color:white}
+
+.empty{text-align:center;color:var(--gris);font-size:12px;padding:24px;font-family:'DM Mono',monospace}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">🍽️</div>
+    <div class="login-title">ADMIN</div>
+    <div class="login-sub">TraiteurPro · Terangaprestige Group</div>
+    <input type="password" class="login-input" id="admin-secret" placeholder="••••••••••" onkeydown="if(event.key==='Enter')validerAdmin()">
+    <button class="login-btn" onclick="validerAdmin()">ACCÉDER →</button>
+    <div id="login-err">❌ Secret incorrect</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">🍽️ Traiteur<span>Pro</span> <span style="font-size:11px;color:var(--gris);font-family:'DM Mono',monospace">ADMIN</span></div>
+  <div class="nav-right">
+    <div class="nav-badge" id="nav-actifs">— actifs</div>
+    <button class="btn-logout" onclick="seDeconnecter()">Quitter</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi rouge"><div class="kpi-val" id="k-traiteurs">—</div><div class="kpi-lbl">🍽️ Traiteurs</div></div>
+    <div class="kpi or"><div class="kpi-val" id="k-revenus">—</div><div class="kpi-lbl">💰 Revenus/mois</div></div>
+    <div class="kpi vert"><div class="kpi-val" id="k-commandes">—</div><div class="kpi-lbl">📋 Commandes</div></div>
+    <div class="kpi bleu"><div class="kpi-val" id="k-clients">—</div><div class="kpi-lbl">👥 Clients total</div></div>
+  </div>
+
+  <!-- REVENUS PAR PLAN -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">💰 Revenus abonnements</div>
+      <div class="section-badge" id="rev-total">Chargement...</div>
+    </div>
+    <div class="revenu-row">
+      <div><div class="revenu-plan" style="color:var(--gris)">🆓 Gratuit</div><div class="revenu-count" id="cnt-gratuit">— traiteurs</div></div>
+      <div class="revenu-montant" style="color:var(--gris)">0 FCFA</div>
+    </div>
+    <div class="revenu-row">
+      <div><div class="revenu-plan" style="color:var(--or)">⭐ Starter</div><div class="revenu-count" id="cnt-starter">— traiteurs</div></div>
+      <div class="revenu-montant" id="rev-starter">— FCFA</div>
+    </div>
+    <div class="revenu-row">
+      <div><div class="revenu-plan" style="color:var(--rouge)">👑 Pro</div><div class="revenu-count" id="cnt-pro">— traiteurs</div></div>
+      <div class="revenu-montant" id="rev-pro">— FCFA</div>
+    </div>
+  </div>
+
+  <!-- TRAITEURS -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">👥 Tous les traiteurs</div>
+      <button class="action-btn" onclick="afficherModalAjout()">+ Ajouter</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="filtrerTraiteurs('tous',this)">Tous</button>
+      <button class="tab" onclick="filtrerTraiteurs('actif',this)">✅ Actifs</button>
+      <button class="tab" onclick="filtrerTraiteurs('gratuit',this)">🆓 Gratuit</button>
+      <button class="tab" onclick="filtrerTraiteurs('pro',this)">👑 Pro</button>
+    </div>
+    <div id="traiteurs-liste" style="padding-top:8px">
+      <div class="empty">Chargement...</div>
+    </div>
+  </div>
+
+  <!-- ACTIVITÉ RÉCENTE -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">📊 Activité récente</div>
+      <div class="section-badge">7 derniers jours</div>
+    </div>
+    <div id="activite-liste">
+      <div class="empty">Chargement...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL MODIFIER TRAITEUR -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">⚙️ Modifier traiteur</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group"><label class="form-label">Plan</label>
+      <select class="form-select" id="edit-plan">
+        <option value="gratuit">🆓 Gratuit</option>
+        <option value="starter">⭐ Starter — 15 000 FCFA</option>
+        <option value="pro">👑 Pro — 35 000 FCFA</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Statut</label>
+      <select class="form-select" id="edit-actif">
+        <option value="true">✅ Actif</option>
+        <option value="false">❌ Suspendu</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Nouveau PIN (laisser vide pour ne pas changer)</label>
+      <input class="form-input" id="edit-pin" placeholder="Ex: 5678" maxlength="4">
+    </div>
+    <button class="btn-submit" onclick="sauvegarderEdit()">✅ Sauvegarder</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-edit')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER TRAITEUR -->
+<div class="modal-overlay" id="modal-ajout">
+  <div class="modal">
+    <div class="modal-title">🍽️ Ajouter un traiteur</div>
+    <div class="form-group"><label class="form-label">Nom boutique *</label><input class="form-input" id="aj-nom" placeholder="Chez Aminata"></div>
+    <div class="form-group"><label class="form-label">Propriétaire</label><input class="form-input" id="aj-proprio" placeholder="Aminata Diallo"></div>
+    <div class="form-group"><label class="form-label">WhatsApp *</label><input class="form-input" id="aj-phone" placeholder="221771234567"></div>
+    <div class="form-group"><label class="form-label">Ville</label><input class="form-input" id="aj-ville" placeholder="Dakar"></div>
+    <div class="form-group"><label class="form-label">Plan</label>
+      <select class="form-select" id="aj-plan">
+        <option value="gratuit">🆓 Gratuit</option>
+        <option value="starter">⭐ Starter</option>
+        <option value="pro">👑 Pro</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="ajouterTraiteur()">✅ Créer le compte</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-ajout')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL MESSAGE -->
+<div class="modal-overlay" id="modal-msg">
+  <div class="modal">
+    <div class="modal-title">📲 Envoyer message WhatsApp</div>
+    <input type="hidden" id="msg-phone">
+    <div class="form-group"><label class="form-label">Message</label>
+      <textarea class="form-input" id="msg-texte" rows="4" placeholder="Bonjour, votre abonnement..."></textarea>
+    </div>
+    <button class="btn-submit" onclick="envoyerMessage()">📲 Envoyer</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-msg')">Annuler</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://traiteurpro-production.up.railway.app';
+let adminSecret = '';
+let tousTraiteurs = [];
+
+// ============================================
+// LOGIN
+// ============================================
+function validerAdmin() {
+  const s = document.getElementById('admin-secret').value;
+  if (!s) return;
+  adminSecret = s;
+  sessionStorage.setItem('tp_admin', s);
+  document.getElementById('login').style.display = 'none';
+  demarrer();
+}
+
+function checkLogin() {
+  const s = sessionStorage.getItem('tp_admin');
+  if (s) { adminSecret = s; document.getElementById('login').style.display = 'none'; demarrer(); }
+}
+
+function seDeconnecter() {
+  sessionStorage.removeItem('tp_admin');
+  location.reload();
+}
+
+// ============================================
+// CHARGEMENT DONNÉES
+// ============================================
+async function chargerStats() {
+  try {
+    const r = await fetch(`${API}/api/admin/stats?secret=${encodeURIComponent(adminSecret)}`);
+    if (r.status === 401) { sessionStorage.removeItem('tp_admin'); location.reload(); return; }
+    const d = await r.json();
+
+    document.getElementById('k-traiteurs').textContent = d.traiteurs || 0;
+    document.getElementById('k-commandes').textContent = d.commandes || 0;
+    document.getElementById('k-clients').textContent = d.clients || 0;
+    document.getElementById('nav-actifs').textContent = (d.actifs || 0) + ' actifs';
+
+    const revStarter = (d.plans?.starter || 0) * 15000;
+    const revPro = (d.plans?.pro || 0) * 35000;
+    const revTotal = revStarter + revPro;
+
+    document.getElementById('k-revenus').textContent = revTotal >= 1000 ? (revTotal/1000).toFixed(0)+'k' : revTotal;
+    document.getElementById('cnt-gratuit').textContent = (d.plans?.gratuit || 0) + ' traiteur(s)';
+    document.getElementById('cnt-starter').textContent = (d.plans?.starter || 0) + ' traiteur(s)';
+    document.getElementById('cnt-pro').textContent = (d.plans?.pro || 0) + ' traiteur(s)';
+    document.getElementById('rev-starter').textContent = revStarter.toLocaleString('fr-FR') + ' FCFA';
+    document.getElementById('rev-pro').textContent = revPro.toLocaleString('fr-FR') + ' FCFA';
+    document.getElementById('rev-total').textContent = 'Total : ' + revTotal.toLocaleString('fr-FR') + ' FCFA/mois';
+  } catch(e) { console.error(e); }
+}
+
+async function chargerTraiteurs() {
+  try {
+    const r = await fetch(`${API}/api/admin/traiteurs?secret=${encodeURIComponent(adminSecret)}`);
+    tousTraiteurs = await r.json();
+    afficherTraiteurs(tousTraiteurs);
+  } catch(e) { console.error(e); }
+}
+
+async function chargerActivite() {
+  try {
+    const r = await fetch(`${API}/api/admin/activite?secret=${encodeURIComponent(adminSecret)}`);
+    const d = await r.json();
+    const el = document.getElementById('activite-liste');
+    if (!d.length) { el.innerHTML = '<div class="empty">Aucune activité récente</div>'; return; }
+    el.innerHTML = d.map(a => `
+      <div class="msg-row">
+        <span class="msg-time">${new Date(a.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        🍽️ ${a.nom_boutique} — ${a.nb} commande(s) — ${Number(a.revenus).toLocaleString('fr-FR')} FCFA
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ============================================
+// AFFICHAGE TRAITEURS
+// ============================================
+function afficherTraiteurs(liste) {
+  const el = document.getElementById('traiteurs-liste');
+  if (!liste.length) { el.innerHTML = '<div class="empty">Aucun traiteur</div>'; return; }
+  el.innerHTML = liste.map(t => `
+    <div class="traiteur-row">
+      <div class="traiteur-avatar">${t.logo_emoji||'🍽️'}</div>
+      <div class="traiteur-info">
+        <div class="traiteur-nom">${t.nom_boutique}</div>
+        <div class="traiteur-meta">
+          <span class="statut-dot ${t.actif?'dot-actif':'dot-inactif'}"></span>
+          ${t.ville} · ${t.nb_commandes||0} cmd · ${Number(t.revenus||0).toLocaleString('fr-FR')} FCFA
+        </div>
+        <div class="actions-row">
+          <button class="action-btn" onclick="ouvrirEdit(${t.id},'${t.plan}',${t.actif})">⚙️ Modifier</button>
+          <button class="action-btn vert" onclick="ouvrirMsg('${t.whatsapp}')">📲 Message</button>
+          <button class="action-btn" onclick="voirDashboard(${t.id})">📊 Dashboard</button>
+          ${!t.actif ? `<button class="action-btn or" onclick="toggleActif(${t.id},true)">✅ Activer</button>` : `<button class="action-btn" style="color:var(--rouge)" onclick="toggleActif(${t.id},false)">⏸ Suspendre</button>`}
+        </div>
+      </div>
+      <div class="traiteur-right">
+        <div class="plan-tag plan-${t.plan}">${t.plan.toUpperCase()}</div>
+        <div style="font-size:10px;color:var(--gris);font-family:'DM Mono',monospace">ID: ${t.id}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrerTraiteurs(filtre, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (filtre === 'tous') afficherTraiteurs(tousTraiteurs);
+  else if (filtre === 'actif') afficherTraiteurs(tousTraiteurs.filter(t => t.actif));
+  else afficherTraiteurs(tousTraiteurs.filter(t => t.plan === filtre));
+}
+
+// ============================================
+// ACTIONS
+// ============================================
+function ouvrirEdit(id, plan, actif) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-plan').value = plan;
+  document.getElementById('edit-actif').value = String(actif);
+  document.getElementById('edit-pin').value = '';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+async function sauvegarderEdit() {
+  const id = document.getElementById('edit-id').value;
+  const plan = document.getElementById('edit-plan').value;
+  const actif = document.getElementById('edit-actif').value === 'true';
+  const pin = document.getElementById('edit-pin').value;
+  try {
+    await fetch(`${API}/api/admin/traiteur/${id}?secret=${encodeURIComponent(adminSecret)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, actif, pin: pin || undefined })
+    });
+    fermerModal('modal-edit');
+    chargerTraiteurs();
+    chargerStats();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function toggleActif(id, actif) {
+  try {
+    await fetch(`${API}/api/admin/traiteur/${id}?secret=${encodeURIComponent(adminSecret)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actif })
+    });
+    chargerTraiteurs();
+    chargerStats();
+  } catch(e) { alert('Erreur'); }
+}
+
+function voirDashboard(id) {
+  window.open(`${API}/app?traiteur=${id}`, '_blank');
+}
+
+function ouvrirMsg(phone) {
+  document.getElementById('msg-phone').value = phone;
+  document.getElementById('msg-texte').value = '';
+  document.getElementById('modal-msg').classList.add('open');
+}
+
+async function envoyerMessage() {
+  const phone = document.getElementById('msg-phone').value;
+  const texte = document.getElementById('msg-texte').value;
+  if (!texte) return;
+  try {
+    await fetch(`${API}/api/admin/message?secret=${encodeURIComponent(adminSecret)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, message: texte })
+    });
+    fermerModal('modal-msg');
+    alert('✅ Message envoyé !');
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+function afficherModalAjout() {
+  document.getElementById('modal-ajout').classList.add('open');
+}
+
+async function ajouterTraiteur() {
+  const nom = document.getElementById('aj-nom').value;
+  const phone = document.getElementById('aj-phone').value;
+  if (!nom || !phone) { alert('Nom et WhatsApp obligatoires'); return; }
+  try {
+    const r = await fetch(`${API}/api/inscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nom_boutique: nom,
+        proprietaire: document.getElementById('aj-proprio').value,
+        whatsapp: phone,
+        ville: document.getElementById('aj-ville').value || 'Dakar',
+        plan: document.getElementById('aj-plan').value
+      })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      fermerModal('modal-ajout');
+      chargerTraiteurs();
+      chargerStats();
+      alert('✅ Traiteur créé ! ID: ' + d.traiteur.id);
+    }
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+// ============================================
+// MODAL
+// ============================================
+function fermerModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ============================================
+// DÉMARRAGE
+// ============================================
+function demarrer() {
+  chargerStats();
+  chargerTraiteurs();
+  chargerActivite();
+  setInterval(() => { chargerStats(); chargerTraiteurs(); }, 30000);
+}
+
+checkLogin();
+</script>
+</body>
+</html>
