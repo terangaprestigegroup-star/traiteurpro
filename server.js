@@ -649,7 +649,84 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
+app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+
+
+// ============================================
+// FACTURE PDF
+// ============================================
+app.get('/api/facture/:id', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [req.params.id]);
+    const c = r.rows[0];
+    if (!c) return res.status(404).send('Commande introuvable');
+    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [c.traiteur_id]);
+    const traiteur = t.rows[0];
+    const items = Array.isArray(c.items) ? c.items : JSON.parse(c.items || '[]');
+    const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'});
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:32px;color:#0d0d0d;max-width:600px;margin:0 auto}.header{border-bottom:3px solid #c0392b;padding-bottom:20px;margin-bottom:24px}.nom{font-size:22px;font-weight:900;color:#c0392b}.sub{font-size:12px;color:#888}.facture-num{font-size:20px;font-weight:900;color:#c0392b}.table{width:100%;border-collapse:collapse;margin-bottom:20px}.table th{background:#c0392b;color:white;padding:10px;text-align:left;font-size:12px}.table td{padding:10px;border-bottom:1px solid #f0f0f0;font-size:13px}.total-row{font-weight:900;font-size:15px;color:#c0392b}.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;text-align:center}@media print{body{padding:16px}}</style></head><body>
+    <div class="header"><div style="font-size:32px">🍽️</div><div class="nom">${traiteur?.nom_boutique || 'TraiteurPro'}</div><div class="sub">${traiteur?.ville || 'Dakar'} · TraiteurPro 🇸🇳</div></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px"><div><div class="facture-num">FACTURE #${c.reference || c.id}</div><div style="font-size:12px;color:#888;margin-top:4px">Date : ${date}</div><div style="font-size:12px;color:#888">Client : ${c.client_nom || c.client_phone}</div>${c.adresse_livraison ? `<div style="font-size:12px;color:#888">📍 ${c.adresse_livraison}</div>` : ''}</div></div>
+    <table class="table"><thead><tr><th>Plat</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead><tbody>
+    ${items.map(i => `<tr><td>${i.emoji||'🍽️'} ${i.nom}</td><td>${i.quantite}</td><td>${Number(i.prix).toLocaleString('fr-FR')} FCFA</td><td>${Number(i.prix * i.quantite).toLocaleString('fr-FR')} FCFA</td></tr>`).join('')}
+    <tr class="total-row"><td colspan="3">TOTAL</td><td>${Number(c.total).toLocaleString('fr-FR')} FCFA</td></tr></tbody></table>
+    <div class="footer"><p>${traiteur?.nom_boutique} · TraiteurPro 🇸🇳</p><p style="margin-top:4px">Merci de votre confiance ! 🙏</p></div>
+    <script>window.onload=()=>window.print()<\/script></body></html>`;
+    res.send(html);
+  } catch(e) { res.status(500).send('Erreur : ' + e.message); }
+});
+
+// ============================================
+// RAPPORT HEBDO
+// ============================================
+async function envoyerRapportHebdo(traiteur_id) {
+  try {
+    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [traiteur_id]);
+    const traiteur = t.rows[0];
+    if (!traiteur || !traiteur.actif) return;
+    const [commandes, revenus, clients, plats] = await Promise.all([
+      pool.query(`SELECT COUNT(*) FROM commandes_traiteur WHERE traiteur_id=$1 AND created_at > NOW()-INTERVAL '7 days'`, [traiteur_id]),
+      pool.query(`SELECT COALESCE(SUM(total),0) as total FROM commandes_traiteur WHERE traiteur_id=$1 AND created_at > NOW()-INTERVAL '7 days'`, [traiteur_id]),
+      pool.query(`SELECT COUNT(DISTINCT client_phone) FROM commandes_traiteur WHERE traiteur_id=$1 AND created_at > NOW()-INTERVAL '7 days'`, [traiteur_id]),
+      pool.query(`SELECT item->>'nom' as nom, item->>'emoji' as emoji, SUM((item->>'quantite')::int) as total FROM commandes_traiteur, jsonb_array_elements(items) as item WHERE traiteur_id=$1 AND created_at > NOW()-INTERVAL '7 days' GROUP BY nom, emoji ORDER BY total DESC LIMIT 3`, [traiteur_id])
+    ]);
+    const nbCmd = parseInt(commandes.rows[0].count);
+    const rev = parseInt(revenus.rows[0].total);
+    const nbClients = parseInt(clients.rows[0].count);
+    const platStar = plats.rows[0];
+    const msg = `📊 *Rapport hebdomadaire*\n_${traiteur.nom_boutique}_\n\n📋 Commandes : *${nbCmd}*\n💰 Revenus : *${rev.toLocaleString('fr-FR')} FCFA*\n👥 Clients actifs : *${nbClients}*\n${platStar ? `🔥 Plat star : *${platStar.emoji||'🍽️'} ${platStar.nom}* (${platStar.total} cmd)\n` : ''}\n_Bonne semaine ! 💪_\n_TraiteurPro 🇸🇳_`;
+    await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, traiteur.whatsapp, msg);
+    console.log(`📊 Rapport hebdo envoyé → ${traiteur.nom_boutique}`);
+  } catch(e) { console.error('Rapport hebdo error:', e.message); }
+}
+
+async function planifierRapportHebdo() {
+  const now = new Date();
+  const jour = now.getDay();
+  const daysUntilMonday = jour === 1 && now.getHours() < 9 ? 0 : (8 - jour) % 7 || 7;
+  const prochainLundi = new Date(now);
+  prochainLundi.setDate(now.getDate() + daysUntilMonday);
+  prochainLundi.setHours(9, 0, 0, 0);
+  const delai = prochainLundi - now;
+  console.log(`📊 Prochain rapport hebdo dans ${Math.round(delai/3600000)}h`);
+  setTimeout(async () => {
+    const ts = await pool.query('SELECT id FROM traiteurs WHERE actif=true');
+    for (const t of ts.rows) await envoyerRapportHebdo(t.id);
+    setInterval(async () => {
+      const ts2 = await pool.query('SELECT id FROM traiteurs WHERE actif=true');
+      for (const t of ts2.rows) await envoyerRapportHebdo(t.id);
+    }, 7*24*60*60*1000);
+  }, delai);
+}
+
+app.get('/api/rapport-hebdo/:traiteur_id', adminMiddleware, async (req, res) => {
+  try {
+    await envoyerRapportHebdo(parseInt(req.params.traiteur_id));
+    res.json({ ok: true, message: 'Rapport envoyé !' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // ============================================
 // CRONS
@@ -673,5 +750,6 @@ initDB().then(() => {
   app.listen(process.env.PORT || 3001, () => {
     console.log('🍽️ TraiteurPro v1.0 démarré sur port ' + (process.env.PORT || 3001));
     planifierRelances();
+    planifierRapportHebdo();
   });
 }).catch(err => console.error('Erreur démarrage:', err));
