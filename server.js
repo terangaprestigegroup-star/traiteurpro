@@ -652,6 +652,26 @@ app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public'
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 
+// API CARTE TRAITEURS
+app.get('/api/traiteurs-public', async (req, res) => {
+  try {
+    const { ville } = req.query;
+    let q = `SELECT id, nom_boutique, proprietaire, ville, type_cuisine, logo_emoji, description, zone_livraison, frais_livraison, min_commande, whatsapp, (SELECT COUNT(*) FROM commandes_traiteur WHERE traiteur_id=traiteurs.id) as nb_commandes FROM traiteurs WHERE actif=true`;
+    const params = [];
+    if (ville) { q += ` AND ville=$1`; params.push(ville); }
+    q += ' ORDER BY nom_boutique';
+    const r = await pool.query(q, params);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/villes-traiteurs', async (req, res) => {
+  try {
+    const r = await pool.query(`SELECT ville, COUNT(*) as nb FROM traiteurs WHERE actif=true GROUP BY ville ORDER BY nb DESC`);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 
 // ============================================
 // FACTURE PDF
