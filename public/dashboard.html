@@ -557,16 +557,16 @@ async function verifierEssai(){
     const d=await r.json();
     const banner=document.getElementById('banner-essai');
     const text=document.getElementById('banner-text');
+    if(!banner||!text)return;
     if(d.suspendu_doux){
-      banner.style.cssText='display:flex!important';
-      banner.classList.add('rouge');
+      banner.style.cssText='display:flex!important;background:linear-gradient(135deg,#c0392b,#e74c3c)';
       text.textContent='🔴 Votre essai est terminé. Votre bot est en pause — abonnez-vous pour continuer.';
     } else if(d.essai_actif && d.jours_essai<=3){
-      banner.style.cssText='display:flex!important';
+      banner.style.cssText='display:flex!important;background:linear-gradient(135deg,#e67e22,#f39c12)';
       text.textContent=`⏰ Essai gratuit : ${d.jours_essai} jour(s) restant(s). Abonnez-vous pour continuer sans interruption.`;
     } else if(d.essai_actif){
-      banner.style.cssText='display:flex!important';
-      text.textContent=`✅ Essai gratuit Starter actif — expire le ${d.essai_expire} (${d.jours_essai}j restants)`;
+      banner.style.cssText='display:flex!important;background:linear-gradient(135deg,#27ae60,#2ecc71)';
+      text.textContent=`✅ Essai Starter gratuit — expire le ${d.essai_expire} · ${d.jours_essai} jours restants`;
     }
   }catch(e){console.log('Essai check:',e)}
 }
