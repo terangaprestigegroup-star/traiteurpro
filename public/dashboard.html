@@ -267,12 +267,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
   <div class="sous-tabs">
     <button class="sous-tab active" onclick="afficherSousTab('bilan',this)">📊 Bilan mensuel</button>
     <button class="sous-tab" onclick="afficherSousTab('echelonne',this)">⏳ Échelonnés</button>
+    <button class="sous-tab" onclick="afficherSousTab('abonnement',this)">💳 Abonnement</button>
   </div>
   <div id="sous-bilan" class="section" style="padding-top:14px"><div id="bilan-content"></div></div>
   <div id="sous-echelonne" style="display:none">
     <div class="section" style="padding-top:14px">
       <div class="section-header"><div class="section-title">⏳ Paiements échelonnés</div><button class="btn-add" onclick="afficherModalEchelonne()">+ Nouveau</button></div>
       <div id="echelonne-liste"></div>
+    </div>
+  </div>
+
+  <div id="sous-abonnement" style="display:none">
+    <div class="section" style="padding-top:14px">
+      <div id="abonnement-content"></div>
     </div>
   </div>
 </div>
@@ -393,8 +400,10 @@ function afficherSousTab(id,btn){
   btn.classList.add('active');
   document.getElementById('sous-bilan').style.display=id==='bilan'?'block':'none';
   document.getElementById('sous-echelonne').style.display=id==='echelonne'?'block':'none';
+  document.getElementById('sous-abonnement').style.display=id==='abonnement'?'block':'none';
   if(id==='bilan')chargerBilan();
   if(id==='echelonne')chargerEchelonnes();
+  if(id==='abonnement')chargerAbonnement();
 }
 
 async function chargerDashboard(){
@@ -485,8 +494,49 @@ function ajouterAvisManuel(){const client=prompt('Nom du client :');const noteSt
 
 async function envoyerPromo(){const msg=prompt('Message de la promotion flash :');if(!msg)return;try{const r=await fetch(`${API}/api/promo/${TRAITEUR_ID}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});const d=await r.json();alert(`✅ Promo envoyée à ${d.envoyes} client(s) !`)}catch(e){alert('Erreur')}}
 
+
+async function chargerAbonnement(){
+  try{
+    const r=await fetch(`${API}/api/abonnement/${TRAITEUR_ID}`);
+    const d=await r.json();
+    const plans={gratuit:{label:'Gratuit',prix:'0 FCFA',couleur:'#888'},starter:{label:'Starter',prix:'15 000 FCFA',couleur:'#1565C0'},pro:{label:'Pro',prix:'35 000 FCFA',couleur:'#c0392b'}};
+    const p=plans[d.plan]||plans.gratuit;
+    const pct=d.seuil>900000?100:Math.round((d.utilise/d.seuil)*100);
+    document.getElementById('abonnement-content').innerHTML=`
+      <div class="bilan-card">
+        <div class="bilan-titre">💳 Mon abonnement</div>
+        <div style="text-align:center;padding:12px 0">
+          <div style="font-size:28px;font-weight:900;color:${p.couleur}">${p.label}</div>
+          <div style="font-size:13px;color:#888;margin-top:4px">${p.prix}/mois</div>
+          ${d.expire?`<div style="font-size:11px;color:#888;margin-top:4px">📅 Expire le : ${d.expire}</div>`:''}
+        </div>
+        <div class="bilan-row"><span>📋 Commandes ce mois</span><span>${d.utilise} / ${d.seuil>900000?'∞':d.seuil}</span></div>
+        <div style="background:#f5f5f5;border-radius:10px;height:8px;margin:8px 0;overflow:hidden"><div style="background:linear-gradient(90deg,#c0392b,#e74c3c);height:100%;border-radius:10px;width:${Math.min(100,pct)}%"></div></div>
+        <div style="font-size:11px;color:#888;text-align:right;margin-bottom:12px">${d.seuil>900000?'Illimitées':d.reste+' restantes'}</div>
+      </div>
+      <div style="font-size:13px;font-weight:900;margin-bottom:10px">🔄 Changer de plan</div>
+      ${['gratuit','starter','pro'].map(pl=>`<div style="background:white;border-radius:14px;padding:14px;margin-bottom:8px;border:2px solid ${d.plan===pl?'#c0392b':'#f0f0f0'};display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-weight:900">${plans[pl].label}</div><div style="font-size:11px;color:#888">${plans[pl].prix}/mois</div></div>
+        ${d.plan===pl?'<span style="background:#fff0f0;color:#c0392b;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px">✅ Actif</span>':`<button onclick="payerAbonnement('${pl}')" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit">Choisir</button>`}
+      </div>`).join('')}`;
+  }catch(e){document.getElementById('abonnement-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur chargement abonnement</div>'}
+}
+async function payerAbonnement(plan){
+  if(!confirm(`Souscrire au plan ${plan} ?`))return;
+  try{
+    const r=await fetch(`${API}/api/abonnement/payer`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,plan})});
+    const d=await r.json();
+    if(d.gratuit){alert('✅ Plan gratuit activé !');chargerAbonnement();return}
+    if(d.ok&&d.url){window.location.href=d.url}
+    else{alert('Erreur: '+(d.error||'Réessayez'))}
+  }catch(e){alert('Erreur: '+e.message)}
+}
+
 function fermerModal(id){document.getElementById(id).classList.remove('open')}
 function demarrer(){chargerDashboard();setInterval(chargerDashboard,30000)}
+// Check success param
+const urlP=new URLSearchParams(window.location.search);
+if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
 if(!checkLogin()){}else{demarrer()}
 </script>
 </body>
