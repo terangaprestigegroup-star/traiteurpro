@@ -309,6 +309,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
         <option value="famille">👨‍👩‍👧 Formule famille</option>
         <option value="evenement">🎊 Événement</option>
         <option value="cantine">🏢 Cantine entreprise</option>
+        <option value="grillade">🥩 Grillade / Brochettes</option>
+        <option value="healthy">🥗 Salade / Healthy</option>
+        <option value="boulangerie">🍞 Boulangerie / Pâtisserie</option>
       </select>
     </div>
     <div class="form-group"><label class="form-label">Nombre de personnes</label><input class="form-input" id="menu-pers" type="number" value="1" min="1"></div>
@@ -453,7 +456,7 @@ async function changerStatut(id,statut){try{await fetch(`${API}/api/commandes/${
 async function chargerMenus(){
   try{const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();const el=document.getElementById('menus-liste');
   if(!menus.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🍽️</div><div class="empty-title">Aucun plat pour l'instant</div><div class="empty-sub">Ajoutez vos plats pour que vos clients puissent commander via WhatsApp.</div><button class="btn-empty" onclick="afficherModalMenu()">🍽️ Ajouter mon premier plat</button></div>`;return}
-  const cats={plat:'🍽️ Plats individuels',famille:'👨‍👩‍👧 Formules famille',evenement:'🎊 Événements',cantine:'🏢 Cantine'};
+  const cats={plat:'🍽️ Plats individuels',famille:'👨‍👩‍👧 Formules famille',evenement:'🎊 Événements',cantine:'🏢 Cantine',grillade:'🥩 Grillade',healthy:'🥗 Healthy',boulangerie:'🍞 Boulangerie'};
   const grp={};menus.forEach(m=>{if(!grp[m.categorie])grp[m.categorie]=[];grp[m.categorie].push(m)});
   let html='';for(const[cat,items]of Object.entries(grp)){html+=`<div style="font-size:12px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px">${cats[cat]||cat}</div>`;html+=items.map(m=>`<div class="menu-card"><div class="menu-emoji">${m.emoji||'🍽️'}</div><div class="menu-info"><div class="menu-nom">${m.nom}</div>${m.description?`<div class="menu-desc">${m.description}</div>`:''}<div class="cat-badge">${m.nb_personnes>1?m.nb_personnes+' pers.':'Individuel'}</div></div><div style="text-align:right"><div class="menu-prix">${Number(m.prix).toLocaleString('fr-FR')} F</div><div class="menu-actions" style="margin-top:6px"><button class="menu-btn" onclick="toggleDispo(${m.id},${!m.disponible})" style="color:${m.disponible?'#006633':'#c0392b'}">${m.disponible?'✅':'❌'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerMenu(${m.id})">🗑️</button></div></div></div>`).join('')}
   el.innerHTML=html}catch(e){console.error(e)}
