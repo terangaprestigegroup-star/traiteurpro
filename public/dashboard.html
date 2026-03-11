@@ -188,7 +188,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 <!-- BANNIERE ESSAI/SUSPENSION -->
 <div id="banner-essai" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;padding:12px 16px;display:none;align-items:center;gap:10px;position:sticky;top:56px;z-index:99;flex-wrap:wrap">
   <span id="banner-text" style="flex:1;font-size:12px;font-weight:700;color:white;min-width:150px"></span>
-  <button onclick="afficherTab('finance',null);setTimeout(()=>{document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));const aBtn=document.querySelector('.sous-tab:nth-child(3)');if(aBtn){aBtn.classList.add('active');afficherSousTab('abonnement',null);chargerAbonnement()}},200)" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
+  <button onclick="goToAbonnement()" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -217,7 +217,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
   <!-- CARTE ESSAI -->
   <div id="essai-card" style="display:flex;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#95a5a6,#7f8c8d)">
     <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px">⏳ Chargement essai...</div>
-    <button onclick="afficherTab('finance',null);setTimeout(()=>{document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));const aBtn=document.querySelector('.sous-tab:nth-child(3)');if(aBtn){aBtn.classList.add('active');afficherSousTab('abonnement',null);chargerAbonnement()}},200)" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
+    <button onclick="goToAbonnement()" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">💳 S'abonner</button>
   </div>
   <script>
     // Affichage immédiat de la carte essai
@@ -413,6 +413,25 @@ async function validerPin(){if(currentPin.length<4)return;try{const r=await fetc
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
 function seDeconnecter(){sessionStorage.removeItem('tp_session');location.reload()}
 
+
+function goToAbonnement(){
+  // 1. Aller sur Finance
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-finance').classList.add('active');
+  const finBtn=document.querySelector('.nav-tab:nth-child(6)');
+  if(finBtn)finBtn.classList.add('active');
+  // 2. Afficher sous-tab abonnement
+  document.getElementById('sous-bilan').style.display='none';
+  document.getElementById('sous-echelonne').style.display='none';
+  document.getElementById('sous-abonnement').style.display='block';
+  document.getElementById('sous-parrainage').style.display='none';
+  document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));
+  const aBtn=document.querySelector('[onclick*="abonnement"]');
+  if(aBtn)aBtn.classList.add('active');
+  // 3. Charger contenu
+  chargerAbonnement();
+}
 function afficherTab(tab,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -629,6 +648,25 @@ function copierCode(code){
 }
 
 function fermerModal(id){document.getElementById(id).classList.remove('open')}
+function allerAbonnement(){
+  // 1. Aller sur Finance
+  afficherTab('finance', null);
+  // 2. Attendre puis cliquer sur le bon sous-tab
+  setTimeout(()=>{
+    const btns = document.querySelectorAll('.sous-tab');
+    btns.forEach(b=>b.classList.remove('active'));
+    // Trouver le bouton Abonnement
+    let aBtn = null;
+    btns.forEach(b=>{ if(b.textContent.includes('Abonnement')) aBtn=b; });
+    if(aBtn) aBtn.classList.add('active');
+    // Afficher le bon contenu
+    document.querySelectorAll('[id^="sous-"]').forEach(el=>el.style.display='none');
+    const aDiv = document.getElementById('sous-abonnement');
+    if(aDiv) aDiv.style.display='block';
+    chargerAbonnement();
+  }, 300);
+}
+
 function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000)}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
