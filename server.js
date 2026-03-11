@@ -785,3 +785,158 @@ app.get('/api/admin/reset-demo', async (req, res) => {
     res.json({ ok: true, message: '✅ Données démo supprimées ! TraiteurPro est propre.' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// ============================================
+// ABONNEMENTS
+// ============================================
+
+// Table abonnements
+async function initAbonnements() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS abonnements (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      plan VARCHAR(20) NOT NULL,
+      montant INTEGER NOT NULL,
+      statut VARCHAR(20) DEFAULT 'en_attente',
+      reference VARCHAR(50),
+      date_debut TIMESTAMP,
+      date_fin TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS abonnement_expire TIMESTAMP;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS seuil_commandes INTEGER DEFAULT 30;
+  `);
+}
+initAbonnements().catch(e => console.log('Abonnements init:', e.message));
+
+const PLANS = {
+  gratuit: { montant: 0, commandes: 30, label: 'Gratuit' },
+  starter: { montant: 15000, commandes: 500, label: 'Starter' },
+  pro: { montant: 35000, commandes: 999999, label: 'Pro' }
+};
+
+// Initier paiement abonnement
+app.post('/api/abonnement/payer', async (req, res) => {
+  try {
+    const { traiteur_id, plan } = req.body;
+    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [traiteur_id]);
+    const traiteur = t.rows[0];
+    if (!traiteur) return res.status(404).json({ error: 'Traiteur introuvable' });
+    const planInfo = PLANS[plan];
+    if (!planInfo) return res.status(400).json({ error: 'Plan invalide' });
+    if (planInfo.montant === 0) {
+      await pool.query('UPDATE traiteurs SET plan=$1, seuil_commandes=$2 WHERE id=$3', ['gratuit', 30, traiteur_id]);
+      return res.json({ ok: true, gratuit: true, message: 'Plan gratuit activé' });
+    }
+    // PayDunya
+    const ref = `TP-${traiteur_id}-${Date.now()}`;
+    const payload = {
+      invoice: {
+        total_amount: planInfo.montant,
+        description: `TraiteurPro ${planInfo.label} — ${traiteur.nom_boutique}`
+      },
+      store: { name: 'TraiteurPro' },
+      actions: {
+        cancel_url: `https://traiteurpro-production.up.railway.app/app?id=${traiteur_id}`,
+        return_url: `https://traiteurpro-production.up.railway.app/api/abonnement/confirm?ref=${ref}&traiteur_id=${traiteur_id}&plan=${plan}`,
+        callback_url: `https://traiteurpro-production.up.railway.app/api/abonnement/callback`
+      },
+      custom_data: { ref, traiteur_id, plan }
+    };
+    const r = await fetch('https://app.paydunya.com/sandbox-api/v1/checkout-invoice/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'PAYDUNYA-MASTER-KEY': process.env.PAYDUNYA_PRIVATE_KEY,
+        'PAYDUNYA-PUBLIC-KEY': process.env.PAYDUNYA_PUBLIC_KEY,
+        'PAYDUNYA-TOKEN': process.env.PAYDUNYA_TOKEN
+      },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.response_code === '00') {
+      await pool.query('INSERT INTO abonnements (traiteur_id, plan, montant, reference) VALUES ($1,$2,$3,$4)', [traiteur_id, plan, planInfo.montant, ref]);
+      res.json({ ok: true, url: d.response_text });
+    } else {
+      res.status(500).json({ error: 'Erreur PayDunya', detail: d });
+    }
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Confirmation paiement
+app.get('/api/abonnement/confirm', async (req, res) => {
+  try {
+    const { ref, traiteur_id, plan } = req.query;
+    const planInfo = PLANS[plan];
+    const now = new Date();
+    const fin = new Date(now);
+    fin.setMonth(fin.getMonth() + 1);
+    await pool.query(
+      'UPDATE traiteurs SET plan=$1, seuil_commandes=$2, abonnement_expire=$3, actif=true WHERE id=$4',
+      [plan, planInfo.commandes, fin, traiteur_id]
+    );
+    await pool.query(
+      'UPDATE abonnements SET statut=$1, date_debut=$2, date_fin=$3 WHERE reference=$4',
+      ['payé', now, fin, ref]
+    );
+    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [traiteur_id]);
+    const traiteur = t.rows[0];
+    const msg = `✅ *Paiement reçu !*\n\n🎉 Votre abonnement *TraiteurPro ${planInfo.label}* est activé !\n\n📅 Valide jusqu'au : ${fin.toLocaleDateString('fr-FR')}\n📋 Commandes autorisées : ${planInfo.commandes === 999999 ? 'Illimitées' : planInfo.commandes}\n\n🔗 Votre dashboard : https://traiteurpro-production.up.railway.app/app?id=${traiteur_id}\n\n_Merci de votre confiance ! 🙏_\n_TraiteurPro 🇸🇳_`;
+    await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, traiteur.whatsapp, msg);
+    res.redirect(`https://traiteurpro-production.up.railway.app/app?id=${traiteur_id}&success=1`);
+  } catch(e) { res.status(500).send('Erreur confirmation: ' + e.message); }
+});
+
+// Callback PayDunya (webhook)
+app.post('/api/abonnement/callback', async (req, res) => {
+  try {
+    const data = req.body;
+    const ref = data?.custom_data?.ref;
+    const traiteur_id = data?.custom_data?.traiteur_id;
+    const plan = data?.custom_data?.plan;
+    if (ref && traiteur_id && plan) {
+      const planInfo = PLANS[plan];
+      const now = new Date();
+      const fin = new Date(now);
+      fin.setMonth(fin.getMonth() + 1);
+      await pool.query('UPDATE traiteurs SET plan=$1, seuil_commandes=$2, abonnement_expire=$3 WHERE id=$4', [plan, planInfo.commandes, fin, traiteur_id]);
+      await pool.query('UPDATE abonnements SET statut=$1 WHERE reference=$2', ['payé', ref]);
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Statut abonnement
+app.get('/api/abonnement/:traiteur_id', async (req, res) => {
+  try {
+    const t = await pool.query('SELECT id, nom_boutique, plan, seuil_commandes, abonnement_expire FROM traiteurs WHERE id=$1', [req.params.traiteur_id]);
+    const traiteur = t.rows[0];
+    if (!traiteur) return res.status(404).json({ error: 'Traiteur introuvable' });
+    const nbCmd = await pool.query('SELECT COUNT(*) FROM commandes_traiteur WHERE traiteur_id=$1 AND created_at > date_trunc(\'month\', NOW())', [req.params.traiteur_id]);
+    const utilise = parseInt(nbCmd.rows[0].count);
+    const expire = traiteur.abonnement_expire ? new Date(traiteur.abonnement_expire) : null;
+    const actif = !expire || expire > new Date();
+    res.json({
+      plan: traiteur.plan,
+      seuil: traiteur.seuil_commandes,
+      utilise,
+      reste: Math.max(0, (traiteur.seuil_commandes || 30) - utilise),
+      expire: expire?.toLocaleDateString('fr-FR'),
+      actif
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Relance abonnements expirant dans 3 jours
+async function relancerAbonnements() {
+  try {
+    const r = await pool.query(`SELECT * FROM traiteurs WHERE abonnement_expire BETWEEN NOW() AND NOW() + INTERVAL '3 days' AND actif=true`);
+    for (const t of r.rows) {
+      const msg = `⚠️ *Abonnement TraiteurPro*\n\nBonjour ${t.proprietaire} !\n\nVotre abonnement *${t.plan}* expire dans *3 jours*.\n\n💳 Renouvelez maintenant :\nhttps://traiteurpro-production.up.railway.app/app?id=${t.id}&onglet=abonnement\n\n_TraiteurPro 🇸🇳_`;
+      await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, t.whatsapp, msg);
+      console.log(`⚠️ Relance abonnement → ${t.nom_boutique}`);
+    }
+  } catch(e) { console.error('Relance abonnements:', e.message); }
+}
+setInterval(relancerAbonnements, 24*60*60*1000);
