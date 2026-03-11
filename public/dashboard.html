@@ -547,39 +547,56 @@ async function envoyerPromo(){const msg=prompt('Message de la promotion flash :'
 
 
 async function chargerAbonnement(){
+  const el=document.getElementById('abonnement-content');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;color:#888;padding:20px">⏳ Chargement...</div>';
   try{
-    // Récupérer statut essai + abonnement
-    const [rA, rE] = await Promise.all([
-      fetch(`${API}/api/abonnement/${TRAITEUR_ID}`),
-      fetch(`${API}/api/essai/${TRAITEUR_ID}`)
-    ]);
+    const rA=await fetch(API+'/api/abonnement/'+TRAITEUR_ID);
     const d=await rA.json();
+    const rE=await fetch(API+'/api/essai/'+TRAITEUR_ID);
     const essai=await rE.json();
-    // Injecter infos essai dans d
     if(!d.plan) d.plan='gratuit';
-    if(essai.essai_actif) d.essai={actif:true,expire:essai.essai_expire,jours:essai.jours_essai};
-    const plans={gratuit:{label:'Gratuit',prix:'0 FCFA',couleur:'#888'},starter:{label:'Starter',prix:'15 000 FCFA',couleur:'#1565C0'},pro:{label:'Pro',prix:'35 000 FCFA',couleur:'#c0392b'}};
+    const plans={
+      gratuit:{label:'Gratuit',prix:'0 FCFA',couleur:'#888',seuil:'30 cmd/mois'},
+      starter:{label:'Starter',prix:'15 000 FCFA',couleur:'#1565C0',seuil:'500 cmd/mois'},
+      pro:{label:'Pro',prix:'35 000 FCFA',couleur:'#c0392b',seuil:'Illimité'}
+    };
     const p=plans[d.plan]||plans.gratuit;
-    const pct=d.seuil>900000?100:Math.round((d.utilise/d.seuil)*100);
-    document.getElementById('abonnement-content').innerHTML=`
-      ${d.essai&&d.essai.actif?`<div style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center"><div style="font-size:13px;font-weight:900">✅ Essai gratuit Starter actif</div><div style="font-size:12px;opacity:0.9;margin-top:4px">Expire le ${d.essai.expire} · ${d.essai.jours} jours restants</div></div>`:''}
-      <div class="bilan-card">
-        <div class="bilan-titre">💳 Mon abonnement</div>
-        <div style="text-align:center;padding:12px 0">
-          <div style="font-size:28px;font-weight:900;color:${p.couleur}">${p.label}</div>
-          <div style="font-size:13px;color:#888;margin-top:4px">${p.prix}/mois</div>
-          ${d.expire?`<div style="font-size:11px;color:#888;margin-top:4px">📅 Expire le : ${d.expire}</div>`:''}
-        </div>
-        <div class="bilan-row"><span>📋 Commandes ce mois</span><span>${d.utilise} / ${d.seuil>900000?'∞':d.seuil}</span></div>
-        <div style="background:#f5f5f5;border-radius:10px;height:8px;margin:8px 0;overflow:hidden"><div style="background:linear-gradient(90deg,#c0392b,#e74c3c);height:100%;border-radius:10px;width:${Math.min(100,pct)}%"></div></div>
-        <div style="font-size:11px;color:#888;text-align:right;margin-bottom:12px">${d.seuil>900000?'Illimitées':d.reste+' restantes'}</div>
-      </div>
-      <div style="font-size:13px;font-weight:900;margin-bottom:10px">🔄 Changer de plan</div>
-      ${['gratuit','starter','pro'].map(pl=>`<div style="background:white;border-radius:14px;padding:14px;margin-bottom:8px;border:2px solid ${d.plan===pl?'#c0392b':'#f0f0f0'};display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-weight:900">${plans[pl].label}</div><div style="font-size:11px;color:#888">${plans[pl].prix}/mois</div></div>
-        ${d.plan===pl?'<span style="background:#fff0f0;color:#c0392b;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px">✅ Actif</span>':`<button onclick="payerAbonnement('${pl}')" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit">Choisir</button>`}
-      </div>`).join('')}`;
-  }catch(e){document.getElementById('abonnement-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur chargement abonnement</div>'}
+    const pct=Math.min(100,d.seuil>900000?0:Math.round((d.utilise/d.seuil)*100));
+    let html='';
+    if(essai.essai_actif){
+      html+='<div style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center">';
+      html+='<div style="font-size:13px;font-weight:900">✅ Essai Starter gratuit actif</div>';
+      html+='<div style="font-size:12px;opacity:0.9;margin-top:4px">Expire le '+essai.essai_expire+' · '+essai.jours_essai+' jours restants</div>';
+      html+='</div>';
+    }
+    html+='<div class="bilan-card">';
+    html+='<div class="bilan-titre">💳 Mon abonnement</div>';
+    html+='<div style="text-align:center;padding:12px 0">';
+    html+='<div style="font-size:28px;font-weight:900;color:'+p.couleur+'">'+p.label+'</div>';
+    html+='<div style="font-size:13px;color:#888;margin-top:4px">'+p.prix+'/mois</div>';
+    html+='</div>';
+    html+='<div class="bilan-row"><span>📋 Commandes ce mois</span><span>'+d.utilise+' / '+(d.seuil>900000?'∞':d.seuil)+'</span></div>';
+    html+='<div style="background:#f5f5f5;border-radius:10px;height:8px;margin:8px 0;overflow:hidden"><div style="background:linear-gradient(90deg,#c0392b,#e74c3c);height:100%;border-radius:10px;width:'+pct+'%"></div></div>';
+    html+='<div style="font-size:11px;color:#888;text-align:right;margin-bottom:8px">'+(d.seuil>900000?'Illimitées':d.reste+' restantes')+'</div>';
+    html+='</div>';
+    html+='<div style="font-size:13px;font-weight:900;margin:14px 0 10px">🔄 Changer de plan</div>';
+    ['gratuit','starter','pro'].forEach(function(pl){
+      const pp=plans[pl];
+      const actif=d.plan===pl;
+      html+='<div style="background:white;border-radius:14px;padding:14px;margin-bottom:8px;border:2px solid '+(actif?'#c0392b':'#f0f0f0')+';display:flex;align-items:center;justify-content:space-between">';
+      html+='<div><div style="font-weight:900">'+pp.label+'</div><div style="font-size:11px;color:#888">'+pp.prix+'/mois · '+pp.seuil+'</div></div>';
+      if(actif){
+        html+='<span style="background:#fff0f0;color:#c0392b;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px">✅ Actif</span>';
+      } else {
+        html+='<button onclick="payerAbonnement(''+pl+'')" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit">Choisir</button>';
+      }
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  }catch(e){
+    document.getElementById('abonnement-content').innerHTML='<div style="text-align:center;color:#c0392b;padding:20px">❌ Erreur : '+e.message+'</div>';
+  }
 }
 async function payerAbonnement(plan){
   if(!confirm(`Souscrire au plan ${plan} ?`))return;
