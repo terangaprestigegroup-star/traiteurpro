@@ -397,7 +397,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 
 <script>
 const API='https://traiteurpro-production.up.railway.app';
-const TRAITEUR_ID=1;
+const TRAITEUR_ID=parseInt(new URLSearchParams(window.location.search).get("id"))||1;
 let currentPin='';
 let livreurs=JSON.parse(localStorage.getItem('tp_livreurs')||'[]');
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
