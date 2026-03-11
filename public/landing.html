@@ -461,6 +461,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
       <label class="form-label">Zone de livraison</label>
       <input class="form-input" placeholder="Ex: Dakar, Plateau, Médina..." id="f-zone">
     </div>
+    <div class="form-group" id="parrain-group" style="display:none">
+      <label class="form-label">🎁 Code parrainage (optionnel)</label>
+      <input class="form-input" placeholder="Ex: TPAB12" id="f-parrain" style="text-transform:uppercase;letter-spacing:2px">
+    </div>
 
     <button class="btn-form" onclick="inscrire()">🍽️ Créer mon espace traiteur →</button>
 
@@ -491,6 +495,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
 <script>
 const API = 'https://traiteurpro-production.up.railway.app';
 
+
+// Auto-remplir code parrainage depuis URL ?ref=TPXX
+const urlRef = new URLSearchParams(window.location.search).get('ref');
+if(urlRef){
+  const pg = document.getElementById('parrain-group');
+  const pf = document.getElementById('f-parrain');
+  if(pg && pf){ pg.style.display='block'; pf.value=urlRef.toUpperCase(); }
+}
+
 function toggleFaq(el) {
   el.classList.toggle('open');
 }
@@ -514,7 +527,8 @@ async function inscrire() {
         whatsapp: phone,
         ville,
         type_cuisine: document.getElementById('f-cuisine').value,
-        zone_livraison: document.getElementById('f-zone').value
+        zone_livraison: document.getElementById('f-zone').value,
+        parrain_code: document.getElementById('f-parrain').value || null
       })
     });
     const d = await r.json();
