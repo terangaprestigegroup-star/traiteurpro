@@ -773,3 +773,15 @@ initDB().then(() => {
     planifierRapportHebdo();
   });
 }).catch(err => console.error('Erreur démarrage:', err));
+// Reset données démo
+app.get('/api/admin/reset-demo', async (req, res) => {
+  const secret = req.query.secret || req.headers['x-admin-secret'];
+  if (secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Non autorisé' });
+  try {
+    await pool.query('DELETE FROM commandes_traiteur WHERE traiteur_id=1');
+    await pool.query('DELETE FROM clients_traiteur WHERE traiteur_id=1');
+    await pool.query('DELETE FROM menus WHERE traiteur_id=1');
+    await pool.query('DELETE FROM traiteurs WHERE id=1');
+    res.json({ ok: true, message: '✅ Données démo supprimées ! TraiteurPro est propre.' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
