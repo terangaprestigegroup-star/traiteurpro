@@ -763,6 +763,46 @@ function planifierRelances() {
   }, demain - now);
 }
 
+
+// ============================================
+// PWA — manifest + service worker
+// ============================================
+app.get('/manifest.json', (req, res) => {
+  res.json({
+    name: 'TraiteurPro',
+    short_name: 'TraiteurPro',
+    description: 'Le SaaS des Traiteurs Sénégalais',
+    start_url: '/app',
+    display: 'standalone',
+    background_color: '#080808',
+    theme_color: '#c0392b',
+    orientation: 'portrait',
+    lang: 'fr',
+    icons: [
+      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ],
+    shortcuts: [
+      { name: 'Dashboard', url: '/app' },
+      { name: 'Commandes', url: '/app' }
+    ]
+  });
+});
+
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.send(`
+const CACHE='traiteurpro-v1';
+const ASSETS=['/','/app','/manifest.json'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
+self.addEventListener('fetch',e=>{if(e.request.url.includes('/api/'))return e.respondWith(fetch(e.request));e.respondWith(fetch(e.request).then(res=>{const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));return res}).catch(()=>caches.match(e.request)))});
+self.addEventListener('push',e=>{const data=e.data?.json()||{};self.registration.showNotification(data.title||'🍽️ TraiteurPro',{body:data.body||'Nouvelle notification',icon:'/icons/icon-192.png',vibrate:[200,100,200],data:{url:data.url||'/app'}})});
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.openWindow(e.notification.data?.url||'/app'))});
+  `);
+});
+
 // ============================================
 // DÉMARRAGE
 // ============================================
