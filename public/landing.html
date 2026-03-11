@@ -151,6 +151,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
 /* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c0392b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TraiteurPro">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -528,6 +534,25 @@ async function inscrire() {
     alert('Erreur réseau. Vérifiez votre connexion.');
   }
 }
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('✅ SW enregistré'))
+      .catch(e => console.log('SW erreur:', e));
+  });
+}
+// Prompt installation
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Afficher bouton install si présent
+  const btn = document.getElementById('btn-install');
+  if(btn){ btn.style.display='block'; btn.onclick=()=>{ deferredPrompt.prompt(); deferredPrompt=null; btn.style.display='none'; }; }
+});
 </script>
 </body>
 </html>
