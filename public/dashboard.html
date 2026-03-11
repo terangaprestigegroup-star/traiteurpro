@@ -405,7 +405,17 @@ let avis=JSON.parse(localStorage.getItem('tp_avis')||'[]');
 
 function getSession(){return sessionStorage.getItem('tp_session')}
 function setSession(d){sessionStorage.setItem('tp_session',JSON.stringify(d))}
-function checkLogin(){const s=getSession();if(s){document.getElementById('login-overlay').style.display='none';return true}return false}
+function checkLogin(){
+  const s=getSession();
+  if(s && s.traiteur_id==TRAITEUR_ID){
+    document.getElementById('login-overlay').style.display='none';
+    return true;
+  }
+  // Session invalide ou mauvais traiteur - forcer login
+  sessionStorage.clear();
+  document.getElementById('login-overlay').style.display='flex';
+  return false;
+}
 
 function saisirPin(n){if(currentPin.length>=4)return;currentPin+=n;for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length);if(currentPin.length===4)setTimeout(validerPin,200)}
 function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
@@ -689,6 +699,8 @@ function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
+// Vider session si ?reset dans URL
+if(window.location.search.includes('reset')) sessionStorage.clear();
 if(!checkLogin()){}else{demarrer()}
 </script>
 
