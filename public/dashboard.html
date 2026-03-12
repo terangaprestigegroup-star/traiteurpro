@@ -570,7 +570,17 @@ function setSession(d){
   document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
-  // Toujours afficher le login - la session sera vérifiée au clic
+  const sess = getSession();
+  if(sess){
+    try{
+      const d = JSON.parse(sess);
+      if(d && d.traiteur_id == TRAITEUR_ID){
+        document.getElementById('login-overlay').style.display='none';
+        document.getElementById('login-overlay').hidden=true;
+        return true;
+      }
+    }catch(e){}
+  }
   document.getElementById('login-overlay').style.display='flex';
   return false;
 }
