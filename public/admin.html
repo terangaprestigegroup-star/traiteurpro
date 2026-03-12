@@ -134,7 +134,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     <div class="login-sub">TRAITEURPRO · ADMIN PANEL</div>
     <div class="login-divider"></div>
     <label class="login-label">Mot de passe admin</label>
-    <input id="secret-input" class="login-input" type="password" placeholder="••••••••••" autocomplete="off">
+    <input id="admin-secret" class="login-input" type="password" placeholder="••••••••••" autocomplete="off">
     <button class="login-btn" id="btn-admin-login">ACCEDER AU PANNEAU</button>
     <div class="login-security">
       <div class="login-security-dot"></div>
@@ -500,8 +500,8 @@ function demarrer() {
 
 checkLogin();
 
-document.getElementById('btn-admin-login').onclick = login;
-document.getElementById('secret-input').onkeydown = function(e){ if(e.key==='Enter') login(); };
+document.getElementById('btn-admin-login').onclick = validerAdmin;
+document.getElementById('admin-secret').onkeydown = function(e){ if(e.key==='Enter') validerAdmin(); };
 </script>
 </body>
 </html>
