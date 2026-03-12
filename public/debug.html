@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test Login</title>
+</head>
+<body style="font-family:sans-serif;padding:20px;background:#FAF7F2">
+<h2>Test Login TraiteurPro</h2>
+<input id="pin" type="tel" maxlength="4" placeholder="1234" style="padding:12px;font-size:20px;width:200px;margin-bottom:12px;display:block;border:2px solid #ccc;border-radius:8px;letter-spacing:8px">
+<button onclick="tester()" style="padding:12px 24px;background:#8B1A1A;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer">Tester</button>
+<div id="res" style="margin-top:16px;font-size:14px"></div>
+
+<script>
+const API = 'https://traiteurpro-production.up.railway.app';
+async function tester(){
+  const pin = document.getElementById('pin').value;
+  document.getElementById('res').textContent = 'Envoi PIN: ' + pin + '...';
+  try{
+    const r = await fetch(API+'/api/traiteur/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({traiteur_id: 2, pin: pin})
+    });
+    const d = await r.json();
+    document.getElementById('res').textContent = JSON.stringify(d);
+  }catch(e){
+    document.getElementById('res').textContent = 'ERREUR: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
