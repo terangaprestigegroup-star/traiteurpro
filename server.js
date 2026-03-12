@@ -531,6 +531,14 @@ app.post('/api/traiteur/set-pin', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/admin/reset-pin', async (req, res) => {
+  const { secret, traiteur_id, pin } = req.query;
+  if (secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Accès refusé' });
+  if (!traiteur_id || !pin) return res.json({ error: 'traiteur_id et pin requis' });
+  await pool.query('UPDATE traiteurs SET pin=$1 WHERE id=$2', [pin, traiteur_id]);
+  res.json({ ok: true, message: `PIN du traiteur ${traiteur_id} réinitialisé à ${pin}` });
+});
+
 app.post('/api/admin/reset-pin-traiteur', adminMiddleware, async (req, res) => {
   try {
     const { traiteur_id, nouveau_pin } = req.body;
