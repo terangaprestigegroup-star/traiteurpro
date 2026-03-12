@@ -518,16 +518,7 @@ function setSession(d){
   document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
-  try{
-    const raw=getSession();
-    if(raw){
-      const s=JSON.parse(raw);
-      if(s && s.traiteur_id==TRAITEUR_ID){
-        document.getElementById('login-overlay').style.display='none';
-        return true;
-      }
-    }
-  }catch(e){}
+  // Toujours afficher le login - la session sera vérifiée au clic
   document.getElementById('login-overlay').style.display='flex';
   return false;
 }
@@ -550,7 +541,9 @@ async function validerPinInput(pin){
     var d = await resp.json();
     if(d.ok){
       setSession({...d, traiteur_id: TRAITEUR_ID});
-      document.getElementById('login-overlay').style.display = 'none';
+      var ov = document.getElementById('login-overlay');
+      ov.style.cssText = 'display:none!important';
+      ov.hidden = true;
       demarrer();
     } else {
       document.getElementById('login-error').textContent = 'PIN incorrect';
