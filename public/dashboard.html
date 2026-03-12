@@ -520,30 +520,41 @@ function setSession(d){
   document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
-  // Accès direct — pas de PIN requis
-  const overlay = document.getElementById('login-overlay');
-  if(overlay) overlay.style.display='none';
-  // Sauvegarder session auto
-  setSession({traiteur_id: TRAITEUR_ID, ok: true});
-  return true;
+  try{
+    const raw=getSession();
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s && s.traiteur_id==TRAITEUR_ID){
+        document.getElementById('login-overlay').style.display='none';
+        return true;
+      }
+    }
+  }catch(e){}
+  document.getElementById('login-overlay').style.display='flex';
+  return false;
 }
 
 async function validerPinInput(pin){
-  if(!pin||pin.length<4)return;
+  pin = (pin||'').replace(/[^0-9]/g,'');
+  if(pin.length<4){alert('Entrez 4 chiffres');return;}
   try{
     const r=await fetch(API+'/api/traiteur/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:pin})});
     const d=await r.json();
     if(d.ok){
-      setSession(d);
+      // Sauvegarder en localStorage ET cookie
+      setSession({...d, traiteur_id: TRAITEUR_ID});
       document.getElementById('login-overlay').style.display='none';
       if(d.first_login) document.getElementById('setpin-overlay').style.display='flex';
       else demarrer();
     } else {
-      document.getElementById('login-error').style.display='block';
+      const err=document.getElementById('login-error');
+      if(err){err.style.display='block';setTimeout(()=>err.style.display='none',2000);}
       document.getElementById('pin-input').value='';
-      setTimeout(()=>document.getElementById('login-error').style.display='none',2000);
+      document.getElementById('pin-input').focus();
     }
-  }catch(e){document.getElementById('login-error').style.display='block';}
+  }catch(e){
+    alert('Erreur réseau. Vérifiez votre connexion.');
+  }
 }
 function saisirPin(n){if(event&&event.type==='click'&&event.sourceCapabilities&&event.sourceCapabilities.firesTouchEvents)return;if(currentPin.length>=4)return;currentPin+=n;for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length);if(currentPin.length===4)setTimeout(validerPin,200)}
 function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
@@ -832,13 +843,7 @@ function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
 // Vider session si ?reset dans URL
-// Masquer overlay PIN immédiatement
-document.addEventListener('DOMContentLoaded', function(){
-  const o = document.getElementById('login-overlay');
-  if(o) o.style.display='none';
-  const s = document.getElementById('setpin-overlay');
-  if(s) s.style.display='none';
-});
+
 if(!checkLogin()){}else{demarrer()}
 </script>
 
