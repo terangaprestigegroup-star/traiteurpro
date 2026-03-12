@@ -117,6 +117,13 @@ async function initDB() {
       disponible BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW()
     );
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS telephone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     CREATE TABLE IF NOT EXISTS livraisons (
       id SERIAL PRIMARY KEY,
       livreur_id INTEGER,
@@ -1119,6 +1126,13 @@ app.get('/api/admin/migrate', async (req, res) => {
       disponible BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW()
     );
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS telephone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     CREATE TABLE IF NOT EXISTS livraisons (
       id SERIAL PRIMARY KEY,
       livreur_id INTEGER,
@@ -1317,6 +1331,13 @@ async function initAbonnements() {
       disponible BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW()
     );
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS telephone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     CREATE TABLE IF NOT EXISTS livraisons (
       id SERIAL PRIMARY KEY,
       livreur_id INTEGER,
