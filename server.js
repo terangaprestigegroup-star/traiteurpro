@@ -605,7 +605,7 @@ app.get('/api/livreurs/:traiteur_id', async (req, res) => {
         SUM(CASE WHEN lv.statut='livrée' THEN 1 ELSE 0 END) as nb_livrees
        FROM livreurs l
        LEFT JOIN livraisons lv ON lv.livreur_id = l.id
-       WHERE l.traiteur_id=$1
+       WHERE (l.traiteur_id=$1 OR l.merchant_id=$1)
        GROUP BY l.id ORDER BY l.nom`,
       [req.params.traiteur_id]
     );
@@ -618,10 +618,21 @@ app.post('/api/livreurs', async (req, res) => {
   try {
     const { traiteur_id, nom, telephone, transport, zone } = req.body;
     if (!nom || !telephone) return res.status(400).json({ error: 'Nom et téléphone requis' });
-    const r = await pool.query(
-      'INSERT INTO livreurs (traiteur_id, nom, telephone, transport, zone) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-      [traiteur_id, nom, telephone.replace(/\D/g,''), transport||'Moto', zone||'']
-    );
+    // Essayer traiteur_id, sinon merchant_id (ancienne colonne)
+    let insertResult;
+    try {
+      insertResult = await pool.query(
+        'INSERT INTO livreurs (traiteur_id, nom, telephone, transport, zone) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+        [traiteur_id, nom, telephone.replace(/[^0-9]/g,''), transport||'Moto', zone||'']
+      );
+    } catch(e1) {
+      // Fallback: utiliser merchant_id si traiteur_id n'existe pas
+      insertResult = await pool.query(
+        'INSERT INTO livreurs (merchant_id, nom, telephone, transport, zone) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+        [traiteur_id, nom, telephone.replace(/[^0-9]/g,''), transport||'Moto', zone||'']
+      );
+    }
+    const r = insertResult;
     res.json(r.rows[0]);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
