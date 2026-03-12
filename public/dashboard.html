@@ -281,6 +281,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <h1>Tableau de bord</h1>
     <p id="last-update">Chargement...</p>
     <div class="header-actions">
+    <button class="btn-header" onclick="voirMenuPublic()">🌐 Mon menu</button>
+    <button class="btn-header" onclick="voirQRCode()">📱 QR Code</button>
+    <button class="btn-header" id="btn-push" onclick="activerPush()">🔔 Notifs</button>
       <button class="btn-header" onclick="chargerDashboard()">🔄 Actualiser</button>
       <button class="btn-header" onclick="envoyerPromo()">📣 Promo flash</button>
       <button class="btn-header" onclick="seDeconnecter()">🔒 Déconnexion</button>
@@ -835,6 +838,50 @@ function allerAbonnement(){
   document.getElementById('sous-abonnement').style.display='block';
   document.getElementById('sous-parrainage').style.display='none';
   chargerAbonnement();
+}
+
+function voirMenuPublic(){
+  window.open('/menu/'+TRAITEUR_ID, '_blank');
+}
+
+function voirQRCode(){
+  fetch(API+'/api/qrcode/'+TRAITEUR_ID)
+  .then(r=>r.json())
+  .then(d=>{
+    const modal = document.createElement('div');
+    modal.style.cssText='position:fixed;inset:0;background:rgba(26,16,8,0.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    modal.innerHTML=`
+      <div style="background:var(--card);border-radius:20px;padding:28px;text-align:center;width:280px;border:1px solid var(--border)">
+        <div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:700;margin-bottom:6px;color:var(--texte)">QR Code Menu</div>
+        <div style="font-size:11px;color:var(--texte2);margin-bottom:16px">Les clients scannent pour voir votre menu</div>
+        <img src="${d.qr_url}" style="width:200px;height:200px;border-radius:12px;border:1px solid var(--border)" alt="QR Code">
+        <div style="font-size:10px;color:var(--texte2);margin-top:10px;word-break:break-all">${d.menu_url}</div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button onclick="window.open('${d.qr_url}','_blank')" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--bordeaux),var(--bordeaux2));color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Jost,sans-serif">📥 Télécharger</button>
+          <button onclick="navigator.clipboard.writeText('${d.menu_url}').then(()=>alert('Lien copié !'))" style="flex:1;padding:10px;background:var(--bg2);color:var(--texte2);border:1.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Jost,sans-serif">🔗 Copier lien</button>
+        </div>
+        <button onclick="this.closest('div[style]').remove()" style="width:100%;margin-top:8px;padding:10px;background:transparent;color:var(--texte2);border:none;font-size:12px;cursor:pointer;font-family:Jost,sans-serif">Fermer</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e=>{if(e.target===modal)modal.remove()});
+  });
+}
+
+async function activerPush(){
+  if(!('Notification' in window)){alert('Notifications non supportées sur ce navigateur');return;}
+  const perm = await Notification.requestPermission();
+  if(perm === 'granted'){
+    document.getElementById('btn-push').textContent = '🔔 Actif';
+    document.getElementById('btn-push').style.background = 'var(--vert)';
+    document.getElementById('btn-push').style.color = 'white';
+    // Test notification
+    new Notification('TraiteurPro 🍽️', {
+      body: 'Notifications activées ! Vous recevrez les nouvelles commandes.',
+      icon: '/icons/icon-192.png'
+    });
+  } else {
+    alert('Autorisez les notifications dans les paramètres de votre navigateur');
+  }
 }
 
 function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000)}
