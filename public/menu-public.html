@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -161,7 +160,14 @@ function afficherErreur() {
 }
 
 function afficherPage() {
-  const cats = ['Tout', ...new Set(menus.map(m => m.categorie).filter(Boolean))];
+  const catMap = {
+    'senegalaise':'🍚 Sénégalaise','grillade':'🥩 Grillades','cantine':'🍱 Cantine',
+    'evenement':'🎊 Événements','salade':'🥗 Salade/Healthy','boulangerie':'🍞 Boulangerie',
+    'africaine':'🌍 Africaine','internationale':'🌐 Internationale','mixte':'🍽️ Mixte',
+    'plat':'🍽️ Plats','boisson':'🥤 Boissons','dessert':'🍰 Desserts'
+  };
+  const rawCats = [...new Set(menus.map(m => m.categorie).filter(Boolean))];
+  const cats = ['Tout', ...rawCats];
   
   let html = `
     <div class="header">
@@ -179,7 +185,8 @@ function afficherPage() {
     <div class="cats" id="cats">`;
   
   cats.forEach(c => {
-    html += `<button class="cat-btn ${c==='Tout'?'active':''}" onclick="filtrerCat('${c}')">${c}</button>`;
+    const label = c === 'Tout' ? 'Tout' : (catMap[c] || c.charAt(0).toUpperCase() + c.slice(1));
+    html += `<button class="cat-btn ${c==='Tout'?'active':''}" onclick="filtrerCat('${c}')">${label}</button>`;
   });
   html += `</div><div class="menus" id="menus-list"></div>
     <div class="footer">
@@ -217,7 +224,8 @@ function afficherMenus() {
 
   let html = '';
   Object.entries(groups).forEach(([cat, plats]) => {
-    if (catActive === 'Tout') html += `<div class="section-title">${cat}</div>`;
+    const catLabel = catMap[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+    if (catActive === 'Tout') html += `<div class="section-title">${catLabel}</div>`;
     plats.forEach(p => {
       html += `
         <div class="plat-card" onclick="ajouterAuPanier(${p.id})">
