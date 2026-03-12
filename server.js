@@ -14,6 +14,11 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Route menu public — DOIT être après static pour éviter conflit
+app.get('/menu/:traiteur_id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'menu-public.html'));
+});
+
 // ============================================
 // BASE DE DONNÉES
 // ============================================
@@ -699,7 +704,6 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 // ============================================
 // MENU PUBLIC
 // ============================================
-app.get('/menu/:traiteur_id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'menu-public.html')));
 
 app.get('/api/menu-public/:traiteur_id', async (req, res) => {
   try {
