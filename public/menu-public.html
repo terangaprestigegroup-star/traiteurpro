@@ -140,14 +140,19 @@ let catActive = 'Tout';
 
 async function charger() {
   try {
-    const r = await fetch(`${API}/api/menu-public/${TRAITEUR_ID}`);
+    const url = `${API}/api/menu-public/${TRAITEUR_ID}`;
+    document.getElementById('app').innerHTML = `<div style="padding:20px;color:#333;font-size:12px;font-family:monospace">Chargement...<br>URL: ${url}<br>ID: ${TRAITEUR_ID}</div>`;
+    const r = await fetch(url);
     const d = await r.json();
-    if (d.error) { afficherErreur(); return; }
+    if (d.error) {
+      document.getElementById('app').innerHTML = `<div style="padding:20px;color:red;font-size:12px;font-family:monospace">ERREUR: ${d.error}<br>URL: ${url}<br>ID: ${TRAITEUR_ID}</div>`;
+      return;
+    }
     traiteur = d.traiteur;
     menus = d.menus;
     afficherPage();
   } catch(e) {
-    afficherErreur();
+    document.getElementById('app').innerHTML = `<div style="padding:20px;color:red;font-size:12px;font-family:monospace">EXCEPTION: ${e.message}<br>ID: ${TRAITEUR_ID}<br>Path: ${window.location.pathname}</div>`;
   }
 }
 
