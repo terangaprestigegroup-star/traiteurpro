@@ -134,11 +134,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     <div class="login-sub">TRAITEURPRO · ADMIN PANEL</div>
     <div class="login-divider"></div>
     <label class="login-label">Mot de passe admin</label>
-    <input id="admin-secret" class="login-input" type="password" placeholder="••••••••••" autocomplete="off">
+    <input id="admin-secret" class="login-input" type="password" placeholder="Mot de passe administrateur" autocomplete="off">
     <button class="login-btn" id="btn-admin-login">ACCEDER AU PANNEAU</button>
     <div class="login-security">
       <div class="login-security-dot"></div>
-      <span class="login-security-text">Accès restreint · Terangaprestige Group</span>
+      <span class="login-security-text">Accès restreint — Espace administrateur Terangaprestige Group</span>
     </div>
     <div id="login-err">❌ Mot de passe incorrect</div>
   </div>
@@ -149,7 +149,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
   <div class="nav-brand">🍽️ Traiteur<span>Pro</span> <span style="font-size:11px;color:var(--gris);font-family:'DM Mono',monospace">ADMIN</span></div>
   <div class="nav-right">
     <div class="nav-badge" id="nav-actifs">— actifs</div>
-    <button class="btn-logout" onclick="seDeconnecter()">Quitter</button>
+    <button class="btn-logout" onclick="seDeconnecter()">Déconnexion</button>
   </div>
 </nav>
 
@@ -231,8 +231,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
         <option value="false">❌ Suspendu</option>
       </select>
     </div>
-    <div class="form-group"><label class="form-label">Nouveau PIN (laisser vide pour ne pas changer)</label>
-      <input class="form-input" id="edit-pin" placeholder="Ex: 5678" maxlength="4">
+    <div class="form-group"><label class="form-label">Nouveau code PIN (laisser vide pour conserver l'actuel)</label>
+      <input class="form-input" id="edit-pin" placeholder="Laisser vide pour conserver le PIN actuel" maxlength="4">
     </div>
     <button class="btn-submit" onclick="sauvegarderEdit()">✅ Sauvegarder</button>
     <button class="btn-cancel" onclick="fermerModal('modal-edit')">Annuler</button>
@@ -243,10 +243,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 <div class="modal-overlay" id="modal-ajout">
   <div class="modal">
     <div class="modal-title">🍽️ Ajouter un traiteur</div>
-    <div class="form-group"><label class="form-label">Nom boutique *</label><input class="form-input" id="aj-nom" placeholder="Chez Aminata"></div>
-    <div class="form-group"><label class="form-label">Propriétaire</label><input class="form-input" id="aj-proprio" placeholder="Aminata Diallo"></div>
-    <div class="form-group"><label class="form-label">WhatsApp *</label><input class="form-input" id="aj-phone" placeholder="221771234567"></div>
-    <div class="form-group"><label class="form-label">Ville</label><input class="form-input" id="aj-ville" placeholder="Dakar"></div>
+    <div class="form-group"><label class="form-label">Nom boutique *</label><input class="form-input" id="aj-nom" placeholder="Ex : Chez Aminata Traiteur"></div>
+    <div class="form-group"><label class="form-label">Propriétaire</label><input class="form-input" id="aj-proprio" placeholder="Prénom et nom du propriétaire"></div>
+    <div class="form-group"><label class="form-label">WhatsApp *</label><input class="form-input" id="aj-phone" placeholder="Ex : 221 77 123 45 67"></div>
+    <div class="form-group"><label class="form-label">Ville</label><input class="form-input" id="aj-ville" placeholder="Ville principale"),></div>
     <div class="form-group"><label class="form-label">Plan</label>
       <select class="form-select" id="aj-plan">
         <option value="gratuit">🆓 Gratuit</option>
@@ -265,7 +265,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     <div class="modal-title">📲 Envoyer message WhatsApp</div>
     <input type="hidden" id="msg-phone">
     <div class="form-group"><label class="form-label">Message</label>
-      <textarea class="form-input" id="msg-texte" rows="4" placeholder="Bonjour, votre abonnement..."></textarea>
+      <textarea class="form-input" id="msg-texte" rows="4" placeholder="Rédigez votre message ici…"></textarea>
     </div>
     <button class="btn-submit" onclick="envoyerMessage()">📲 Envoyer</button>
     <button class="btn-cancel" onclick="fermerModal('modal-msg')">Annuler</button>
