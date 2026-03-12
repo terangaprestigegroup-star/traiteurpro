@@ -559,28 +559,6 @@ async function validerPinInput(pin){
     document.getElementById('btn-login').disabled = false;
   }
 }
-  try{
-    const r=await fetch(API+'/api/traiteur/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:pin})});
-    const d=await r.json();
-    if(d.ok){
-      // Sauvegarder en localStorage ET cookie
-      setSession({...d, traiteur_id: TRAITEUR_ID});
-      document.getElementById('login-overlay').style.display='none';
-      if(d.first_login) document.getElementById('setpin-overlay').style.display='flex';
-      else demarrer();
-    } else {
-      const err=document.getElementById('login-error');
-      if(err){err.style.display='block';setTimeout(()=>err.style.display='none',2000);}
-      document.getElementById('pin-input').value='';
-      document.getElementById('pin-input').focus();
-    }
-  }catch(e){
-    alert('Erreur réseau. Vérifiez votre connexion.');
-  }
-}
-function saisirPin(n){if(event&&event.type==='click'&&event.sourceCapabilities&&event.sourceCapabilities.firesTouchEvents)return;if(currentPin.length>=4)return;currentPin+=n;for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length);if(currentPin.length===4)setTimeout(validerPin,200)}
-function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
-async function validerPin(){if(currentPin.length<4)return;try{const r=await fetch(`${API}/api/traiteur/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:currentPin})});const d=await r.json();if(d.ok){setSession(d);document.getElementById('login-overlay').style.display='none';if(d.first_login)document.getElementById('setpin-overlay').style.display='flex';else demarrer()}else{document.getElementById('login-error').style.display='block';currentPin='';for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.remove('filled');setTimeout(()=>document.getElementById('login-error').style.display='none',2000)}}catch(e){document.getElementById('login-error').style.display='block';currentPin=''}}
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
 function seDeconnecter(){
   try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}
@@ -764,7 +742,7 @@ async function chargerAbonnement(){
       if(actif){
         html+='<span style="background:#fff0f0;color:#c0392b;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px">✅ Actif</span>';
       } else {
-        html+='<button onclick="payerAbonnement(&quot;'+pl+'&quot;)" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif">Choisir</button>';
+        html+='<button onclick="payerAbonnement(&quot;'+pl+'&quot;)" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer">Choisir</button>';
       }
       html+='</div>';
     });
