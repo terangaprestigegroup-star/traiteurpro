@@ -232,6 +232,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="· · · ·" autocomplete="off"
       style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block">
     <button id="btn-login" type="button"
+      onclick="var p=(document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');validerPinInput(p);"
       style="width:100%;padding:14px;background:#8B1A1A;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block">
       Accéder au tableau de bord
     </button>
