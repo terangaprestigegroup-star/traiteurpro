@@ -4,309 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TraiteurPro — Le SaaS des Traiteurs Sénégalais</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,700&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Jost:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--rouge:#c0392b;--rouge2:#e74c3c;--or:#e8d5a3;--bg:#080808;--bg2:#0f0f0f;--border:rgba(255,255,255,0.07);--texte:rgba(255,255,255,0.55)}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-x:hidden}
-
-/* ── NAV ── */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,8,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-.nav-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900}
-.nav-logo span{color:var(--rouge2)}
-.nav-cta{background:linear-gradient(135deg,var(--rouge),var(--rouge2));color:white;border:none;padding:9px 18px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit}
-
-/* ── HERO ── */
-.hero{min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 20px 80px;overflow:hidden}
-.hero-glow-top{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(192,57,43,0.15) 0%,transparent 70%);top:-100px;left:50%;transform:translateX(-50%);pointer-events:none}
-.hero-glow-bottom{position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(192,57,43,0.08) 0%,transparent 70%);bottom:0;right:-50px;pointer-events:none}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
-
-.hero-badge{position:relative;z-index:2;background:rgba(192,57,43,0.12);border:1px solid rgba(192,57,43,0.25);color:var(--rouge2);font-size:10px;font-weight:900;letter-spacing:2px;padding:6px 16px;border-radius:50px;margin-bottom:24px;text-transform:uppercase;animation:fadeUp 0.5s ease both}
-.hero-title{position:relative;z-index:2;font-family:'Playfair Display',serif;font-size:clamp(38px,9vw,68px);font-weight:900;line-height:1.05;text-align:center;margin-bottom:12px;animation:fadeUp 0.6s ease both}
-.hero-title .rouge{color:var(--rouge2)}
-.hero-title .italic{font-style:italic;color:var(--or)}
-.hero-sub{position:relative;z-index:2;font-size:14px;color:var(--texte);text-align:center;max-width:320px;line-height:1.75;margin-bottom:32px;animation:fadeUp 0.7s ease both}
-
-.hero-ctas{position:relative;z-index:2;display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px;animation:fadeUp 0.8s ease both}
-.cta-main{background:linear-gradient(135deg,var(--rouge),var(--rouge2));color:white;border:none;padding:16px 24px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(192,57,43,0.3);transition:transform 0.2s,box-shadow 0.2s}
-.cta-main:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(192,57,43,0.5)}
-.cta-sec{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.75);border:1px solid var(--border);padding:14px 24px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.2s}
-.cta-sec:hover{background:rgba(255,255,255,0.08)}
-
-.hero-stats{position:relative;z-index:2;display:flex;gap:0;margin-top:40px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;overflow:hidden;width:100%;max-width:320px;animation:fadeUp 0.9s ease both}
-.stat{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border)}
+:root{--b:#8B1A1A;--b2:#A52A2A;--or:#C9A84C;--or2:#E8C97E;--creme:#FAF7F2;--creme2:#F5F0E8;--creme3:#EDE8DF;--texte:#1A1008;--texte2:#6B5B45;--texte3:#A89880;--border:#E8DDD0;--border2:rgba(139,26,26,0.15);--vert:#2D6A4F}
+body{font-family:'Jost',sans-serif;background:var(--creme);color:var(--texte);overflow-x:hidden}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(250,247,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte)}
+.nav-logo span{color:var(--b)}
+.nav-cta{background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;padding:9px 18px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif}
+.hero{min-height:100vh;background:var(--creme);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 20px 80px;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(139,26,26,0.06),transparent)}
+.hero::after{content:'🍽️';position:absolute;font-size:320px;opacity:0.03;bottom:-60px;right:-60px;transform:rotate(15deg);pointer-events:none}
+.hero-badge{position:relative;z-index:2;display:inline-flex;align-items:center;gap:7px;background:rgba(139,26,26,0.05);border:1px solid var(--border2);color:var(--b);font-size:10px;font-weight:700;letter-spacing:2px;padding:6px 16px;border-radius:50px;margin-bottom:24px;text-transform:uppercase}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--b);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(139,26,26,0.4)}50%{box-shadow:0 0 0 7px rgba(139,26,26,0)}}
+.hero-title{position:relative;z-index:2;font-family:'Cormorant Garamond',serif;font-size:clamp(42px,9vw,72px);font-weight:900;line-height:1.0;text-align:center;margin-bottom:14px;color:var(--texte)}
+.hero-title .or{color:var(--or)}
+.hero-title .italic{font-style:italic;color:var(--b)}
+.hero-sub{position:relative;z-index:2;font-size:14px;color:var(--texte2);text-align:center;max-width:320px;line-height:1.8;margin-bottom:32px}
+.hero-ctas{position:relative;z-index:2;display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
+.cta-main{background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;padding:16px 24px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;box-shadow:0 8px 28px rgba(139,26,26,0.25)}
+.cta-sec{background:#fff;color:var(--texte2);border:1.5px solid var(--border);padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif}
+.hero-stats{position:relative;z-index:2;display:flex;gap:0;margin-top:36px;background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;width:100%;max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,0.04)}
+.stat{flex:1;padding:14px 8px;text-align:center;border-right:1.5px solid var(--border)}
 .stat:last-child{border-right:none}
-.stat-val{font-size:20px;font-weight:900;color:var(--rouge2)}
-.stat-lbl{font-size:9px;color:rgba(255,255,255,0.35);margin-top:3px;text-transform:uppercase;letter-spacing:1px}
-
-/* ── FEATURES ── */
-.section{padding:64px 20px;position:relative}
-.section-label{font-size:10px;font-weight:900;letter-spacing:3px;color:var(--rouge2);text-transform:uppercase;text-align:center;margin-bottom:10px}
-.section-titre{font-family:'Playfair Display',serif;font-size:clamp(26px,6vw,40px);font-weight:900;text-align:center;margin-bottom:8px;line-height:1.2}
-.section-sous{font-size:13px;color:var(--texte);text-align:center;margin-bottom:40px;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.6}
-
-.feat-grid{display:flex;flex-direction:column;gap:14px;max-width:440px;margin:0 auto}
-.feat-card{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:20px;padding:20px;position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s}
-.feat-card:hover{border-color:rgba(192,57,43,0.3);background:rgba(192,57,43,0.04)}
-.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(192,57,43,0.35),transparent)}
-.feat-icon{width:44px;height:44px;background:rgba(192,57,43,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;flex-shrink:0}
-.feat-titre{font-size:15px;font-weight:900;margin-bottom:6px}
-.feat-desc{font-size:12px;color:var(--texte);line-height:1.7}
-.feat-badge{position:absolute;top:16px;right:16px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.2);color:var(--rouge2);font-size:8px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:1px}
-
-/* ── CIBLES ── */
-.cibles-section{padding:64px 20px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.cibles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:440px;margin:0 auto}
-.cible-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;padding:20px 16px;text-align:center;transition:border-color 0.3s}
-.cible-card:hover{border-color:rgba(192,57,43,0.3)}
-.cible-emoji{font-size:32px;margin-bottom:10px}
-.cible-titre{font-size:13px;font-weight:900;margin-bottom:4px}
-.cible-desc{font-size:11px;color:var(--texte);line-height:1.5}
-
-/* ── COMMENT ÇA MARCHE ── */
-.steps-section{padding:64px 20px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--b);line-height:1}
+.stat-lbl{font-size:9px;color:var(--texte3);margin-top:4px;text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.section{padding:64px 20px}
+.section-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--b);text-transform:uppercase;text-align:center;margin-bottom:10px}
+.section-titre{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,6vw,42px);font-weight:700;text-align:center;margin-bottom:8px;line-height:1.15;color:var(--texte)}
+.section-sous{font-size:13px;color:var(--texte2);text-align:center;margin-bottom:40px;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.75}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0 20px}
+.bg-creme2{background:var(--creme2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.feat-grid{display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto}
+.feat-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--b),var(--or))}
+.feat-icon{width:44px;height:44px;background:rgba(139,26,26,0.06);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;border:1px solid var(--border2)}
+.feat-titre{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;margin-bottom:6px;color:var(--texte)}
+.feat-desc{font-size:12px;color:var(--texte2);line-height:1.75}
+.feat-badge{position:absolute;top:16px;right:16px;background:rgba(139,26,26,0.07);border:1px solid var(--border2);color:var(--b);font-size:8px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:1px}
+.cibles-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:440px;margin:0 auto}
+.cible-card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center}
+.cible-emoji{font-size:28px;margin-bottom:8px}
+.cible-titre{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;margin-bottom:4px;color:var(--texte)}
+.cible-desc{font-size:11px;color:var(--texte2);line-height:1.5}
 .steps{display:flex;flex-direction:column;gap:0;max-width:440px;margin:0 auto;position:relative}
-.steps::before{content:'';position:absolute;left:22px;top:40px;bottom:40px;width:1px;background:linear-gradient(180deg,var(--rouge2),transparent)}
-.step{display:flex;gap:16px;align-items:flex-start;padding:20px 0}
-.step-num{width:44px;height:44px;border-radius:50%;background:rgba(192,57,43,0.12);border:1px solid rgba(192,57,43,0.25);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--rouge2);flex-shrink:0}
+.steps::before{content:'';position:absolute;left:22px;top:40px;bottom:40px;width:1px;background:linear-gradient(180deg,var(--b),transparent)}
+.step{display:flex;gap:16px;align-items:flex-start;padding:18px 0}
+.step-num{width:44px;height:44px;border-radius:50%;background:rgba(139,26,26,0.07);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--b);flex-shrink:0}
 .step-content{flex:1;padding-top:10px}
-.step-titre{font-size:14px;font-weight:900;margin-bottom:4px}
-.step-desc{font-size:12px;color:var(--texte);line-height:1.6}
-
-/* ── PLANS ── */
-.plans-section{padding:64px 20px;background:var(--bg2);border-top:1px solid var(--border)}
-.plans-grid{display:flex;flex-direction:column;gap:14px;max-width:440px;margin:40px auto 0}
-.plan-card{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:20px;padding:24px;position:relative}
-.plan-card.recommande{background:linear-gradient(135deg,rgba(192,57,43,0.1),rgba(231,76,60,0.06));border-color:rgba(192,57,43,0.3)}
-.plan-recommande-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--rouge),var(--rouge2));color:white;font-size:10px;font-weight:900;padding:4px 16px;border-radius:20px;white-space:nowrap}
-.plan-nom{font-size:11px;font-weight:900;color:var(--texte);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.plan-prix{font-family:'Playfair Display',serif;font-size:34px;font-weight:900;margin-bottom:4px}
-.plan-prix-sub{font-size:11px;color:var(--texte);margin-bottom:16px}
+.step-titre{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;margin-bottom:4px;color:var(--texte)}
+.step-desc{font-size:12px;color:var(--texte2);line-height:1.7}
+.plans-grid{display:flex;flex-direction:column;gap:12px;max-width:440px;margin:40px auto 0}
+.plan-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:22px;position:relative}
+.plan-card.recommande{border-color:var(--b);box-shadow:0 4px 24px rgba(139,26,26,0.1)}
+.plan-card.gold{border-color:var(--or)}
+.plan-recommande-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;font-size:9px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap}
+.plan-nom{font-size:11px;font-weight:700;color:var(--texte3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.plan-prix{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;margin-bottom:4px;color:var(--texte)}
+.plan-card.recommande .plan-prix{color:var(--b)}
+.plan-card.gold .plan-prix{color:var(--or)}
+.plan-prix-sub{font-size:11px;color:var(--texte3);margin-bottom:16px}
 .plan-sep{height:1px;background:var(--border);margin-bottom:16px}
-.plan-feats{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.plan-feat{font-size:12px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:8px}
-.plan-feat .ok{color:var(--rouge2);font-weight:900;flex-shrink:0}
-.plan-feat .no{color:rgba(255,255,255,0.2);flex-shrink:0}
-.plan-feat.non{color:rgba(255,255,255,0.25)}
-.btn-plan{width:100%;padding:13px;border-radius:12px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;border:none}
-.btn-plan-primary{background:linear-gradient(135deg,var(--rouge),var(--rouge2));color:white;box-shadow:0 4px 20px rgba(192,57,43,0.25)}
-.btn-plan-secondary{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.65);border:1px solid var(--border)!important}
-
-/* ── FORMULAIRE ── */
-.form-section{padding:64px 20px;position:relative;overflow:hidden}
-.form-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(192,57,43,0.1) 0%,transparent 60%);pointer-events:none}
-.form-box{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:24px;padding:28px 20px;max-width:440px;margin:0 auto;position:relative;z-index:1}
-.form-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(192,57,43,0.5),transparent);border-radius:24px 24px 0 0}
-.form-titre{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;text-align:center;margin-bottom:6px}
-.form-sous{font-size:12px;color:var(--texte);text-align:center;margin-bottom:24px}
-.form-group{margin-bottom:14px}
-.form-label{font-size:10px;font-weight:900;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:7px}
-.form-input,.form-select{width:100%;padding:13px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s}
-.form-input::placeholder{color:rgba(255,255,255,0.25)}
-.form-input:focus,.form-select:focus{border-color:rgba(192,57,43,0.4);background:rgba(192,57,43,0.04)}
-.form-select option{background:#1a1a1a;color:white}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn-form{width:100%;padding:16px;background:linear-gradient(135deg,var(--rouge),var(--rouge2));color:white;border:none;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(192,57,43,0.3);margin-top:8px;transition:transform 0.2s}
-.btn-form:hover{transform:translateY(-2px)}
-.form-reassurance{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:var(--texte)}
-.form-reassurance span{color:rgba(255,255,255,0.35)}
-
-/* ── TEMOIGNAGES ── */
-.temoignages{padding:64px 20px;background:var(--bg2);border-top:1px solid var(--border)}
-.temoignages-grid{display:flex;flex-direction:column;gap:14px;max-width:440px;margin:40px auto 0}
-.temoignage{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:16px;padding:20px}
-.temoignage-stars{font-size:14px;margin-bottom:10px}
-.temoignage-texte{font-size:13px;color:rgba(255,255,255,0.7);line-height:1.7;margin-bottom:14px;font-style:italic}
+.plan-feats{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.plan-feat{font-size:12px;color:var(--texte2);display:flex;align-items:center;gap:8px}
+.plan-feat .ok{color:var(--vert);font-weight:700;flex-shrink:0}
+.plan-feat .no{color:var(--texte3);flex-shrink:0}
+.plan-feat.non{color:var(--texte3)}
+.btn-plan{width:100%;padding:13px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;border:none}
+.btn-plan-primary{background:linear-gradient(135deg,var(--b),var(--b2));color:#fff}
+.btn-plan-secondary{background:var(--creme2);color:var(--texte2);border:1.5px solid var(--border)!important}
+.temoignages-grid{display:flex;flex-direction:column;gap:12px;max-width:440px;margin:40px auto 0}
+.temoignage{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.temoignage::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--b),var(--or))}
+.temoignage-stars{font-size:13px;margin-bottom:10px;color:var(--or)}
+.temoignage-texte{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--texte2);line-height:1.75;margin-bottom:14px;font-style:italic}
 .temoignage-auteur{display:flex;align-items:center;gap:10px}
-.temoignage-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--rouge),var(--rouge2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex-shrink:0}
-.temoignage-nom{font-size:12px;font-weight:900}
-.temoignage-role{font-size:10px;color:var(--texte)}
-
-/* ── FAQ ── */
-.faq{padding:64px 20px}
-.faq-list{max-width:440px;margin:40px auto 0;display:flex;flex-direction:column;gap:10px}
-.faq-item{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-.faq-question{padding:16px;font-size:13px;font-weight:900;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.faq-question::after{content:'＋';color:var(--rouge2);font-size:16px;flex-shrink:0}
+.temoignage-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--b2));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.temoignage-nom{font-size:12px;font-weight:700;color:var(--texte)}
+.temoignage-role{font-size:10px;color:var(--texte3)}
+.faq-list{max-width:440px;margin:40px auto 0;display:flex;flex-direction:column;gap:8px}
+.faq-item{background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden}
+.faq-item.open{border-color:var(--border2)}
+.faq-question{padding:16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--texte)}
+.faq-question::after{content:'＋';color:var(--b);font-size:16px}
 .faq-item.open .faq-question::after{content:'－'}
-.faq-reponse{padding:0 16px;font-size:12px;color:var(--texte);line-height:1.7;max-height:0;overflow:hidden;transition:max-height 0.3s,padding 0.3s}
+.faq-reponse{padding:0 16px;font-size:12px;color:var(--texte2);line-height:1.75;max-height:0;overflow:hidden;transition:max-height 0.3s,padding 0.3s}
 .faq-item.open .faq-reponse{max-height:200px;padding:0 16px 16px}
-
-/* ── FOOTER CTA ── */
-.footer-cta{background:linear-gradient(135deg,var(--rouge),var(--rouge2));padding:56px 24px;text-align:center;position:relative;overflow:hidden}
-.footer-cta::before{content:'🍽️';position:absolute;font-size:220px;opacity:0.05;top:-40px;right:-40px;transform:rotate(15deg);pointer-events:none}
-.footer-cta h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:8px}
-.footer-cta p{font-size:13px;opacity:0.85;margin-bottom:28px;line-height:1.6}
-.btn-footer{background:white;color:var(--rouge);border:none;padding:16px 32px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
-
-/* ── FOOTER ── */
-.footer{background:var(--bg);border-top:1px solid var(--border);padding:32px 20px;text-align:center}
-.footer-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;margin-bottom:8px}
-.footer-logo span{color:var(--rouge2)}
+.form-section{padding:64px 20px;background:var(--creme2);border-top:1px solid var(--border)}
+.form-box{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:28px 20px;max-width:440px;margin:0 auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,0.06);overflow:hidden}
+.form-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--b),var(--or))}
+.form-titre{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--texte)}
+.form-sous{font-size:12px;color:var(--texte2);text-align:center;margin-bottom:24px}
+.form-group{margin-bottom:13px}
+.form-label{font-size:10px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px}
+.form-input,.form-select{width:100%;padding:12px 14px;background:var(--creme);border:1.5px solid var(--border);border-radius:10px;color:var(--texte);font-size:14px;font-family:'Jost',sans-serif;outline:none;transition:border-color 0.2s}
+.form-input::placeholder{color:var(--texte3)}
+.form-input:focus,.form-select:focus{border-color:var(--b);background:#fff}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-form{width:100%;padding:15px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;box-shadow:0 6px 24px rgba(139,26,26,0.25);margin-top:8px}
+.form-reassurance{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:11px;color:var(--texte3)}
+.footer-cta{background:linear-gradient(135deg,var(--b),var(--b2));padding:56px 24px;text-align:center;position:relative;overflow:hidden}
+.footer-cta::before{content:'🍽️';position:absolute;font-size:220px;opacity:0.06;top:-40px;right:-40px;transform:rotate(15deg);pointer-events:none}
+.footer-cta h2{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:10px;color:#fff}
+.footer-cta p{font-size:13px;opacity:0.8;margin-bottom:28px;line-height:1.7;color:#fff}
+.btn-footer{background:var(--creme);color:var(--b);border:none;padding:15px 32px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif}
+.footer{background:var(--texte);padding:32px 20px;text-align:center}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:8px;color:var(--creme)}
+.footer-logo span{color:var(--or2)}
 .footer-links{display:flex;justify-content:center;gap:20px;margin:12px 0;flex-wrap:wrap}
-.footer-link{font-size:12px;color:var(--texte);text-decoration:none}
-.footer-copy{font-size:11px;color:rgba(255,255,255,0.2);margin-top:16px}
-
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.footer-link{font-size:12px;color:rgba(245,240,232,0.45);text-decoration:none}
+.footer-copy{font-size:11px;color:rgba(245,240,232,0.2);margin-top:16px}
 </style>
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#c0392b">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TraiteurPro">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="theme-color" content="#8B1A1A">
 </head>
 <body>
-
-<!-- NAV -->
 <nav class="nav">
   <div class="nav-logo">Traiteur<span>Pro</span> 🍽️</div>
   <button class="nav-cta" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Démarrer gratuit</button>
 </nav>
-
-<!-- HERO -->
 <section class="hero">
-  <div class="hero-glow-top"></div>
-  <div class="hero-glow-bottom"></div>
-  <div class="hero-grid"></div>
-
-  <div class="hero-badge">🇸🇳 Made in Sénégal · Terangaprestige Group</div>
-
-  <h1 class="hero-title">
-    Votre traiteur<br>
-    <span class="italic">enfin</span> <span class="rouge">connecté</span>
-  </h1>
-
-  <p class="hero-sub">
-    Bot WhatsApp IA + Dashboard complet pour gérer vos commandes automatiquement. De Dakar à Saint-Louis.
-  </p>
-
+  <div class="hero-badge"><div class="hero-badge-dot"></div>🇸🇳 Made in Sénégal · Terangaprestige Group</div>
+  <h1 class="hero-title">Votre traiteur<br><span class="italic">enfin</span> <span class="or">connecté</span></h1>
+  <p class="hero-sub">Bot WhatsApp IA + Dashboard complet pour gérer vos commandes automatiquement. De Dakar à Saint-Louis.</p>
   <div class="hero-ctas">
     <button class="cta-main" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">🍽️ Démarrer gratuitement</button>
     <button class="cta-sec">📲 Voir une démo WhatsApp</button>
   </div>
-
   <div class="hero-stats">
     <div class="stat"><div class="stat-val">24/7</div><div class="stat-lbl">Bot actif</div></div>
     <div class="stat"><div class="stat-val">5 min</div><div class="stat-lbl">Installation</div></div>
     <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Setup requis</div></div>
   </div>
 </section>
-
-<!-- FEATURES -->
+<div class="divider"></div>
 <section class="section">
   <div class="section-label">Fonctionnalités</div>
   <h2 class="section-titre">Tout ce dont vous avez besoin</h2>
   <p class="section-sous">En moins de 5 minutes, votre traiteur est en ligne et opérationnel</p>
-
   <div class="feat-grid">
-    <div class="feat-card">
-      <div class="feat-badge">IA</div>
-      <div class="feat-icon">🤖</div>
-      <div class="feat-titre">Bot WhatsApp Intelligent</div>
-      <div class="feat-desc">Vos clients commandent sur WhatsApp. L'IA comprend les commandes en français, traite et confirme automatiquement 24h/24.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">📊</div>
-      <div class="feat-titre">Dashboard temps réel</div>
-      <div class="feat-desc">Commandes, revenus, clients — tout visible depuis votre téléphone. Changez les statuts en 1 clic depuis n'importe où.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🍽️</div>
-      <div class="feat-titre">Menu digital personnalisé</div>
-      <div class="feat-desc">Créez votre carte (plats, menus famille, événements, cantine). Activez/désactivez les plats en un clic selon disponibilité.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">📲</div>
-      <div class="feat-titre">Notifications automatiques</div>
-      <div class="feat-desc">Le client reçoit une notification WhatsApp à chaque étape : confirmé → préparation → en route → livré. Zéro appel.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">📣</div>
-      <div class="feat-titre">Promotions flash</div>
-      <div class="feat-desc">"Thiéboudienne à 3500F aujourd'hui !" → Tous vos clients reçoivent en 1 clic. Boostez vos ventes les jours creux.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">🔄</div>
-      <div class="feat-titre">Relances automatiques</div>
-      <div class="feat-desc">Les clients inactifs depuis 7 jours reçoivent un message de relance automatique. Récupérez vos clients perdus sans effort.</div>
-    </div>
+    <div class="feat-card"><div class="feat-badge">IA</div><div class="feat-icon">🤖</div><div class="feat-titre">Bot WhatsApp Intelligent</div><div class="feat-desc">Vos clients commandent sur WhatsApp. L'IA comprend les commandes en français, traite et confirme automatiquement 24h/24.</div></div>
+    <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-titre">Dashboard temps réel</div><div class="feat-desc">Commandes, revenus, clients — tout visible depuis votre téléphone. 8 onglets complets, sync automatique.</div></div>
+    <div class="feat-card"><div class="feat-icon">🍽️</div><div class="feat-titre">Menu digital personnalisé</div><div class="feat-desc">Créez votre carte complète. Activez ou désactivez les plats en un clic selon disponibilité.</div></div>
+    <div class="feat-card"><div class="feat-icon">📲</div><div class="feat-titre">Notifications automatiques</div><div class="feat-desc">Le client reçoit une notification WhatsApp à chaque étape : confirmé → préparation → en route → livré.</div></div>
+    <div class="feat-card"><div class="feat-icon">📣</div><div class="feat-titre">Promotions flash</div><div class="feat-desc">Envoyez une promo à tous vos clients en 1 clic. Boostez vos ventes les jours creux.</div></div>
+    <div class="feat-card"><div class="feat-icon">🚚</div><div class="feat-titre">Gestion des livreurs</div><div class="feat-desc">Assignez des commandes à vos livreurs. Suivi en temps réel, stats et historique complets.</div></div>
   </div>
 </section>
-
-<!-- CIBLES -->
-<section class="cibles-section">
+<div class="divider"></div>
+<section class="section bg-creme2">
   <div class="section-label">Pour qui ?</div>
   <h2 class="section-titre">Pour tous les traiteurs</h2>
   <p class="section-sous">Que vous soyez à domicile ou en restaurant</p>
-
   <div class="cibles-grid">
-    <div class="cible-card">
-      <div class="cible-emoji">🏠</div>
-      <div class="cible-titre">Traiteur à domicile</div>
-      <div class="cible-desc">Gérez vos commandes sans secrétaire</div>
-    </div>
-    <div class="cible-card">
-      <div class="cible-emoji">🍴</div>
-      <div class="cible-titre">Restaurant livraison</div>
-      <div class="cible-desc">Plus de commandes WhatsApp perdues</div>
-    </div>
-    <div class="cible-card">
-      <div class="cible-emoji">🏢</div>
-      <div class="cible-titre">Cantine entreprise</div>
-      <div class="cible-desc">Menus et plateaux automatisés</div>
-    </div>
-    <div class="cible-card">
-      <div class="cible-emoji">🎊</div>
-      <div class="cible-titre">Traiteur événements</div>
-      <div class="cible-desc">Mariages, baptêmes, cérémonies</div>
-    </div>
+    <div class="cible-card"><div class="cible-emoji">🏠</div><div class="cible-titre">Traiteur à domicile</div><div class="cible-desc">Gérez vos commandes sans secrétaire</div></div>
+    <div class="cible-card"><div class="cible-emoji">🍴</div><div class="cible-titre">Restaurant livraison</div><div class="cible-desc">Plus de commandes WhatsApp perdues</div></div>
+    <div class="cible-card"><div class="cible-emoji">🏢</div><div class="cible-titre">Cantine entreprise</div><div class="cible-desc">Menus et plateaux automatisés</div></div>
+    <div class="cible-card"><div class="cible-emoji">🎊</div><div class="cible-titre">Traiteur événements</div><div class="cible-desc">Mariages, baptêmes, cérémonies</div></div>
   </div>
 </section>
-
-<!-- COMMENT ÇA MARCHE -->
-<section class="steps-section">
+<div class="divider"></div>
+<section class="section">
   <div class="section-label">Démarrage</div>
   <h2 class="section-titre">Actif en 3 étapes</h2>
   <p class="section-sous">Votre espace TraiteurPro sera opérationnel en moins de 5 minutes</p>
-
   <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-content">
-        <div class="step-titre">Créez votre espace</div>
-        <div class="step-desc">Remplissez le formulaire avec votre nom, numéro WhatsApp et ville. Gratuit, sans carte bancaire.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-content">
-        <div class="step-titre">Ajoutez vos plats</div>
-        <div class="step-desc">Créez votre menu en quelques minutes : nom, prix, description, photo. Vos clients peuvent déjà commander.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <div class="step-titre">Partagez votre numéro</div>
-        <div class="step-desc">Dites à vos clients de vous écrire sur WhatsApp. Le bot prend en charge tout le reste automatiquement.</div>
-      </div>
-    </div>
+    <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-titre">Créez votre espace</div><div class="step-desc">Remplissez le formulaire avec votre nom, numéro WhatsApp et ville. Gratuit, sans carte bancaire.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-titre">Ajoutez vos plats</div><div class="step-desc">Créez votre menu en quelques minutes. Vos clients peuvent déjà commander.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-titre">Partagez votre numéro</div><div class="step-desc">Dites à vos clients de vous écrire sur WhatsApp. Le bot prend en charge tout le reste.</div></div></div>
   </div>
 </section>
-
-<!-- PLANS -->
-<section class="plans-section">
+<div class="divider"></div>
+<section class="section bg-creme2">
   <div class="section-label">Tarifs</div>
   <h2 class="section-titre">Commencez gratuitement</h2>
   <p class="section-sous">Payez quand vous grandissez. Aucun engagement.</p>
-
   <div class="plans-grid">
     <div class="plan-card">
       <div class="plan-nom">🆓 Gratuit</div>
-      <div class="plan-prix">0 <span style="font-family:'DM Sans';font-size:14px;font-weight:400;color:var(--texte)">FCFA</span></div>
+      <div class="plan-prix">0 <span style="font-family:'Jost';font-size:14px;font-weight:400;color:var(--texte3)">FCFA</span></div>
       <div class="plan-prix-sub">Pour toujours · 30 commandes/mois</div>
       <div class="plan-sep"></div>
       <div class="plan-feats">
@@ -319,11 +197,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
       </div>
       <button class="btn-plan btn-plan-secondary" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Démarrer gratuitement</button>
     </div>
-
     <div class="plan-card recommande">
       <div class="plan-recommande-badge">⭐ RECOMMANDÉ</div>
       <div class="plan-nom">Starter</div>
-      <div class="plan-prix">15 000 <span style="font-family:'DM Sans';font-size:14px;font-weight:400;color:var(--texte)">FCFA</span></div>
+      <div class="plan-prix">15 000 <span style="font-family:'Jost';font-size:14px;font-weight:400;color:var(--texte3)">FCFA</span></div>
       <div class="plan-prix-sub">Par mois · 500 commandes</div>
       <div class="plan-sep"></div>
       <div class="plan-feats">
@@ -336,10 +213,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
       </div>
       <button class="btn-plan btn-plan-primary" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Choisir Starter</button>
     </div>
-
-    <div class="plan-card">
+    <div class="plan-card gold">
       <div class="plan-nom">👑 Pro</div>
-      <div class="plan-prix">35 000 <span style="font-family:'DM Sans';font-size:14px;font-weight:400;color:var(--texte)">FCFA</span></div>
+      <div class="plan-prix">35 000 <span style="font-family:'Jost';font-size:14px;font-weight:400;color:var(--texte3)">FCFA</span></div>
       <div class="plan-prix-sub">Par mois · Illimité</div>
       <div class="plan-sep"></div>
       <div class="plan-feats">
@@ -354,219 +230,76 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:white;overflow-
     </div>
   </div>
 </section>
-
-<!-- TEMOIGNAGES -->
-<section class="temoignages">
+<div class="divider"></div>
+<section class="section">
   <div class="section-label">Témoignages</div>
   <h2 class="section-titre">Ils nous font confiance</h2>
   <p class="section-sous">Des traiteurs sénégalais qui ont transformé leur activité</p>
-
   <div class="temoignages-grid">
-    <div class="temoignage">
-      <div class="temoignage-stars">⭐⭐⭐⭐⭐</div>
-      <div class="temoignage-texte">"Avant je perdais des commandes tous les jours. Maintenant mon bot travaille même quand je dors. J'ai doublé mes commandes en 1 mois !"</div>
-      <div class="temoignage-auteur">
-        <div class="temoignage-avatar">F</div>
-        <div>
-          <div class="temoignage-nom">Fatou Diallo</div>
-          <div class="temoignage-role">Traiteur à domicile · Médina, Dakar</div>
-        </div>
-      </div>
-    </div>
-    <div class="temoignage">
-      <div class="temoignage-stars">⭐⭐⭐⭐⭐</div>
-      <div class="temoignage-texte">"La gestion des commandes de cantine était un cauchemar. Avec TraiteurPro, tout est automatique. Mes clients adorent les notifications."</div>
-      <div class="temoignage-auteur">
-        <div class="temoignage-avatar">M</div>
-        <div>
-          <div class="temoignage-nom">Mamadou Sarr</div>
-          <div class="temoignage-role">Cantine entreprise · Plateau, Dakar</div>
-        </div>
-      </div>
-    </div>
+    <div class="temoignage"><div class="temoignage-stars">★★★★★</div><div class="temoignage-texte">« Avant je perdais des commandes tous les jours. Maintenant mon bot travaille même quand je dors. »</div><div class="temoignage-auteur"><div class="temoignage-avatar">F</div><div><div class="temoignage-nom">Fatou Diallo</div><div class="temoignage-role">Traiteur à domicile · Médina, Dakar</div></div></div></div>
+    <div class="temoignage"><div class="temoignage-stars">★★★★★</div><div class="temoignage-texte">« La gestion des commandes de cantine était un cauchemar. Avec TraiteurPro, tout est automatique. »</div><div class="temoignage-auteur"><div class="temoignage-avatar">M</div><div><div class="temoignage-nom">Mamadou Sarr</div><div class="temoignage-role">Cantine entreprise · Plateau, Dakar</div></div></div></div>
   </div>
 </section>
-
-<!-- FAQ -->
-<section class="faq">
+<div class="divider"></div>
+<section class="section bg-creme2">
   <div class="section-label">Questions fréquentes</div>
   <h2 class="section-titre">Vous avez des questions ?</h2>
-
   <div class="faq-list">
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-question">Est-ce vraiment gratuit ?</div>
-      <div class="faq-reponse">Oui ! Le plan gratuit est gratuit pour toujours — 30 commandes par mois, bot WhatsApp inclus. Aucune carte bancaire requise.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-question">Mes clients doivent-ils télécharger une app ?</div>
-      <div class="faq-reponse">Non ! Vos clients utilisent simplement WhatsApp qu'ils ont déjà. Ils vous écrivent comme d'habitude et le bot répond automatiquement.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-question">Comment payer mon abonnement ?</div>
-      <div class="faq-reponse">Directement via Wave ou Orange Money depuis votre dashboard. Paiement simple et sécurisé, sans carte bancaire.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-question">Combien de temps pour démarrer ?</div>
-      <div class="faq-reponse">5 minutes ! Vous remplissez le formulaire, ajoutez vos plats et partagez votre numéro à vos clients. C'est tout.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-question">Puis-je changer de plan à tout moment ?</div>
-      <div class="faq-reponse">Oui, vous pouvez upgrader ou downgrader à tout moment depuis votre dashboard. Aucun engagement minimum.</div>
-    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-question">Est-ce vraiment gratuit ?</div><div class="faq-reponse">Oui ! Le plan gratuit est gratuit pour toujours — 30 commandes par mois, bot WhatsApp inclus. Aucune carte bancaire requise.</div></div>
+    <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-question">Mes clients doivent-ils télécharger une app ?</div><div class="faq-reponse">Non ! Vos clients utilisent simplement WhatsApp. Ils vous écrivent comme d'habitude et le bot répond automatiquement.</div></div>
+    <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-question">Comment payer mon abonnement ?</div><div class="faq-reponse">Directement via Wave ou Orange Money depuis votre dashboard. Paiement simple et sécurisé.</div></div>
+    <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-question">Combien de temps pour démarrer ?</div><div class="faq-reponse">5 minutes ! Formulaire, plats, et vous partagez votre numéro à vos clients. C'est tout.</div></div>
+    <div class="faq-item" onclick="this.classList.toggle('open')"><div class="faq-question">Puis-je changer de plan à tout moment ?</div><div class="faq-reponse">Oui, upgrade ou downgrade à tout moment depuis votre dashboard. Aucun engagement.</div></div>
   </div>
 </section>
-
-<!-- FORMULAIRE -->
+<div class="divider"></div>
 <section class="form-section" id="inscription">
   <div class="section-label">Inscription</div>
   <h2 class="section-titre" style="margin-bottom:40px">Commencer maintenant</h2>
-
   <div class="form-box">
     <div class="form-titre">🍽️ Créez votre espace</div>
-    <div class="form-sous">Votre espace TraiteurPro est prêt en moins de 5 minutes. Essai gratuit 14 jours.</div>
-
-    <div class="form-group">
-      <label class="form-label">Nom de votre traiteur *</label>
-      <input class="form-input" placeholder="Ex : Chez Fatou Traiteur" id="f-nom">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Votre nom</label>
-      <input class="form-input" placeholder="Votre prénom et nom" id="f-proprio">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Numéro WhatsApp * (avec 221)</label>
-      <input class="form-input" placeholder="Ex : 221 77 123 45 67" id="f-phone" type="tel">
-    </div>
+    <div class="form-sous">Votre espace TraiteurPro est prêt en 5 minutes. Essai gratuit 14 jours.</div>
+    <div class="form-group"><label class="form-label">Nom de votre traiteur *</label><input class="form-input" placeholder="Ex : Chez Fatou Traiteur" id="f-nom"></div>
+    <div class="form-group"><label class="form-label">Votre nom</label><input class="form-input" placeholder="Votre prénom et nom" id="f-proprio"></div>
+    <div class="form-group"><label class="form-label">Numéro WhatsApp * (avec 221)</label><input class="form-input" placeholder="Ex : 221 77 123 45 67" id="f-phone" type="tel"></div>
     <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Ville *</label>
-        <input class="form-input" placeholder="Votre ville" id="f-ville">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Cuisine</label>
-        <select class="form-select" id="f-cuisine">
-          <option value="sénégalaise">🍚 Sénégalaise</option>
-          <option value="grillade">🥩 Grillade / Brochettes</option>
-          <option value="cantine">🍱 Cantine / Plateaux</option>
-          <option value="evenements">🎊 Événements</option>
-          <option value="healthy">🥗 Salade / Healthy</option>
-          <option value="boulangerie">🍞 Boulangerie / Pâtisserie</option>
-          <option value="africaine">🌍 Africaine</option>
-          <option value="internationale">🌐 Internationale</option>
-          <option value="mixte">🍽️ Mixte</option>
-        </select>
-      </div>
+      <div class="form-group"><label class="form-label">Ville *</label><input class="form-input" placeholder="Votre ville" id="f-ville"></div>
+      <div class="form-group"><label class="form-label">Cuisine</label><select class="form-select" id="f-cuisine"><option value="sénégalaise">🍚 Sénégalaise</option><option value="grillade">🥩 Grillade</option><option value="cantine">🍱 Cantine</option><option value="evenements">🎊 Événements</option><option value="mixte">🍽️ Mixte</option></select></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Zone de livraison</label>
-      <input class="form-input" placeholder="Ex : Dakar, Plateau, Médina…" id="f-zone">
-    </div>
-    <div class="form-group" id="parrain-group" style="display:none">
-      <label class="form-label">🎁 Code parrainage (optionnel)</label>
-      <input class="form-input" placeholder="Code de parrainage (optionnel)" id="f-parrain" style="text-transform:uppercase;letter-spacing:2px">
-    </div>
-
+    <div class="form-group"><label class="form-label">Zone de livraison</label><input class="form-input" placeholder="Ex : Dakar, Plateau, Médina…" id="f-zone"></div>
+    <div class="form-group" id="parrain-group" style="display:none"><label class="form-label">🎁 Code parrainage</label><input class="form-input" placeholder="Code de parrainage" id="f-parrain" style="text-transform:uppercase;letter-spacing:2px"></div>
     <button class="btn-form" onclick="inscrire()">🍽️ Créer mon espace traiteur →</button>
-
-    <div class="form-reassurance">
-      <span>🔒 Sécurisé</span> · <span>✅ Gratuit pour toujours</span> · <span>⚡ Actif en 5 min</span>
-    </div>
+    <div class="form-reassurance"><span>🔒 Sécurisé</span> · <span>✅ Gratuit 14 jours</span> · <span>⚡ Actif en 5 min</span></div>
   </div>
 </section>
-
-<!-- FOOTER CTA -->
 <section class="footer-cta">
   <h2>Prêt à transformer votre activité ?</h2>
   <p>Rejoignez les traiteurs sénégalais qui automatisent<br>leurs commandes avec TraiteurPro.</p>
   <button class="btn-footer" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">🍽️ Démarrer gratuitement</button>
 </section>
-
-<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-logo">Traiteur<span>Pro</span> 🍽️</div>
-  <div class="footer-links">
-    <a class="footer-link" href="/carte">🗺️ Carte des traiteurs</a>
-    <a class="footer-link" href="/app">📊 Dashboard</a>
-    <a class="footer-link" href="https://wa.me/221711288439">📲 WhatsApp</a>
-  </div>
+  <div class="footer-links"><a class="footer-link" href="/carte">🗺️ Carte des traiteurs</a><a class="footer-link" href="/app">📊 Dashboard</a><a class="footer-link" href="https://wa.me/221711288439">📲 WhatsApp</a></div>
   <div class="footer-copy">TraiteurPro · Terangaprestige Group 🇸🇳 · © 2026 · Dakar, Sénégal</div>
 </footer>
-
 <script>
-const API = 'https://traiteurpro-production.up.railway.app';
-
-
-// Auto-remplir code parrainage depuis URL ?ref=TPXX
-const urlRef = new URLSearchParams(window.location.search).get('ref');
-if(urlRef){
-  const pg = document.getElementById('parrain-group');
-  const pf = document.getElementById('f-parrain');
-  if(pg && pf){ pg.style.display='block'; pf.value=urlRef.toUpperCase(); }
+const API='https://traiteurpro-production.up.railway.app';
+const urlRef=new URLSearchParams(window.location.search).get('ref');
+if(urlRef){const pg=document.getElementById('parrain-group');const pf=document.getElementById('f-parrain');if(pg&&pf){pg.style.display='block';pf.value=urlRef.toUpperCase();}}
+async function inscrire(){
+  const nom=document.getElementById('f-nom').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const ville=document.getElementById('f-ville').value.trim()||'Dakar';
+  if(!nom||!phone){alert('Nom et numéro WhatsApp obligatoires !');return;}
+  if(phone.length<9){alert('Numéro WhatsApp invalide');return;}
+  try{
+    const btn=document.querySelector('.btn-form');btn.textContent='⏳ Création en cours...';btn.disabled=true;
+    const r=await fetch(API+'/api/inscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom_boutique:nom,proprietaire:document.getElementById('f-proprio').value,whatsapp:phone,ville,type_cuisine:document.getElementById('f-cuisine').value,zone_livraison:document.getElementById('f-zone').value,parrain_code:document.getElementById('f-parrain').value||null})});
+    const d=await r.json();
+    if(d.ok||d.id){btn.textContent='✅ Espace créé !';setTimeout(()=>{window.location.href='/app?id='+(d.id||1);},1500);}
+    else{btn.textContent='🍽️ Créer mon espace traiteur →';btn.disabled=false;alert('Erreur : '+(d.error||'Réessayez'));}
+  }catch(e){document.querySelector('.btn-form').textContent='🍽️ Créer mon espace traiteur →';document.querySelector('.btn-form').disabled=false;alert('Erreur réseau.');}
 }
-
-function toggleFaq(el) {
-  el.classList.toggle('open');
-}
-
-async function inscrire() {
-  const nom = document.getElementById('f-nom').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const ville = document.getElementById('f-ville').value.trim() || 'Dakar';
-  if (!nom || !phone) { alert('Nom et numéro WhatsApp obligatoires !'); return; }
-  if (phone.length < 9) { alert('Numéro WhatsApp invalide (ex: 221771234567)'); return; }
-  try {
-    const btn = document.querySelector('.btn-form');
-    btn.textContent = '⏳ Création en cours...';
-    btn.disabled = true;
-    const r = await fetch(`${API}/api/inscription`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nom_boutique: nom,
-        proprietaire: document.getElementById('f-proprio').value,
-        whatsapp: phone,
-        ville,
-        type_cuisine: document.getElementById('f-cuisine').value,
-        zone_livraison: document.getElementById('f-zone').value,
-        parrain_code: document.getElementById('f-parrain').value || null
-      })
-    });
-    const d = await r.json();
-    if (d.ok || d.id) {
-      btn.textContent = '✅ Espace créé !';
-      setTimeout(() => {
-        window.location.href = `/app?id=${d.id || 1}`;
-      }, 1500);
-    } else {
-      btn.textContent = '🍽️ Créer mon espace traiteur →';
-      btn.disabled = false;
-      alert('Erreur : ' + (d.error || 'Réessayez'));
-    }
-  } catch(e) {
-    document.querySelector('.btn-form').textContent = '🍽️ Créer mon espace traiteur →';
-    document.querySelector('.btn-form').disabled = false;
-    alert('Erreur réseau. Vérifiez votre connexion.');
-  }
-}
-</script>
-
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(r => console.log('✅ SW enregistré'))
-      .catch(e => console.log('SW erreur:', e));
-  });
-}
-// Prompt installation
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Afficher bouton install si présent
-  const btn = document.getElementById('btn-install');
-  if(btn){ btn.style.display='block'; btn.onclick=()=>{ deferredPrompt.prompt(); deferredPrompt=null; btn.style.display='none'; }; }
-});
 </script>
 </body>
 </html>
