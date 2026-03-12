@@ -228,8 +228,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
       <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#E8C97E">TP</span>
     </div>
     <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1A1008;margin-bottom:6px">TraiteurPro</div>
-    <div style="font-size:13px;color:#6B5B45;margin-bottom:20px">Entrez votre PIN</div>
-    <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="1 2 3 4" autocomplete="off"
+    <div style="font-size:13px;color:#6B5B45;margin-bottom:20px">Saisissez votre code PIN</div>
+    <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="· · · ·" autocomplete="off"
       style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block">
     <button id="btn-login" type="button"
       style="width:100%;padding:14px;background:#8B1A1A;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block">
@@ -245,8 +245,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <div class="login-logo">🔐</div>
     <div class="login-title">Créez votre PIN</div>
     <div class="login-sub">Choisissez un PIN de 4 chiffres</div>
-    <input type="password" id="new-pin" maxlength="4" placeholder="Nouveau PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:12px;font-family:'Jost',sans-serif">
-    <input type="password" id="confirm-pin" maxlength="4" placeholder="Confirmer PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:16px;font-family:'Jost',sans-serif">
+    <input type="password" id="new-pin" maxlength="4" placeholder="Nouveau code PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:12px;font-family:'Jost',sans-serif">
+    <input type="password" id="confirm-pin" maxlength="4" placeholder="Confirmer le code PIN" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:16px;font-family:'Jost',sans-serif">
     <button onclick="confirmerNouveauPin()" style="width:100%;background:#c0392b;color:white;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif">✅ Valider</button>
     <div id="setpin-error" style="color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none"></div>
   </div>
@@ -272,14 +272,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 <!-- BANNIERE ESSAI/SUSPENSION -->
 <div id="banner-essai" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;padding:12px 16px;display:none;align-items:center;gap:10px;position:sticky;top:56px;z-index:99;flex-wrap:wrap">
   <span id="banner-text" style="flex:1;font-size:12px;font-weight:700;color:white;min-width:150px"></span>
-  <button onclick="allerAbonnement()" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif;white-space:nowrap;flex-shrink:0">💳 S'abonner</button>
+  <button onclick="allerAbonnement()" style="background:white;color:#c0392b;border:none;padding:7px 14px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif;white-space:nowrap;flex-shrink:0">💳 Souscrire un abonnement</button>
 </div>
 
 <!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab-content active">
   <div class="page-header">
     <h1>Tableau de bord</h1>
-    <p id="last-update">Chargement...</p>
+    <p id="last-update">Synchronisation en cours…</p>
     <div class="header-actions">
     <button class="btn-header" onclick="voirMenuPublic()">🌐 Mon menu</button>
     <button class="btn-header" onclick="voirQRCode()">📱 QR Code</button>
@@ -291,20 +291,20 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   </div>
   <div id="bienvenue-block" style="display:none">
     <div class="bienvenue">
-      <div class="bv-title">👋 Bienvenue sur TraiteurPro !</div>
+      <div class="bv-title">👋 Bienvenue sur TraiteurPro</div>
       <div class="bv-sub">3 étapes pour démarrer :</div>
       <div class="bv-steps">
-        <div class="bv-step" id="step-1"><div class="bv-step-num">1</div><div class="bv-step-text">🍽️ Ajoutez vos plats au menu</div></div>
+        <div class="bv-step" id="step-1"><div class="bv-step-num">1</div><div class="bv-step-text">🍽️ Créez votre carte et ajoutez vos plats</div></div>
         <div class="bv-step" id="step-2"><div class="bv-step-num">2</div><div class="bv-step-text">📱 Partagez votre numéro WhatsApp aux clients</div></div>
         <div class="bv-step" id="step-3"><div class="bv-step-num">3</div><div class="bv-step-text">🎉 Recevez vos premières commandes automatiquement</div></div>
       </div>
-      <button class="btn-bv" onclick="afficherTab('menus',null);setTimeout(afficherModalMenu,100)">🍽️ Ajouter mon premier plat</button>
+      <button class="btn-bv" onclick="afficherTab('menus',null);setTimeout(afficherModalMenu,100)">🍽️ Créer ma carte de menus</button>
     </div>
   </div>
   <!-- CARTE ESSAI -->
   <div id="essai-card" style="display:flex;margin:0 16px 12px;border-radius:14px;padding:14px 16px;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#95a5a6,#7f8c8d)">
-    <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px">⏳ Chargement essai...</div>
-    <button onclick="allerAbonnement()" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif">💳 S'abonner</button>
+    <div id="essai-card-text" style="flex:1;font-size:13px;font-weight:700;color:white;min-width:180px">⏳ Vérification de votre abonnement…</div>
+    <button onclick="allerAbonnement()" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif">💳 Souscrire un abonnement</button>
   </div>
   <script>
   </script>
@@ -316,7 +316,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   </div>
   <div class="section">
     <div class="section-header"><div class="section-title">🕐 Nouvelles commandes</div></div>
-    <div id="nouvelles-commandes"><div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune nouvelle commande</div></div>
+    <div id="nouvelles-commandes"><div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div></div>
   </div>
   <div class="section">
     <div class="section-header"><div class="section-title">🔥 Plats populaires</div></div>
@@ -328,7 +328,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <!-- COMMANDES -->
 <div id="tab-commandes" class="tab-content">
-  <div class="page-header"><h1>📋 Commandes</h1><p>Gérez toutes vos commandes</p>
+  <div class="page-header"><h1>📋 Commandes</h1><p>Suivez et traitez vos commandes en temps réel</p>
     <div class="header-actions"><button class="btn-header" onclick="afficherModalCommande()">+ Nouvelle</button></div>
   </div>
   <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
@@ -344,8 +344,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <!-- MENUS -->
 <div id="tab-menus" class="tab-content">
-  <div class="page-header"><h1>🍽️ Mes Menus</h1><p>Gérez votre carte</p>
-    <div class="header-actions"><button class="btn-header" onclick="afficherModalMenu()">+ Ajouter plat</button></div>
+  <div class="page-header"><h1>🍽️ Mes Menus</h1><p>Composez votre carte et gérez vos plats</p>
+    <div class="header-actions"><button class="btn-header" onclick="afficherModalMenu()">+ Nouveau plat</button></div>
   </div>
   <div class="section" style="padding-top:14px"><div id="menus-liste"></div></div>
 </div>
@@ -360,8 +360,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <!-- LIVREURS -->
 <div id="tab-livreurs" class="tab-content">
-  <div class="page-header"><h1>🚚 Mes Livreurs</h1><p>Gérez votre équipe de livraison</p>
-    <div class="header-actions"><button class="btn-header" onclick="afficherModalLivreur()">+ Ajouter livreur</button></div>
+  <div class="page-header"><h1>🚚 Mes Livreurs</h1><p>Coordinisez vos livreurs et les zones de couverture</p>
+    <div class="header-actions"><button class="btn-header" onclick="afficherModalLivreur()">+ Nouveau livreur</button></div>
   </div>
   <div class="section" style="padding-top:14px"><div id="livreurs-liste"></div></div>
 </div>
@@ -402,7 +402,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   <div class="page-header"><h1>⭐ Avis Clients</h1><p>Ce que disent vos clients</p>
     <div class="header-actions">
       <button class="btn-header" onclick="demanderAvis()">📲 Demander avis</button>
-      <button class="btn-header" onclick="ajouterAvisManuel()">+ Ajouter</button>
+      <button class="btn-header" onclick="ajouterAvisManuel()">+ Ajouter un avis</button>
     </div>
   </div>
   <div class="section" style="padding-top:14px"><div id="avis-liste"></div></div>
@@ -411,10 +411,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 <!-- MODALS -->
 <div class="modal-overlay" id="modal-menu">
   <div class="modal">
-    <div class="modal-title">🍽️ Ajouter un plat</div>
+    <div class="modal-title">🍽️ Nouveau plat</div>
     <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="menu-emoji" value="🍽️" maxlength="2"></div>
-    <div class="form-group"><label class="form-label">Nom du plat *</label><input class="form-input" id="menu-nom" placeholder="Ex: Thiéboudienne"></div>
-    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="menu-desc" placeholder="Riz au poisson..."></div>
+    <div class="form-group"><label class="form-label">Nom du plat *</label><input class="form-input" id="menu-nom" placeholder="Ex : Thiéboudienne, Yassa Poulet…"></div>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="menu-desc" placeholder="Description courte du plat"></div>
     <div class="form-group"><label class="form-label">Prix (FCFA) *</label><input class="form-input" id="menu-prix" type="number" placeholder="5000"></div>
     <div class="form-group"><label class="form-label">Catégorie</label>
       <select class="form-select" id="menu-cat">
@@ -428,7 +428,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
       </select>
     </div>
     <div class="form-group"><label class="form-label">Nombre de personnes</label><input class="form-input" id="menu-pers" type="number" value="1" min="1"></div>
-    <button class="btn-submit" onclick="sauvegarderMenu()">✅ Ajouter au menu</button>
+    <button class="btn-submit" onclick="sauvegarderMenu()">✅ Enregistrer le plat</button>
     <button class="btn-cancel" onclick="fermerModal('modal-menu')">Annuler</button>
   </div>
 </div>
@@ -436,13 +436,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 <div class="modal-overlay" id="modal-commande">
   <div class="modal">
     <div class="modal-title">📋 Nouvelle commande</div>
-    <div class="form-group"><label class="form-label">Téléphone client *</label><input class="form-input" id="cmd-phone" placeholder="221771234567"></div>
-    <div class="form-group"><label class="form-label">Nom client</label><input class="form-input" id="cmd-nom" placeholder="Aminata Diallo"></div>
+    <div class="form-group"><label class="form-label">Téléphone client *</label><input class="form-input" id="cmd-phone" placeholder="Ex : 221 77 123 45 67"></div>
+    <div class="form-group"><label class="form-label">Nom client</label><input class="form-input" id="cmd-nom" placeholder="Prénom et nom du client"></div>
     <div class="form-group"><label class="form-label">Plat *</label><select class="form-select" id="cmd-plat"></select></div>
     <div class="form-group"><label class="form-label">Quantité</label><input class="form-input" id="cmd-qte" type="number" value="1" min="1"></div>
-    <div class="form-group"><label class="form-label">Adresse livraison</label><input class="form-input" id="cmd-adresse" placeholder="Rue 10, Médina"></div>
+    <div class="form-group"><label class="form-label">Adresse livraison</label><input class="form-input" id="cmd-adresse" placeholder="Quartier, rue, point de repère"></div>
     <div class="form-group"><label class="form-label">Date livraison</label><input class="form-input" id="cmd-date" type="date"></div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="cmd-notes" placeholder="Sans piment..."></div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="cmd-notes" placeholder="Instructions spéciales (ex : sans piment)"></div>
     <button class="btn-submit" onclick="sauvegarderCommande()">✅ Créer commande</button>
     <button class="btn-cancel" onclick="fermerModal('modal-commande')">Annuler</button>
   </div>
@@ -450,10 +450,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <div class="modal-overlay" id="modal-livreur">
   <div class="modal">
-    <div class="modal-title">🚚 Ajouter un livreur</div>
-    <div class="form-group"><label class="form-label">Nom complet *</label><input class="form-input" id="liv-nom" placeholder="Mamadou Diallo"></div>
-    <div class="form-group"><label class="form-label">Téléphone *</label><input class="form-input" id="liv-phone" placeholder="221771234567"></div>
-    <div class="form-group"><label class="form-label">Zone de livraison</label><input class="form-input" id="liv-zone" placeholder="Plateau, Médina..."></div>
+    <div class="modal-title">🚚 Nouveau livreur</div>
+    <div class="form-group"><label class="form-label">Nom complet *</label><input class="form-input" id="liv-nom" placeholder="Prénom et nom complet"></div>
+    <div class="form-group"><label class="form-label">Téléphone *</label><input class="form-input" id="liv-phone" placeholder="Ex : 221 77 123 45 67"></div>
+    <div class="form-group"><label class="form-label">Zone de livraison</label><input class="form-input" id="liv-zone" placeholder="Ex : Plateau, Médina, Almadies"></div>
     <div class="form-group"><label class="form-label">Transport</label>
       <select class="form-select" id="liv-transport">
         <option value="🏍️ Moto">🏍️ Moto</option>
@@ -462,7 +462,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
         <option value="🚶 À pied">🚶 À pied</option>
       </select>
     </div>
-    <button class="btn-submit" onclick="sauvegarderLivreur()">✅ Ajouter</button>
+    <button class="btn-submit" onclick="sauvegarderLivreur()">✅ Enregistrer</button>
     <button class="btn-cancel" onclick="fermerModal('modal-livreur')">Annuler</button>
   </div>
 </div>
@@ -470,13 +470,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 <div class="modal-overlay" id="modal-echelonne">
   <div class="modal">
     <div class="modal-title">⏳ Paiement échelonné</div>
-    <div class="form-group"><label class="form-label">Nom client *</label><input class="form-input" id="ech-nom" placeholder="Aminata Diallo"></div>
-    <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="ech-phone" placeholder="221771234567"></div>
-    <div class="form-group"><label class="form-label">Montant total (FCFA) *</label><input class="form-input" id="ech-total" type="number" placeholder="50000"></div>
-    <div class="form-group"><label class="form-label">Acompte versé (FCFA) *</label><input class="form-input" id="ech-acompte" type="number" placeholder="25000"></div>
+    <div class="form-group"><label class="form-label">Nom client *</label><input class="form-input" id="ech-nom" placeholder="Prénom et nom du client"></div>
+    <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="ech-phone" placeholder="Ex : 221 77 123 45 67"></div>
+    <div class="form-group"><label class="form-label">Montant total (FCFA) *</label><input class="form-input" id="ech-total" type="number" placeholder="Montant total en FCFA"></div>
+    <div class="form-group"><label class="form-label">Acompte versé (FCFA) *</label><input class="form-input" id="ech-acompte" type="number" placeholder="Acompte versé en FCFA"></div>
     <div class="form-group"><label class="form-label">Date solde prévu</label><input class="form-input" id="ech-date" type="date"></div>
-    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="ech-desc" placeholder="Buffet mariage 50 personnes..."></div>
-    <button class="btn-submit" onclick="sauvegarderEchelonne()">✅ Enregistrer</button>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="ech-desc" placeholder="Ex : Buffet mariage 50 personnes"></div>
+    <button class="btn-submit" onclick="sauvegarderEchelonne()">✅ Enregistrer le paiement</button>
     <button class="btn-cancel" onclick="fermerModal('modal-echelonne')">Annuler</button>
   </div>
 </div>
@@ -523,7 +523,7 @@ function checkLogin(){
 async function validerPinInput(pin){
   var p = String(pin||'').replace(/[^0-9]/g,'');
   if(p.length < 4){
-    document.getElementById('login-error').textContent = 'Entrez 4 chiffres';
+    document.getElementById('login-error').textContent = 'Veuillez saisir un code PIN à 4 chiffres';
     document.getElementById('login-error').style.display = 'block';
     return;
   }
@@ -546,13 +546,13 @@ async function validerPinInput(pin){
       document.getElementById('login-error').textContent = 'PIN incorrect';
       document.getElementById('login-error').style.display = 'block';
       document.getElementById('pin-input').value = '';
-      document.getElementById('btn-login').textContent = 'Acceder';
+      document.getElementById('btn-login').textContent = 'Accéder au tableau de bord';
       document.getElementById('btn-login').disabled = false;
     }
   } catch(e) {
     document.getElementById('login-error').textContent = 'Erreur reseau: ' + e.message;
     document.getElementById('login-error').style.display = 'block';
-    document.getElementById('btn-login').textContent = 'Acceder';
+    document.getElementById('btn-login').textContent = 'Accéder au tableau de bord';
     document.getElementById('btn-login').disabled = false;
   }
 }
@@ -627,7 +627,7 @@ async function chargerDashboard(){
     if(commandes>0){const s3=document.getElementById('step-3');s3.style.opacity='0.6';s3.querySelector('.bv-step-num').textContent='✅'}
     const r2=await fetch(`${API}/api/commandes/${TRAITEUR_ID}?statut=nouveau&limit=5`);
     const cmds=await r2.json();
-    document.getElementById('nouvelles-commandes').innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune nouvelle commande</div>';
+    document.getElementById('nouvelles-commandes').innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div>';
     const pe=document.getElementById('plats-top');
     pe.innerHTML=d.plats_top?.length?d.plats_top.map(p=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span style="font-size:13px">${p.emoji||'🍽️'} ${p.nom}</span><span style="font-weight:800;color:#c0392b">${p.total} cmd</span></div>`).join(''):'<div style="text-align:center;color:#888;font-size:13px">Pas encore de données</div>';
   }catch(e){console.error(e)}
@@ -637,7 +637,7 @@ function renderCmd(c,mini=false){
   const items=Array.isArray(c.items)?c.items:(typeof c.items==='string'?JSON.parse(c.items||'[]'):[]);
   const prod=items.map(i=>`${i.emoji||'🍽️'} ${i.quantite}x ${i.nom}`).join(', ');
   const st={nouveau:'b-nouveau',confirmé:'b-confirmé',preparation:'b-preparation','en route':'b-route',livré:'b-livré',annulé:'b-annulé'};
-  const lb={nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 En route',livré:'✅ Livré',annulé:'❌ Annulé'};
+  const lb={nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 Livraison en cours',livré:'✅ Livré',annulé:'❌ Annulé'};
   const date=new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   return `<div class="cmd-card"><div class="cmd-top"><div><div class="cmd-ref">${c.reference||'#'+c.id}</div><div class="cmd-client">📱 ${c.client_nom||c.client_phone} · ${date}</div></div><span class="badge ${st[c.statut]||'b-nouveau'}">${lb[c.statut]||c.statut}</span></div>
   <div class="cmd-items">${prod||'Commande'}</div>${c.adresse_livraison?`<div class="cmd-adresse">📍 ${c.adresse_livraison}</div>`:''}
@@ -647,13 +647,13 @@ function renderCmd(c,mini=false){
 }
 
 async function chargerCommandes(statut='tous'){
-  try{const url=statut==='tous'?`${API}/api/commandes/${TRAITEUR_ID}`:`${API}/api/commandes/${TRAITEUR_ID}?statut=${statut}`;const r=await fetch(url);const cmds=await r.json();const el=document.getElementById('commandes-liste');el.innerHTML=cmds.length?cmds.map(c=>renderCmd(c,false)).join(''):'<div style="text-align:center;color:#888;padding:20px">Aucune commande</div>'}catch(e){console.error(e)}
+  try{const url=statut==='tous'?`${API}/api/commandes/${TRAITEUR_ID}`:`${API}/api/commandes/${TRAITEUR_ID}?statut=${statut}`;const r=await fetch(url);const cmds=await r.json();const el=document.getElementById('commandes-liste');el.innerHTML=cmds.length?cmds.map(c=>renderCmd(c,false)).join(''):'<div style="text-align:center;color:#888;padding:20px">Aucune commande trouvée</div>'}catch(e){console.error(e)}
 }
 async function changerStatut(id,statut){try{await fetch(`${API}/api/commandes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({statut})});chargerCommandes('tous');chargerDashboard()}catch(e){alert('Erreur')}}
 
 async function chargerMenus(){
   try{const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();const el=document.getElementById('menus-liste');
-  if(!menus.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🍽️</div><div class="empty-title">Aucun plat pour l'instant</div><div class="empty-sub">Ajoutez vos plats pour que vos clients puissent commander via WhatsApp.</div><button class="btn-empty" onclick="afficherModalMenu()">🍽️ Ajouter mon premier plat</button></div>`;return}
+  if(!menus.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🍽️</div><div class="empty-title">Votre carte est encore vide</div><div class="empty-sub">Ajoutez vos plats pour permettre à vos clients de commander directement depuis WhatsApp.</div><button class="btn-empty" onclick="afficherModalMenu()">🍽️ Créer ma carte de menus</button></div>`;return}
   const cats={plat:'🍽️ Plats individuels',famille:'👨‍👩‍👧 Formules famille',evenement:'🎊 Événements',cantine:'🏢 Cantine',grillade:'🥩 Grillade',healthy:'🥗 Healthy',boulangerie:'🍞 Boulangerie'};
   const grp={};menus.forEach(m=>{if(!grp[m.categorie])grp[m.categorie]=[];grp[m.categorie].push(m)});
   let html='';for(const[cat,items]of Object.entries(grp)){html+=`<div style="font-size:12px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px">${cats[cat]||cat}</div>`;html+=items.map(m=>`<div class="menu-card"><div class="menu-emoji">${m.emoji||'🍽️'}</div><div class="menu-info"><div class="menu-nom">${m.nom}</div>${m.description?`<div class="menu-desc">${m.description}</div>`:''}<div class="cat-badge">${m.nb_personnes>1?m.nb_personnes+' pers.':'Individuel'}</div></div><div style="text-align:right"><div class="menu-prix">${Number(m.prix).toLocaleString('fr-FR')} F</div><div class="menu-actions" style="margin-top:6px"><button class="menu-btn" onclick="toggleDispo(${m.id},${!m.disponible})" style="color:${m.disponible?'#006633':'#c0392b'}">${m.disponible?'✅':'❌'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerMenu(${m.id})">🗑️</button></div></div></div>`).join('')}
@@ -662,30 +662,30 @@ async function chargerMenus(){
 function afficherModalMenu(){document.getElementById('modal-menu').classList.add('open')}
 async function sauvegarderMenu(){const nom=document.getElementById('menu-nom').value,prix=document.getElementById('menu-prix').value;if(!nom||!prix){alert('Nom et prix obligatoires');return}try{const r=await fetch(`${API}/api/menus`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,nom,prix:parseInt(prix),description:document.getElementById('menu-desc').value,categorie:document.getElementById('menu-cat').value,emoji:document.getElementById('menu-emoji').value,nb_personnes:parseInt(document.getElementById('menu-pers').value)||1})});const d=await r.json();if(d.ok){fermerModal('modal-menu');chargerMenus();['menu-nom','menu-prix','menu-desc'].forEach(id=>document.getElementById(id).value='')}}catch(e){alert('Erreur: '+e.message)}}
 async function toggleDispo(id,dispo){await fetch(`${API}/api/menus/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({disponible:dispo})});chargerMenus()}
-async function supprimerMenu(id){if(!confirm('Supprimer ce plat ?'))return;await fetch(`${API}/api/menus/${id}`,{method:'DELETE'});chargerMenus()}
+async function supprimerMenu(id){if(!confirm('Supprimer ce plat définitivement ?'))return;await fetch(`${API}/api/menus/${id}`,{method:'DELETE'});chargerMenus()}
 
 async function afficherModalCommande(){const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');document.getElementById('modal-commande').classList.add('open')}
 async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes:document.getElementById('cmd-notes').value})});const d=await r.json();if(d.ok){fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard()}}catch(e){alert('Erreur')}}
 
-async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client pour l'instant</div><div class="empty-sub">Vos clients apparaîtront ici après leurs premières commandes WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
+async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
 
-function chargerLivreurs(){const el=document.getElementById('livreurs-liste');if(!livreurs.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🚚</div><div class="empty-title">Aucun livreur</div><div class="empty-sub">Ajoutez vos livreurs pour assigner les commandes et suivre les livraisons.</div><button class="btn-empty" onclick="afficherModalLivreur()">🚚 Ajouter un livreur</button></div>`;return}
+function chargerLivreurs(){const el=document.getElementById('livreurs-liste');if(!livreurs.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🚚</div><div class="empty-title">Aucun livreur enregistré</div><div class="empty-sub">Enregistrez vos livreurs pour leur attribuer des commandes et suivre les livraisons.</div><button class="btn-empty" onclick="afficherModalLivreur()">🚚 Nouveau livreur</button></div>`;return}
 el.innerHTML=livreurs.map((l,i)=>`<div class="livreur-card"><div class="livreur-avatar">🚚</div><div class="livreur-info"><div class="livreur-nom">${l.nom}</div><div class="livreur-phone">📱 ${l.phone} · ${l.transport}</div><div style="font-size:11px;color:#888;margin-top:2px">📍 ${l.zone||'Zone non définie'}</div></div><div><span class="${l.dispo?'dispo-oui':'dispo-non'}">${l.dispo?'✅ Dispo':'🔴 Occupé'}</span><div style="display:flex;gap:4px;margin-top:6px"><button class="menu-btn" onclick="toggleLivreurDispo(${i})">${l.dispo?'Occuper':'Libérer'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${i})">🗑️</button></div></div></div>`).join('')}
 function afficherModalLivreur(){document.getElementById('modal-livreur').classList.add('open')}
 function sauvegarderLivreur(){const nom=document.getElementById('liv-nom').value,phone=document.getElementById('liv-phone').value;if(!nom||!phone){alert('Nom et téléphone obligatoires');return}livreurs.push({nom,phone,zone:document.getElementById('liv-zone').value,transport:document.getElementById('liv-transport').value,dispo:true});localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));fermerModal('modal-livreur');document.getElementById('liv-nom').value='';document.getElementById('liv-phone').value='';chargerLivreurs()}
 function toggleLivreurDispo(i){livreurs[i].dispo=!livreurs[i].dispo;localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));chargerLivreurs()}
-function supprimerLivreur(i){if(!confirm('Supprimer ?'))return;livreurs.splice(i,1);localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));chargerLivreurs()}
+function supprimerLivreur(i){if(!confirm('Confirmer la suppression ?'))return;livreurs.splice(i,1);localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));chargerLivreurs()}
 
 async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TRAITEUR_ID}`);const cmds=await r.json();const now=new Date();const mc=cmds.filter(c=>{const d=new Date(c.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});const total=mc.reduce((s,c)=>s+Number(c.total),0);const livrees=mc.filter(c=>c.statut==='livré').length;const annulees=mc.filter(c=>c.statut==='annulé').length;const mois=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});document.getElementById('bilan-content').innerHTML=`<div class="bilan-card"><div class="bilan-titre">📊 Bilan — ${mois}</div><div class="bilan-row"><span>📋 Commandes totales</span><span>${mc.length}</span></div><div class="bilan-row"><span>✅ Commandes livrées</span><span>${livrees}</span></div><div class="bilan-row"><span>❌ Commandes annulées</span><span>${annulees}</span></div><div class="bilan-row"><span>👥 Clients uniques</span><span>${new Set(mc.map(c=>c.client_phone)).size}</span></div><div class="bilan-row total"><span>💰 Revenus du mois</span><span>${total.toLocaleString('fr-FR')} FCFA</span></div></div><button class="btn-pdf" onclick="imprimerBilan()">📄 Imprimer le bilan</button>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
 function imprimerBilan(){window.print()}
 
-function chargerEchelonnes(){const el=document.getElementById('echelonne-liste');if(!echelonnes.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">⏳</div><div class="empty-title">Aucun paiement échelonné</div><div class="empty-sub">Enregistrez les commandes avec acompte pour suivre les soldes.</div><button class="btn-empty" onclick="afficherModalEchelonne()">+ Nouveau échelonné</button></div>`;return}
+function chargerEchelonnes(){const el=document.getElementById('echelonne-liste');if(!echelonnes.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">⏳</div><div class="empty-title">Aucun paiement différé enregistré</div><div class="empty-sub">Enregistrez vos commandes avec acompte pour suivre les soldes restants.</div><button class="btn-empty" onclick="afficherModalEchelonne()">+ Enregistrer un paiement différé</button></div>`;return}
 el.innerHTML=echelonnes.map((e,i)=>{const reste=e.total-e.acompte;const pct=Math.round((e.acompte/e.total)*100);return`<div class="echelon-card"><div class="echelon-header"><div style="font-size:13px;font-weight:900">${e.nom}${e.desc?' — '+e.desc:''}</div><div style="font-size:13px;font-weight:900;color:#c0392b">${Number(e.total).toLocaleString('fr-FR')} F</div></div><div class="echelon-progress"><div class="echelon-bar" style="width:${pct}%"></div></div><div class="echelon-detail">✅ Acompte : ${Number(e.acompte).toLocaleString('fr-FR')} F · 🔴 Reste : ${Number(reste).toLocaleString('fr-FR')} F${e.date?' · 📅 Solde le : '+new Date(e.date).toLocaleDateString('fr-FR'):''}</div><div style="margin-top:8px;display:flex;gap:6px"><button class="menu-btn" style="color:#006633;font-size:11px" onclick="marquerPaye(${i})">✅ Soldé</button><button class="menu-btn" style="color:#c0392b;font-size:11px" onclick="supprimerEchelonne(${i})">🗑️</button></div></div>`}).join('')}
 function afficherModalEchelonne(){document.getElementById('modal-echelonne').classList.add('open')}
 function sauvegarderEchelonne(){const nom=document.getElementById('ech-nom').value;const total=parseInt(document.getElementById('ech-total').value);const acompte=parseInt(document.getElementById('ech-acompte').value);if(!nom||!total||!acompte){alert('Champs obligatoires');return}echelonnes.push({nom,phone:document.getElementById('ech-phone').value,total,acompte,date:document.getElementById('ech-date').value,desc:document.getElementById('ech-desc').value});localStorage.setItem('tp_echelonnes',JSON.stringify(echelonnes));fermerModal('modal-echelonne');chargerEchelonnes()}
 function marquerPaye(i){if(!confirm('Marquer comme soldé ?'))return;echelonnes.splice(i,1);localStorage.setItem('tp_echelonnes',JSON.stringify(echelonnes));chargerEchelonnes()}
-function supprimerEchelonne(i){if(!confirm('Supprimer ?'))return;echelonnes.splice(i,1);localStorage.setItem('tp_echelonnes',JSON.stringify(echelonnes));chargerEchelonnes()}
+function supprimerEchelonne(i){if(!confirm('Confirmer la suppression ?'))return;echelonnes.splice(i,1);localStorage.setItem('tp_echelonnes',JSON.stringify(echelonnes));chargerEchelonnes()}
 
 function chargerAvis(){const el=document.getElementById('avis-liste');const note=avis.length?(avis.reduce((s,a)=>s+a.note,0)/avis.length).toFixed(1):null;const stars=n=>'⭐'.repeat(n)+'☆'.repeat(5-n);if(!avis.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">⭐</div><div class="empty-title">Aucun avis pour l'instant</div><div class="empty-sub">Demandez des avis à vos clients après chaque livraison. Les avis rassurent vos futurs clients !</div><button class="btn-empty" onclick="demanderAvis()">📲 Demander un avis</button></div>`;return}
 el.innerHTML=`<div class="note-moy"><div class="note-val">${note} ⭐</div><div class="note-lbl">Note moyenne · ${avis.length} avis</div></div>`+avis.map((a,i)=>`<div class="avis-card"><div class="avis-header"><div class="avis-client">${a.client}</div><div class="avis-date">${a.date}</div></div><div class="avis-stars">${stars(a.note)}</div><div class="avis-texte">${a.texte}</div><button onclick="supprimerAvis(${i})" style="background:none;border:none;color:#c0392b;font-size:11px;cursor:pointer;margin-top:6px">🗑️ Supprimer</button></div>`).join('')}
