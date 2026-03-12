@@ -520,18 +520,12 @@ function setSession(d){
   document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
-  try{
-    const raw=getSession();
-    if(raw){
-      const s=JSON.parse(raw);
-      if(s && s.traiteur_id==TRAITEUR_ID){
-        document.getElementById('login-overlay').style.display='none';
-        return true;
-      }
-    }
-  }catch(e){}
-  document.getElementById('login-overlay').style.display='flex';
-  return false;
+  // Accès direct — pas de PIN requis
+  const overlay = document.getElementById('login-overlay');
+  if(overlay) overlay.style.display='none';
+  // Sauvegarder session auto
+  setSession({traiteur_id: TRAITEUR_ID, ok: true});
+  return true;
 }
 
 async function validerPinInput(pin){
@@ -838,7 +832,13 @@ function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
 // Vider session si ?reset dans URL
-if(window.location.search.includes('reset')){try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}}
+// Masquer overlay PIN immédiatement
+document.addEventListener('DOMContentLoaded', function(){
+  const o = document.getElementById('login-overlay');
+  if(o) o.style.display='none';
+  const s = document.getElementById('setpin-overlay');
+  if(s) s.style.display='none';
+});
 if(!checkLogin()){}else{demarrer()}
 </script>
 
