@@ -119,6 +119,8 @@ async function initDB() {
     ON CONFLICT DO NOTHING;
   `);
 
+  // Activer tous les traiteurs existants
+  await pool.query(`UPDATE traiteurs SET actif=true`);
   console.log('✅ TraiteurPro DB initialisée');
 }
 
