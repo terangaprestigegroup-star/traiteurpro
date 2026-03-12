@@ -361,10 +361,21 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <!-- LIVREURS -->
 <div id="tab-livreurs" class="tab-content">
-  <div class="page-header"><h1>🚚 Mes Livreurs</h1><p>Coordinisez vos livreurs et les zones de couverture</p>
+  <div class="page-header"><h1>🚚 Mes Livreurs</h1><p>Gérez votre équipe et suivez les performances</p>
     <div class="header-actions"><button class="btn-header" onclick="afficherModalLivreur()">+ Nouveau livreur</button></div>
   </div>
   <div class="section" style="padding-top:14px"><div id="livreurs-liste"></div></div>
+</div>
+
+<!-- MODAL HISTORIQUE LIVREUR -->
+<div class="modal-overlay" id="modal-historique-livreur">
+  <div class="modal">
+    <div class="modal-title">📊 <span id="hist-livreur-nom">Livreur</span></div>
+    <div id="hist-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--texte2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Dernières livraisons</div>
+    <div id="hist-liste" style="max-height:250px;overflow-y:auto"></div>
+    <button class="btn-cancel" onclick="fermerModal('modal-historique-livreur')" style="margin-top:12px">Fermer</button>
+  </div>
 </div>
 
 <!-- FINANCE -->
@@ -535,7 +546,7 @@ const TRAITEUR_ID=_urlId||parseInt((()=>{try{return localStorage.getItem('tp_las
 // Si ID manquant dans URL, rediriger avec l'ID
 if(!_urlId && TRAITEUR_ID) history.replaceState(null,'','/app?id='+TRAITEUR_ID);
 let currentPin='';
-let livreurs=JSON.parse(localStorage.getItem('tp_livreurs')||'[]');
+let livreurs=[];
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
 let avis=JSON.parse(localStorage.getItem('tp_avis')||'[]');
 
@@ -715,12 +726,101 @@ async function sauvegarderCommande(){const phone=document.getElementById('cmd-ph
 async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
 
-function chargerLivreurs(){const el=document.getElementById('livreurs-liste');if(!livreurs.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🚚</div><div class="empty-title">Aucun livreur enregistré</div><div class="empty-sub">Enregistrez vos livreurs pour leur attribuer des commandes et suivre les livraisons.</div><button class="btn-empty" onclick="afficherModalLivreur()">🚚 Nouveau livreur</button></div>`;return}
-el.innerHTML=livreurs.map((l,i)=>`<div class="livreur-card"><div class="livreur-avatar">🚚</div><div class="livreur-info"><div class="livreur-nom">${l.nom}</div><div class="livreur-phone">📱 ${l.phone} · ${l.transport}</div><div style="font-size:11px;color:#888;margin-top:2px">📍 ${l.zone||'Zone non définie'}</div></div><div><span class="${l.dispo?'dispo-oui':'dispo-non'}">${l.dispo?'✅ Dispo':'🔴 Occupé'}</span><div style="display:flex;gap:4px;margin-top:6px"><button class="menu-btn" onclick="toggleLivreurDispo(${i})">${l.dispo?'Occuper':'Libérer'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${i})">🗑️</button></div></div></div>`).join('')}
+// ── LIVREURS (DB) ──
+async function chargerLivreurs(){
+  const el=document.getElementById('livreurs-liste');
+  try {
+    const r=await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
+    livreurs=await r.json();
+    if(!livreurs.length){
+      el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🚚</div><div class="empty-title">Aucun livreur enregistré</div><div class="empty-sub">Enregistrez vos livreurs pour leur attribuer des commandes et suivre les livraisons.</div><button class="btn-empty" onclick="afficherModalLivreur()">🚚 Nouveau livreur</button></div>`;
+      return;
+    }
+    el.innerHTML=livreurs.map(l=>`
+      <div class="livreur-card">
+        <div class="livreur-avatar">🚚</div>
+        <div class="livreur-info">
+          <div class="livreur-nom">${l.nom}</div>
+          <div class="livreur-phone">📱 ${l.telephone} · ${l.transport||'Moto'}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">📍 ${l.zone||'Zone non définie'}</div>
+          <div style="font-size:11px;color:var(--bordeaux);margin-top:3px;font-weight:600">📦 ${l.nb_livraisons||0} livraison(s) · ✅ ${l.nb_livrees||0} terminée(s)</div>
+        </div>
+        <div>
+          <span class="${l.disponible?'dispo-oui':'dispo-non'}">${l.disponible?'✅ Dispo':'🔴 Occupé'}</span>
+          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
+            <button class="menu-btn" onclick="toggleLivreurDispo(${l.id},${l.disponible})">${l.disponible?'Occuper':'Libérer'}</button>
+            <button class="menu-btn" onclick="voirHistorique(${l.id},'${l.nom}')">📊 Stats</button>
+            <button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${l.id})">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e){ el.innerHTML='<div style="color:#888;padding:20px;text-align:center">Erreur de chargement</div>'; }
+}
+
 function afficherModalLivreur(){document.getElementById('modal-livreur').classList.add('open')}
-function sauvegarderLivreur(){const nom=document.getElementById('liv-nom').value,phone=document.getElementById('liv-phone').value;if(!nom||!phone){alert('Nom et téléphone obligatoires');return}livreurs.push({nom,phone,zone:document.getElementById('liv-zone').value,transport:document.getElementById('liv-transport').value,dispo:true});localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));fermerModal('modal-livreur');document.getElementById('liv-nom').value='';document.getElementById('liv-phone').value='';chargerLivreurs()}
-function toggleLivreurDispo(i){livreurs[i].dispo=!livreurs[i].dispo;localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));chargerLivreurs()}
-function supprimerLivreur(i){if(!confirm('Confirmer la suppression ?'))return;livreurs.splice(i,1);localStorage.setItem('tp_livreurs',JSON.stringify(livreurs));chargerLivreurs()}
+
+async function sauvegarderLivreur(){
+  const nom=document.getElementById('liv-nom').value;
+  const telephone=document.getElementById('liv-phone').value;
+  if(!nom||!telephone){alert('Nom et téléphone obligatoires');return}
+  try{
+    await fetch(`${API}/api/livreurs`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({traiteur_id:TRAITEUR_ID,nom,telephone,transport:document.getElementById('liv-transport').value,zone:document.getElementById('liv-zone').value})});
+    fermerModal('modal-livreur');
+    document.getElementById('liv-nom').value='';
+    document.getElementById('liv-phone').value='';
+    chargerLivreurs();
+  }catch(e){alert('Erreur lors de l'enregistrement');}
+}
+
+async function toggleLivreurDispo(id,actuel){
+  await fetch(`${API}/api/livreurs/${id}/dispo`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({disponible:!actuel})});
+  chargerLivreurs();
+}
+
+async function supprimerLivreur(id){
+  if(!confirm('Confirmer la suppression ?'))return;
+  await fetch(`${API}/api/livreurs/${id}`,{method:'DELETE'});
+  chargerLivreurs();
+}
+
+async function voirHistorique(id,nom){
+  document.getElementById('hist-livreur-nom').textContent=nom;
+  document.getElementById('hist-stats').innerHTML='<div style="text-align:center;padding:20px;color:#888">Chargement…</div>';
+  document.getElementById('modal-historique-livreur').classList.add('open');
+  try{
+    const r=await fetch(`${API}/api/livreurs/${id}/historique`);
+    const d=await r.json();
+    const s=d.stats;
+    document.getElementById('hist-stats').innerHTML=`
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1.5px solid var(--border)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--texte)">${s.total||0}</div>
+        <div style="font-size:10px;color:var(--texte2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Total assignées</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1.5px solid var(--border)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#2D6A4F">${s.livrees||0}</div>
+        <div style="font-size:10px;color:var(--texte2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Livrées</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1.5px solid var(--border)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--bordeaux)">${s.en_cours||0}</div>
+        <div style="font-size:10px;color:var(--texte2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">En cours</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1.5px solid var(--border)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--or)">${Number(s.total_montant||0).toLocaleString('fr-FR')}</div>
+        <div style="font-size:10px;color:var(--texte2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">FCFA total</div>
+      </div>`;
+    document.getElementById('hist-liste').innerHTML=d.historique.length
+      ?d.historique.map(lv=>`
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--texte)">📍 ${lv.adresse||'Adresse non définie'}</div>
+            <div style="font-size:10px;color:var(--texte2);margin-top:2px">${new Date(lv.created_at).toLocaleDateString('fr-FR')} · ${Number(lv.montant||0).toLocaleString('fr-FR')} FCFA</div>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;background:${lv.statut==='livrée'?'rgba(45,106,79,0.1)':'rgba(139,26,26,0.08)'};color:${lv.statut==='livrée'?'#2D6A4F':'var(--bordeaux)'}">${lv.statut}</span>
+        </div>`).join('')
+      :'<div style="text-align:center;color:#888;padding:20px;font-size:13px">Aucune livraison enregistrée</div>';
+  }catch(e){document.getElementById('hist-stats').innerHTML='<div style="color:#c0392b;padding:10px">Erreur de chargement</div>';}
+}
 
 async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TRAITEUR_ID}`);const cmds=await r.json();const now=new Date();const mc=cmds.filter(c=>{const d=new Date(c.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});const total=mc.reduce((s,c)=>s+Number(c.total),0);const livrees=mc.filter(c=>c.statut==='livré').length;const annulees=mc.filter(c=>c.statut==='annulé').length;const mois=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});document.getElementById('bilan-content').innerHTML=`<div class="bilan-card"><div class="bilan-titre">📊 Bilan — ${mois}</div><div class="bilan-row"><span>📋 Commandes totales</span><span>${mc.length}</span></div><div class="bilan-row"><span>✅ Commandes livrées</span><span>${livrees}</span></div><div class="bilan-row"><span>❌ Commandes annulées</span><span>${annulees}</span></div><div class="bilan-row"><span>👥 Clients uniques</span><span>${new Set(mc.map(c=>c.client_phone)).size}</span></div><div class="bilan-row total"><span>💰 Revenus du mois</span><span>${total.toLocaleString('fr-FR')} FCFA</span></div></div><button class="btn-pdf" onclick="imprimerBilan()">📄 Imprimer le bilan</button>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
 function imprimerBilan(){window.print()}
