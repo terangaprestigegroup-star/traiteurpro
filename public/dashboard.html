@@ -537,6 +537,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
 
 <script>
+window.onerror = function(msg,src,line,col,err){
+  var el=document.getElementById('login-error');
+  if(el){el.textContent='Erreur JS ligne '+line+': '+msg;el.style.display='block';}
+  return false;
+};
 const API='https://traiteurpro-production.up.railway.app';
 const _urlId=parseInt(new URLSearchParams(window.location.search).get("id"))||0;
 // Sauvegarder l'ID dans localStorage si présent dans URL
@@ -1048,16 +1053,18 @@ if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre
 // Vider session si ?reset dans URL
 
 // Attach login events
-document.getElementById('btn-login').onclick = function(){
-  var pin = (document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');
-  validerPinInput(pin);
-};
-document.getElementById('pin-input').onkeyup = function(e){
-  if(e.key==='Enter' || this.value.replace(/[^0-9]/g,'').length===4){
-    var pin = this.value.replace(/[^0-9]/g,'');
-    if(pin.length===4) validerPinInput(pin);
-  }
-};
+try{
+  document.getElementById('btn-login').onclick = function(){
+    var pin = (document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');
+    validerPinInput(pin);
+  };
+  document.getElementById('pin-input').onkeyup = function(e){
+    if(e.key==='Enter' || this.value.replace(/[^0-9]/g,'').length===4){
+      var pin = this.value.replace(/[^0-9]/g,'');
+      if(pin.length===4) validerPinInput(pin);
+    }
+  };
+}catch(err){ alert('Erreur JS: '+err.message); }
 // ── INIT ──
 (function init(){
   var ov = document.getElementById('login-overlay');
