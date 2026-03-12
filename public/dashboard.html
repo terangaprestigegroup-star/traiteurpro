@@ -304,12 +304,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <button onclick="allerAbonnement()" style="background:white;color:#c0392b;border:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif">💳 S'abonner</button>
   </div>
   <script>
-    // Affichage immédiat de la carte essai
-    document.addEventListener('DOMContentLoaded', function(){
-      setTimeout(function(){
-        if(typeof verifierEssai === 'function') verifierEssai();
-      }, 800);
-    });
   </script>
   <div class="kpis">
     <div class="kpi"><div class="kpi-icon">📋</div><div class="kpi-val" id="kpi-commandes">—</div><div class="kpi-lbl">Commandes totales</div><div class="kpi-badge" id="kpi-nouvelles">— nouvelles</div></div>
@@ -763,6 +757,11 @@ async function payerAbonnement(plan){
 }
 
 async function verifierEssai(){
+  if(!TRAITEUR_ID || TRAITEUR_ID===0){
+    const card=document.getElementById('essai-card');
+    if(card) card.style.display='none';
+    return;
+  }
   try{
     const r=await fetch(`${API}/api/essai/${TRAITEUR_ID}`);
     const d=await r.json();
