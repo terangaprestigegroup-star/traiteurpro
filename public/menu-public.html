@@ -197,7 +197,7 @@ function afficherPage() {
   });
   html += `</div><div class="menus" id="menus-list"></div>
     <div class="footer">
-      <div class="footer-logo">Propulsé par Traiteur<span>Pro</span></div>
+      <div class="footer-logo">© TraiteurPro · Commandez en toute confiance</div>
     </div>`;
   
   document.getElementById('app').innerHTML = html;
@@ -319,8 +319,8 @@ function fermerPanier() {
 function commanderWhatsApp() {
   const nom = document.getElementById('client-nom').value.trim();
   const adresse = document.getElementById('client-adresse').value.trim();
-  if (!nom) { alert('Entrez votre nom'); return; }
-  if (!adresse) { alert('Entrez votre adresse'); return; }
+  if (!nom) { alert('Veuillez renseigner votre nom pour continuer.'); return; }
+  if (!adresse) { alert('Veuillez renseigner votre adresse de livraison.'); return; }
   
   const lignes = panier.map(p => `• ${p.emoji||'🍽️'} ${p.nom} x${p.qty} = ${(Number(p.prix)*p.qty).toLocaleString('fr-FR')} FCFA`).join('\n');
   const total = panier.reduce((s, p) => s + Number(p.prix) * p.qty, 0);
