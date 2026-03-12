@@ -24,6 +24,12 @@ const pool = new Pool({
 
 async function initDB() {
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER,
+      subscription JSONB,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS traiteurs (
       id SERIAL PRIMARY KEY,
       nom_boutique VARCHAR(100) NOT NULL,
@@ -690,6 +696,49 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 // ============================================
 // PAGES
 // ============================================
+// ============================================
+// MENU PUBLIC
+// ============================================
+app.get('/menu/:traiteur_id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'menu-public.html')));
+
+app.get('/api/menu-public/:traiteur_id', async (req, res) => {
+  try {
+    const t = await pool.query('SELECT id, nom_boutique, proprietaire, telephone, ville, description FROM traiteurs WHERE id=$1 AND actif=true', [req.params.traiteur_id]);
+    if (!t.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
+    const menus = await pool.query('SELECT * FROM menus WHERE traiteur_id=$1 ORDER BY categorie, nom', [req.params.traiteur_id]);
+    res.json({ traiteur: t.rows[0], menus: menus.rows });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
+// QR CODE
+// ============================================
+app.get('/api/qrcode/:traiteur_id', async (req, res) => {
+  const id = req.params.traiteur_id;
+  const url = `https://traiteurpro-production.up.railway.app/menu/${id}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=8B1A1A&margin=20`;
+  res.json({ qr_url: qrUrl, menu_url: url });
+});
+
+// ============================================
+// NOTIFICATIONS PUSH
+// ============================================
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const { traiteur_id, subscription } = req.body;
+    await pool.query(
+      'INSERT INTO push_subscriptions (traiteur_id, subscription) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [traiteur_id, JSON.stringify(subscription)]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/push/test/:traiteur_id', async (req, res) => {
+  // Simple test - en production utiliser web-push
+  res.json({ ok: true, message: 'Push notifications actives' });
+});
+
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 // Route admin sécurisée - URL cachée
 app.get('/backoffice', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
