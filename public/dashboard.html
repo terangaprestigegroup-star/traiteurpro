@@ -550,7 +550,7 @@ if(_urlId) try{localStorage.setItem('tp_last_id',_urlId)}catch(e){}
 // Lire l'ID depuis URL ou localStorage
 const TRAITEUR_ID=_urlId||parseInt((()=>{try{return localStorage.getItem('tp_last_id')}catch(e){return 1}})())||1;
 // Si ID manquant dans URL, rediriger avec l'ID
-if(!_urlId && TRAITEUR_ID) history.replaceState(null,'','/app?id='+TRAITEUR_ID);
+try{if(!_urlId && TRAITEUR_ID) history.replaceState(null,'','/app?id='+TRAITEUR_ID);}catch(e){}
 let currentPin='';
 let livreurs=[];
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
