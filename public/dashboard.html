@@ -606,7 +606,7 @@ async function validerPinInput(pin){
       var ov = document.getElementById('login-overlay');
       ov.style.cssText = 'display:none!important';
       ov.hidden = true;
-      demarrer();
+      setTimeout(function(){ demarrer(); }, 100);
     } else {
       document.getElementById('login-error').textContent = 'PIN incorrect';
       document.getElementById('login-error').style.display = 'block';
@@ -1056,7 +1056,7 @@ document.getElementById('pin-input').onkeyup = function(e){
     if(pin.length===4) validerPinInput(pin);
   }
 };
-if(!checkLogin()){}else{demarrer()}
+if(checkLogin()){demarrer();}
 </script>
 
 <script>
