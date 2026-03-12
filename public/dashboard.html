@@ -18,7 +18,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 .pin-dot{width:14px;height:14px;border-radius:50%;background:#e0e0e0;transition:background 0.2s}
 .pin-dot.filled{background:#c0392b}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-.num-btn{background:#f8f8f8;border:none;border-radius:14px;padding:16px;font-size:20px;font-weight:900;cursor:pointer;font-family:inherit;color:#0d0d0d}
+.num-btn{background:#f8f8f8;border:none;border-radius:14px;padding:16px;font-size:20px;font-weight:900;cursor:pointer;font-family:inherit;color:#0d0d0d;-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation;user-select:none;position:relative;z-index:1001}
 .num-btn:active{background:#c0392b;color:white}
 .login-hint{font-size:11px;color:#aaa}
 #login-error{color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none}
@@ -144,18 +144,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
     <div class="login-logo">🍽️</div>
     <div class="login-title">TraiteurPro</div>
     <div class="login-sub">Entrez votre PIN pour accéder à votre dashboard</div>
-    <div class="pin-dots">
-      <div class="pin-dot" id="dot-0"></div><div class="pin-dot" id="dot-1"></div>
-      <div class="pin-dot" id="dot-2"></div><div class="pin-dot" id="dot-3"></div>
-    </div>
-    <div class="numpad">
-      <button class="num-btn" onclick="saisirPin('1')">1</button><button class="num-btn" onclick="saisirPin('2')">2</button><button class="num-btn" onclick="saisirPin('3')">3</button>
-      <button class="num-btn" onclick="saisirPin('4')">4</button><button class="num-btn" onclick="saisirPin('5')">5</button><button class="num-btn" onclick="saisirPin('6')">6</button>
-      <button class="num-btn" onclick="saisirPin('7')">7</button><button class="num-btn" onclick="saisirPin('8')">8</button><button class="num-btn" onclick="saisirPin('9')">9</button>
-      <button class="num-btn" onclick="effacerPin()">⌫</button><button class="num-btn" onclick="saisirPin('0')">0</button><button class="num-btn" onclick="validerPin()" style="background:#c0392b;color:white">✓</button>
-    </div>
+    <input type="password" id="pin-input" maxlength="4" placeholder="• • • •"
+      style="width:100%;padding:16px;border:2px solid #e0e0e0;border-radius:12px;font-size:28px;text-align:center;letter-spacing:12px;margin:16px 0;font-family:inherit;outline:none;box-sizing:border-box"
+      oninput="if(this.value.length===4)validerPinInput(this.value)"
+      onkeydown="if(event.key==='Enter')validerPinInput(document.getElementById('pin-input').value)">
+    <button onclick="validerPinInput(document.getElementById('pin-input').value)"
+      style="width:100%;padding:14px;background:#c0392b;color:white;border:none;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-bottom:12px">
+      Accéder →
+    </button>
     <div class="login-hint">Première connexion ? PIN par défaut : 1234</div>
-    <div id="login-error">❌ PIN incorrect</div>
+    <div id="login-error" style="color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none">❌ PIN incorrect</div>
   </div>
 </div>
 
@@ -417,7 +415,24 @@ function checkLogin(){
   return false;
 }
 
-function saisirPin(n){if(currentPin.length>=4)return;currentPin+=n;for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length);if(currentPin.length===4)setTimeout(validerPin,200)}
+async function validerPinInput(pin){
+  if(!pin||pin.length<4)return;
+  try{
+    const r=await fetch(API+'/api/traiteur/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:pin})});
+    const d=await r.json();
+    if(d.ok){
+      setSession(d);
+      document.getElementById('login-overlay').style.display='none';
+      if(d.first_login) document.getElementById('setpin-overlay').style.display='flex';
+      else demarrer();
+    } else {
+      document.getElementById('login-error').style.display='block';
+      document.getElementById('pin-input').value='';
+      setTimeout(()=>document.getElementById('login-error').style.display='none',2000);
+    }
+  }catch(e){document.getElementById('login-error').style.display='block';}
+}
+function saisirPin(n){if(event&&event.type==='click'&&event.sourceCapabilities&&event.sourceCapabilities.firesTouchEvents)return;if(currentPin.length>=4)return;currentPin+=n;for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length);if(currentPin.length===4)setTimeout(validerPin,200)}
 function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
 async function validerPin(){if(currentPin.length<4)return;try{const r=await fetch(`${API}/api/traiteur/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:currentPin})});const d=await r.json();if(d.ok){setSession(d);document.getElementById('login-overlay').style.display='none';if(d.first_login)document.getElementById('setpin-overlay').style.display='flex';else demarrer()}else{document.getElementById('login-error').style.display='block';currentPin='';for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.remove('filled');setTimeout(()=>document.getElementById('login-error').style.display='none',2000)}}catch(e){document.getElementById('login-error').style.display='block';currentPin=''}}
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
@@ -599,7 +614,7 @@ async function chargerAbonnement(){
       if(actif){
         html+='<span style="background:#fff0f0;color:#c0392b;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px">✅ Actif</span>';
       } else {
-        html+='<button onclick="payerAbonnement(''+pl+'')" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit">Choisir</button>';
+        html+='<button onclick="payerAbonnement(&quot;'+pl+'&quot;)" style="background:#c0392b;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit">Choisir</button>';
       }
       html+='</div>';
     });
