@@ -107,6 +107,27 @@ async function initDB() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS livreurs (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom TEXT NOT NULL,
+      telephone TEXT NOT NULL,
+      transport TEXT DEFAULT 'Moto',
+      zone TEXT,
+      disponible BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS livraisons (
+      id SERIAL PRIMARY KEY,
+      livreur_id INTEGER,
+      commande_id INTEGER,
+      traiteur_id INTEGER,
+      statut TEXT DEFAULT 'assignée',
+      adresse TEXT,
+      montant INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      livree_at TIMESTAMP
+    );
     ALTER TABLE commandes_traiteur ADD COLUMN IF NOT EXISTS livreur_id INTEGER DEFAULT NULL;
   `);
 
@@ -1088,6 +1109,27 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS livreurs (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom TEXT NOT NULL,
+      telephone TEXT NOT NULL,
+      transport TEXT DEFAULT 'Moto',
+      zone TEXT,
+      disponible BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS livraisons (
+      id SERIAL PRIMARY KEY,
+      livreur_id INTEGER,
+      commande_id INTEGER,
+      traiteur_id INTEGER,
+      statut TEXT DEFAULT 'assignée',
+      adresse TEXT,
+      montant INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      livree_at TIMESTAMP
+    );
     `);
     // Activer essai 14j pour traiteurs existants sans essai_expire
     await pool.query(`
@@ -1265,6 +1307,27 @@ async function initAbonnements() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS livreurs (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom TEXT NOT NULL,
+      telephone TEXT NOT NULL,
+      transport TEXT DEFAULT 'Moto',
+      zone TEXT,
+      disponible BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS livraisons (
+      id SERIAL PRIMARY KEY,
+      livreur_id INTEGER,
+      commande_id INTEGER,
+      traiteur_id INTEGER,
+      statut TEXT DEFAULT 'assignée',
+      adresse TEXT,
+      montant INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      livree_at TIMESTAMP
+    );
   `);
 }
 initAbonnements().catch(e => console.log('Abonnements init:', e.message));
