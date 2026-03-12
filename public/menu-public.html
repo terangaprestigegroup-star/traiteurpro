@@ -129,8 +129,9 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <script>
 const API = 'https://traiteurpro-production.up.railway.app';
-const path = window.location.pathname;
-const TRAITEUR_ID = parseInt(path.split('/').pop()) || 1;
+const pathParts = window.location.pathname.replace(/\/+$/, '').split('/');
+const TRAITEUR_ID = parseInt(pathParts[pathParts.length - 1]) || parseInt(pathParts[pathParts.length - 2]) || 1;
+console.log('TRAITEUR_ID:', TRAITEUR_ID, 'path:', window.location.pathname);
 
 let traiteur = null;
 let menus = [];
