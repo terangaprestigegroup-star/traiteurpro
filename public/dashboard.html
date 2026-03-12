@@ -782,13 +782,15 @@ async function sauvegarderLivreur(){
   const telephone=document.getElementById('liv-phone').value;
   if(!nom||!telephone){alert('Nom et téléphone obligatoires');return}
   try{
-    await fetch(`${API}/api/livreurs`,{method:'POST',headers:{'Content-Type':'application/json'},
+    const r=await fetch(`${API}/api/livreurs`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({traiteur_id:TRAITEUR_ID,nom,telephone,transport:document.getElementById('liv-transport').value,zone:document.getElementById('liv-zone').value})});
+    const d=await r.json();
+    if(d.error){alert('Erreur: '+d.error);return;}
     fermerModal('modal-livreur');
     document.getElementById('liv-nom').value='';
     document.getElementById('liv-phone').value='';
     chargerLivreurs();
-  }catch(e){alert('Erreur lors de l\'enregistrement');}
+  }catch(e){alert('Erreur: '+e.message);}
 }
 
 async function toggleLivreurDispo(id,actuel){
