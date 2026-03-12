@@ -229,16 +229,14 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
     <div class="login-title">TraiteurPro</div>
     <div class="login-sub">Entrez votre PIN pour accéder à votre dashboard</div>
-    <input type="password" id="pin-input" maxlength="4" placeholder="• • • •"
-      style="width:100%;padding:16px;border:2px solid #e0e0e0;border-radius:12px;font-size:28px;text-align:center;letter-spacing:12px;margin:16px 0;font-family:'Jost',sans-serif;outline:none;box-sizing:border-box"
-      oninput="if(this.value.length===4)validerPinInput(this.value)"
-      onkeydown="if(event.key==='Enter')validerPinInput(document.getElementById('pin-input').value)">
-    <button onclick="validerPinInput(document.getElementById('pin-input').value)"
-      style="width:100%;padding:14px;background:#c0392b;color:white;border:none;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Jost',sans-serif;margin-bottom:12px">
-      Accéder →
+    <input type="tel" id="pin-input" maxlength="4" placeholder="1234" inputmode="numeric" autocomplete="off"
+      style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:32px;text-align:center;letter-spacing:16px;margin:16px 0;font-family:'Jost',sans-serif;outline:none;box-sizing:border-box;background:var(--bg2);color:var(--texte)">
+    <button id="btn-login"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#8B1A1A,#A52A2A);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;margin-bottom:12px;letter-spacing:0.5px">
+      Acceder
     </button>
-    <div class="login-hint">Première connexion ? PIN par défaut : 1234</div>
-    <div id="login-error" style="color:#c0392b;font-size:12px;font-weight:700;margin-top:8px;display:none">❌ PIN incorrect</div>
+    <div class="login-hint">PIN par defaut : 1234</div>
+    <div id="login-error" style="color:#A52A2A;font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
   </div>
 </div>
 
@@ -536,7 +534,11 @@ function checkLogin(){
 
 async function validerPinInput(pin){
   pin = (pin||'').replace(/[^0-9]/g,'');
-  if(pin.length<4){alert('Entrez 4 chiffres');return;}
+  if(pin.length<4){
+    document.getElementById('login-error').textContent='Entrez 4 chiffres';
+    document.getElementById('login-error').style.display='block';
+    return;
+  }
   try{
     const r=await fetch(API+'/api/traiteur/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:pin})});
     const d=await r.json();
@@ -845,6 +847,17 @@ if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre
 // Vider session si ?reset dans URL
 
 if(!checkLogin()){}else{demarrer()}
+// Login button event
+document.getElementById('btn-login').addEventListener('click', function(){
+  var pin = (document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');
+  validerPinInput(pin);
+});
+document.getElementById('pin-input').addEventListener('keydown', function(e){
+  if(e.key==='Enter'){
+    var pin = (this.value||'').replace(/[^0-9]/g,'');
+    validerPinInput(pin);
+  }
+});
 </script>
 
 <script>
