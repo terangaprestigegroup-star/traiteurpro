@@ -232,7 +232,8 @@ function afficherMenus() {
   let html = '';
   Object.entries(groups).forEach(([cat, plats]) => {
     const catLabel = catMap[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
-    if (catActive === 'Tout') html += `<div class="section-title">${catLabel}</div>`;
+    const nbCats = Object.keys(groups).length;
+    if (catActive === 'Tout' && nbCats > 1) html += `<div class="section-title">${catLabel}</div>`;
     plats.forEach(p => {
       html += `
         <div class="plat-card" onclick="ajouterAuPanier(${p.id})">
