@@ -102,9 +102,9 @@ async function initDB() {
 
   // Traiteur démo
   await pool.query(`
-    INSERT INTO traiteurs (id, nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, logo_emoji, description, zone_livraison)
-    VALUES (1, 'Chez Fatou Traiteur', 'Fatou Diallo', '221771234567', 'Dakar', 'sénégalaise', 'pro', 'FATOUTP1', '🍲', 'Spécialiste thiéboudienne, yassa et mafé depuis 15 ans', 'Dakar, Plateau, Médina')
-    ON CONFLICT (id) DO NOTHING;
+    INSERT INTO traiteurs (id, nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, logo_emoji, description, zone_livraison, actif)
+    VALUES (1, 'Chez Fatou Traiteur', 'Fatou Diallo', '221771234567', 'Dakar', 'sénégalaise', 'pro', 'FATOUTP1', '🍲', 'Spécialiste thiéboudienne, yassa et mafé depuis 15 ans', 'Dakar, Plateau, Médina', true)
+    ON CONFLICT (id) DO UPDATE SET actif=true;
   `);
 
   // Menus démo
@@ -119,8 +119,8 @@ async function initDB() {
     ON CONFLICT DO NOTHING;
   `);
 
-  // Activer tous les traiteurs existants
-  await pool.query(`UPDATE traiteurs SET actif=true`);
+  // Activer TOUS les traiteurs — permanent
+  await pool.query('UPDATE traiteurs SET actif=true WHERE actif IS NULL OR actif=false');
   console.log('✅ TraiteurPro DB initialisée');
 }
 
@@ -596,8 +596,8 @@ app.post('/api/inscription', async (req, res) => {
     }
 
     const r = await pool.query(
-      `INSERT INTO traiteurs (nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, description, zone_livraison, essai_expire, parrain_id)
-       VALUES ($1,$2,$3,$4,$5,'starter',$6,$7,$8,$9,$10) RETURNING *`,
+      `INSERT INTO traiteurs (nom_boutique, proprietaire, whatsapp, ville, type_cuisine, plan, referral_code, description, zone_livraison, essai_expire, parrain_id, actif)
+       VALUES ($1,$2,$3,$4,$5,'starter',$6,$7,$8,$9,$10,true) RETURNING *`,
       [nom_boutique, proprietaire||'', wa, ville||'Dakar', type_cuisine||'sénégalaise', ref, description, zone_livraison, essaiExpire, parrainId]
     );
     const t = r.rows[0];
