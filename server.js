@@ -131,6 +131,35 @@ async function initDB() {
 
   // Activer TOUS les traiteurs — permanent
   await pool.query('UPDATE traiteurs SET actif=true WHERE actif IS NULL OR actif=false');
+  // Table livreurs
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS livreurs (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom TEXT NOT NULL,
+      telephone TEXT NOT NULL,
+      transport TEXT DEFAULT 'Moto',
+      zone TEXT,
+      disponible BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
+  // Table assignations livreurs
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS livraisons (
+      id SERIAL PRIMARY KEY,
+      livreur_id INTEGER REFERENCES livreurs(id) ON DELETE SET NULL,
+      commande_id INTEGER,
+      traiteur_id INTEGER,
+      statut TEXT DEFAULT 'assignée',
+      adresse TEXT,
+      montant INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      livree_at TIMESTAMP
+    )
+  `);
+
   console.log('✅ TraiteurPro DB initialisée');
 }
 
@@ -535,6 +564,126 @@ app.get('/api/relances/:traiteur_id', adminMiddleware, async (req, res) => {
 // ============================================
 // LOGIN PIN
 // ============================================
+// ============================================
+// LIVREURS — CRUD + HISTORIQUE + STATS
+// ============================================
+
+// GET tous les livreurs d'un traiteur
+app.get('/api/livreurs/:traiteur_id', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT l.*, 
+        COUNT(lv.id) as nb_livraisons,
+        SUM(CASE WHEN lv.statut='livrée' THEN 1 ELSE 0 END) as nb_livrees
+       FROM livreurs l
+       LEFT JOIN livraisons lv ON lv.livreur_id = l.id
+       WHERE l.traiteur_id=$1
+       GROUP BY l.id ORDER BY l.nom`,
+      [req.params.traiteur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST créer livreur
+app.post('/api/livreurs', async (req, res) => {
+  try {
+    const { traiteur_id, nom, telephone, transport, zone } = req.body;
+    if (!nom || !telephone) return res.status(400).json({ error: 'Nom et téléphone requis' });
+    const r = await pool.query(
+      'INSERT INTO livreurs (traiteur_id, nom, telephone, transport, zone) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [traiteur_id, nom, telephone.replace(/\D/g,''), transport||'Moto', zone||'']
+    );
+    res.json(r.rows[0]);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUT disponibilité livreur
+app.put('/api/livreurs/:id/dispo', async (req, res) => {
+  try {
+    const { disponible } = req.body;
+    const r = await pool.query('UPDATE livreurs SET disponible=$1 WHERE id=$2 RETURNING *', [disponible, req.params.id]);
+    res.json(r.rows[0]);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE livreur
+app.delete('/api/livreurs/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM livreurs WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST assigner livreur à une commande + notif WhatsApp
+app.post('/api/livreurs/:id/assigner', async (req, res) => {
+  try {
+    const { commande_id, traiteur_id, adresse, montant } = req.body;
+    const livr = await pool.query('SELECT * FROM livreurs WHERE id=$1', [req.params.id]);
+    if (!livr.rows[0]) return res.status(404).json({ error: 'Livreur introuvable' });
+    const l = livr.rows[0];
+
+    // Enregistrer livraison
+    await pool.query(
+      'INSERT INTO livraisons (livreur_id, commande_id, traiteur_id, adresse, montant) VALUES ($1,$2,$3,$4,$5)',
+      [req.params.id, commande_id||null, traiteur_id, adresse||'', montant||0]
+    );
+
+    // Marquer livreur occupé
+    await pool.query('UPDATE livreurs SET disponible=false WHERE id=$1', [req.params.id]);
+
+    // Notif WhatsApp au livreur
+    const traiteur = await pool.query('SELECT nom_boutique FROM traiteurs WHERE id=$1', [traiteur_id]);
+    const nomTrateur = traiteur.rows[0]?.nom_boutique || 'TraiteurPro';
+    const msg = `🚚 *Nouvelle livraison assignée !*
+
+🏪 Traiteur : *${nomTrateur}*
+📍 Adresse : ${adresse||'À confirmer'}
+💰 Montant : ${Number(montant||0).toLocaleString('fr-FR')} FCFA
+
+_Connectez-vous pour confirmer la livraison._
+
+_TraiteurPro 🍽️_`;
+
+    const phone = l.telephone.replace(/\D/g,'');
+    const telFull = phone.startsWith('221') ? phone : '221'+phone;
+    await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, telFull, msg);
+
+    res.json({ ok: true, message: 'Livreur assigné et notifié' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET historique + stats d'un livreur
+app.get('/api/livreurs/:id/historique', async (req, res) => {
+  try {
+    const stats = await pool.query(
+      `SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN statut='livrée' THEN 1 ELSE 0 END) as livrees,
+        SUM(CASE WHEN statut='assignée' THEN 1 ELSE 0 END) as en_cours,
+        COALESCE(SUM(montant),0) as total_montant
+       FROM livraisons WHERE livreur_id=$1`,
+      [req.params.id]
+    );
+    const historique = await pool.query(
+      `SELECT * FROM livraisons WHERE livreur_id=$1 ORDER BY created_at DESC LIMIT 20`,
+      [req.params.id]
+    );
+    res.json({ stats: stats.rows[0], historique: historique.rows });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// PUT marquer livraison terminée
+app.put('/api/livraisons/:id/terminer', async (req, res) => {
+  try {
+    const lv = await pool.query('UPDATE livraisons SET statut=$1, livree_at=NOW() WHERE id=$2 RETURNING *', ['livrée', req.params.id]);
+    if (lv.rows[0]) {
+      await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ============================================
 // PROFIL TRAITEUR — Mise à jour réseaux sociaux
 // ============================================
