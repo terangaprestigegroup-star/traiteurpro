@@ -714,7 +714,7 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 
 app.get('/api/menu-public/:traiteur_id', async (req, res) => {
   try {
-    const t = await pool.query('SELECT id, nom_boutique, proprietaire, telephone, ville, description FROM traiteurs WHERE id=$1 AND actif=true', [req.params.traiteur_id]);
+    const t = await pool.query('SELECT id, nom_boutique, proprietaire, whatsapp as telephone, ville, description FROM traiteurs WHERE id=$1 AND actif=true', [req.params.traiteur_id]);
     if (!t.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
     const menus = await pool.query('SELECT * FROM menus WHERE traiteur_id=$1 ORDER BY categorie, nom', [req.params.traiteur_id]);
     res.json({ traiteur: t.rows[0], menus: menus.rows });
