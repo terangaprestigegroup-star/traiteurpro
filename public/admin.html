@@ -14,16 +14,25 @@
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);min-height:100vh}
 
 /* LOGIN */
-#login{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center}
-.login-box{width:320px;text-align:center}
-.login-logo{font-size:48px;margin-bottom:16px}
-.login-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:900;color:var(--rouge);margin-bottom:4px}
-.login-sub{font-size:12px;color:var(--gris);margin-bottom:32px;font-family:'DM Mono',monospace}
-.login-input{width:100%;background:var(--card);border:2px solid var(--border);color:var(--texte);padding:16px;border-radius:12px;font-size:16px;font-family:'DM Mono',monospace;text-align:center;letter-spacing:4px;outline:none;margin-bottom:12px}
-.login-input:focus{border-color:var(--rouge)}
-.login-btn{width:100%;background:var(--rouge);color:white;border:none;padding:16px;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:1px}
-.login-btn:hover{background:#a93226}
-#login-err{color:var(--rouge);font-size:12px;margin-top:8px;font-family:'DM Mono',monospace;display:none}
+#login{position:fixed;inset:0;background:linear-gradient(160deg,#0a0a0a 0%,#1a0505 60%,#0a0a0a 100%);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+.login-box{width:340px;text-align:center;background:#141414;border:1px solid rgba(192,57,43,0.2);border-radius:24px;padding:40px 32px;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.login-emblem{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#8B1A1A,#c0392b);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 8px 24px rgba(192,57,43,0.3)}
+.login-emblem::after{content:'';position:absolute;inset:3px;border-radius:15px;border:1px solid rgba(245,166,35,0.3)}
+.login-emblem-text{font-family:'Syne',sans-serif;font-size:24px;font-weight:900;color:#f5a623}
+.login-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:900;color:#f0f0f0;margin-bottom:4px}
+.login-sub{font-size:11px;color:#666;margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:1px}
+.login-divider{width:40px;height:2px;background:linear-gradient(90deg,#c0392b,#f5a623);margin:16px auto 24px;border-radius:2px}
+.login-label{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;text-align:left;display:block;font-family:'DM Mono',monospace}
+.login-input{width:100%;background:#0f0f0f;border:1.5px solid #2a2a2a;color:#f0f0f0;padding:14px 16px;border-radius:10px;font-size:15px;font-family:'DM Mono',monospace;letter-spacing:3px;outline:none;margin-bottom:16px;transition:border-color 0.2s;text-align:center}
+.login-input:focus{border-color:#c0392b}
+.login-input::placeholder{color:#333;letter-spacing:1px}
+.login-btn{width:100%;background:linear-gradient(135deg,#8B1A1A,#c0392b);color:white;border:none;padding:15px;border-radius:10px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:1.5px;box-shadow:0 4px 16px rgba(192,57,43,0.3);transition:all 0.2s}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(192,57,43,0.4)}
+.login-security{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px}
+.login-security-dot{width:6px;height:6px;border-radius:50%;background:#c0392b;animation:pulse 2s infinite}
+.login-security-text{font-size:10px;color:#444;font-family:'DM Mono',monospace;letter-spacing:0.5px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+#login-err{color:#e74c3c;font-size:12px;margin-top:10px;font-family:'DM Mono',monospace;display:none;background:rgba(192,57,43,0.1);padding:8px;border-radius:8px;border:1px solid rgba(192,57,43,0.2)}
 
 /* NAV */
 .nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
@@ -118,12 +127,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 <!-- LOGIN -->
 <div id="login">
   <div class="login-box">
-    <div class="login-logo">🍽️</div>
-    <div class="login-title">ADMIN</div>
-    <div class="login-sub">TraiteurPro · Terangaprestige Group</div>
-    <input type="password" class="login-input" id="admin-secret" placeholder="••••••••••" onkeydown="if(event.key==='Enter')validerAdmin()">
-    <button class="login-btn" onclick="validerAdmin()">ACCÉDER →</button>
-    <div id="login-err">❌ Secret incorrect</div>
+    <div class="login-emblem">
+      <span class="login-emblem-text">TP</span>
+    </div>
+    <div class="login-title">Backoffice</div>
+    <div class="login-sub">TRAITEURPRO · ADMIN PANEL</div>
+    <div class="login-divider"></div>
+    <label class="login-label">Mot de passe admin</label>
+    <input id="secret-input" class="login-input" type="password" placeholder="••••••••••" autocomplete="off">
+    <button class="login-btn" id="btn-admin-login">ACCEDER AU PANNEAU</button>
+    <div class="login-security">
+      <div class="login-security-dot"></div>
+      <span class="login-security-text">Accès restreint · Terangaprestige Group</span>
+    </div>
+    <div id="login-err">❌ Mot de passe incorrect</div>
   </div>
 </div>
 
@@ -482,6 +499,9 @@ function demarrer() {
 }
 
 checkLogin();
+
+document.getElementById('btn-admin-login').onclick = login;
+document.getElementById('secret-input').onkeydown = function(e){ if(e.key==='Enter') login(); };
 </script>
 </body>
 </html>
