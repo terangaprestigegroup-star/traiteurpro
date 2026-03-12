@@ -137,6 +137,12 @@ let traiteur = null;
 let menus = [];
 let panier = [];
 let catActive = 'Tout';
+const catMap = {
+  'senegalaise':'🍚 Sénégalaise','grillade':'🥩 Grillades','cantine':'🍱 Cantine',
+  'evenement':'🎊 Événements','salade':'🥗 Salade/Healthy','boulangerie':'🍞 Boulangerie',
+  'africaine':'🌍 Africaine','internationale':'🌐 Internationale','mixte':'🍽️ Mixte',
+  'plat':'🍽️ Plats','boisson':'🥤 Boissons','dessert':'🍰 Desserts'
+};
 
 async function charger() {
   try {
@@ -166,12 +172,7 @@ function afficherErreur() {
 }
 
 function afficherPage() {
-  const catMap = {
-    'senegalaise':'🍚 Sénégalaise','grillade':'🥩 Grillades','cantine':'🍱 Cantine',
-    'evenement':'🎊 Événements','salade':'🥗 Salade/Healthy','boulangerie':'🍞 Boulangerie',
-    'africaine':'🌍 Africaine','internationale':'🌐 Internationale','mixte':'🍽️ Mixte',
-    'plat':'🍽️ Plats','boisson':'🥤 Boissons','dessert':'🍰 Desserts'
-  };
+
   const rawCats = [...new Set(menus.map(m => m.categorie).filter(Boolean))];
   const cats = ['Tout', ...rawCats];
   
