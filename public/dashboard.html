@@ -1058,17 +1058,25 @@ document.getElementById('pin-input').onkeyup = function(e){
     if(pin.length===4) validerPinInput(pin);
   }
 };
-if(checkLogin()){demarrer();}
-// Fallback: si login overlay caché, charger dashboard
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var ov = document.getElementById('login-overlay');
-    if(ov && (ov.hidden || ov.style.display==='none' || getComputedStyle(ov).display==='none')){
-      chargerDashboard();
-      verifierEssai();
-    }
-  }, 500);
-});
+// ── INIT ──
+(function init(){
+  var ov = document.getElementById('login-overlay');
+  var sess = getSession();
+  var sessOk = false;
+  if(sess){
+    try{
+      var sd = JSON.parse(sess);
+      if(sd && String(sd.traiteur_id) === String(TRAITEUR_ID)) sessOk = true;
+    }catch(e){}
+  }
+  if(sessOk){
+    ov.style.cssText = 'display:none!important';
+    ov.hidden = true;
+    setTimeout(demarrer, 200);
+  } else {
+    ov.style.display = 'flex';
+  }
+})();
 </script>
 
 <script>
