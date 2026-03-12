@@ -75,6 +75,11 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 .empty-emoji{font-size:52px;margin-bottom:14px}
 .empty-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;color:var(--texte)}
 
+/* SOCIAL */
+.social-links{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.social-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(245,240,232,0.8);padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;text-decoration:none;transition:all 0.2s}
+.social-btn:hover{background:rgba(255,255,255,0.15);color:white}
+
 /* FOOTER */
 .footer{text-align:center;padding:24px;border-top:1px solid var(--border);margin-top:20px}
 .footer-logo{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--texte2);font-weight:600}
@@ -188,6 +193,14 @@ function afficherPage() {
         <span class="header-chip">📍 ${traiteur.ville || 'Dakar'}</span>
         ${traiteur.telephone ? `<span class="header-chip">📞 ${traiteur.telephone}</span>` : ''}
       </div>
+      ${(traiteur.facebook || traiteur.instagram || traiteur.tiktok || traiteur.youtube || traiteur.site_web) ? `
+      <div class="social-links">
+        ${traiteur.site_web ? `<a class="social-btn" href="${traiteur.site_web}" target="_blank">🌐 Site web</a>` : ''}
+        ${traiteur.facebook ? `<a class="social-btn" href="${traiteur.facebook}" target="_blank">📘 Facebook</a>` : ''}
+        ${traiteur.instagram ? `<a class="social-btn" href="${traiteur.instagram}" target="_blank">📸 Instagram</a>` : ''}
+        ${traiteur.tiktok ? `<a class="social-btn" href="${traiteur.tiktok}" target="_blank">🎵 TikTok</a>` : ''}
+        ${traiteur.youtube ? `<a class="social-btn" href="${traiteur.youtube}" target="_blank">▶️ YouTube</a>` : ''}
+      </div>` : ''}
     </div>
     <div class="cats" id="cats">`;
   
