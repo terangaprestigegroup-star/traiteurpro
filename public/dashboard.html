@@ -265,6 +265,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <button class="nav-tab" onclick="afficherTab('livreurs',this)"><span>🚚</span>Livreurs</button>
     <button class="nav-tab" onclick="afficherTab('finance',this)"><span>💰</span>Finance</button>
     <button class="nav-tab" onclick="afficherTab('avis',this)"><span>⭐</span>Avis</button>
+    <button class="nav-tab" onclick="afficherTab('parametres',this)"><span>⚙️</span>Paramètres</button>
   </div>
 </nav>
 
@@ -406,6 +407,49 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     </div>
   </div>
   <div class="section" style="padding-top:14px"><div id="avis-liste"></div></div>
+</div>
+
+<!-- TAB PARAMETRES -->
+<div id="tab-parametres" class="tab-content">
+  <div class="page-header"><h1>⚙️ Paramètres</h1><p>Personnalisez votre profil et vos réseaux sociaux</p></div>
+  <div class="section">
+    <div class="section-title" style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)">📱 Réseaux sociaux & liens</div>
+    <div class="form-group">
+      <label class="form-label">🌐 Site web</label>
+      <input class="form-input" id="p-site" placeholder="https://www.monsiteweb.sn" type="url">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📘 Facebook</label>
+      <input class="form-input" id="p-facebook" placeholder="https://facebook.com/mapage">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📸 Instagram</label>
+      <input class="form-input" id="p-instagram" placeholder="https://instagram.com/moncompte">
+    </div>
+    <div class="form-group">
+      <label class="form-label">🎵 TikTok</label>
+      <input class="form-input" id="p-tiktok" placeholder="https://tiktok.com/@moncompte">
+    </div>
+    <div class="form-group">
+      <label class="form-label">▶️ YouTube</label>
+      <input class="form-input" id="p-youtube" placeholder="https://youtube.com/@machaîne">
+    </div>
+    <div class="section-title" style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--texte);margin:20px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)">🏪 Informations boutique</div>
+    <div class="form-group">
+      <label class="form-label">Nom de la boutique</label>
+      <input class="form-input" id="p-nom" placeholder="Nom de votre traiteur">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" id="p-desc" rows="3" placeholder="Décrivez votre cuisine, spécialités…" style="resize:vertical"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Zone de livraison</label>
+      <input class="form-input" id="p-zone" placeholder="Ex : Dakar, Plateau, Médina, Almadies">
+    </div>
+    <button class="btn-submit" onclick="sauvegarderProfil()" style="width:100%;margin-top:8px">✅ Enregistrer les modifications</button>
+    <div id="p-msg" style="text-align:center;font-size:13px;margin-top:12px;display:none"></div>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -605,6 +649,7 @@ function afficherSousTab(id,btn){
   if(id==='echelonne')chargerEchelonnes();
   if(id==='abonnement')chargerAbonnement();
   if(id==='parrainage')chargerParrainage();
+  if(id==='parametres')chargerProfil();
 }
 
 async function chargerDashboard(){
