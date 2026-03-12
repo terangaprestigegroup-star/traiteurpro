@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Menu — TraiteurPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=Jost:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bordeaux:#8B1A1A;--bordeaux2:#A52A2A;--or:#C9A84C;--or2:#E8C97E;--bg:#FAF7F2;--card:#FFFFFF;--texte:#1A1008;--texte2:#6B5B45;--border:#E8DDD0;--vert:#2D6A4F}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-height:100vh}
+
+/* HEADER */
+.header{background:linear-gradient(160deg,#1A0A08,#2D0F0F);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'🍽️';position:absolute;right:-10px;top:-10px;font-size:120px;opacity:0.05;transform:rotate(15deg)}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--or),transparent)}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:20px;padding:4px 12px;margin-bottom:14px}
+.header-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--or);animation:pulse 2s infinite}
+.header-badge-text{font-size:10px;font-weight:700;color:var(--or2);letter-spacing:1px;text-transform:uppercase}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.header-nom{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#F5F0E8;margin-bottom:4px}
+.header-desc{font-size:12px;color:rgba(245,240,232,0.55);margin-bottom:16px;line-height:1.6}
+.header-info{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.header-chip{display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(245,240,232,0.6);font-weight:500}
+
+/* COMMANDER BTN */
+.btn-commander-top{display:block;margin:16px 16px 0;background:linear-gradient(135deg,var(--bordeaux),var(--bordeaux2));color:white;border:none;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;text-align:center;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(139,26,26,0.3);text-decoration:none}
+
+/* CATEGORIES */
+.cats{display:flex;gap:8px;padding:16px 16px 0;overflow-x:auto;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat-btn{background:var(--card);border:1.5px solid var(--border);color:var(--texte2);padding:7px 14px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;white-space:nowrap;transition:all 0.15s;flex-shrink:0}
+.cat-btn.active{background:var(--bordeaux);color:white;border-color:var(--bordeaux)}
+
+/* MENUS */
+.menus{padding:16px;display:flex;flex-direction:column;gap:10px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--texte);margin:8px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+.plat-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;transition:all 0.2s;cursor:pointer}
+.plat-card:hover{border-color:rgba(139,26,26,0.2);box-shadow:0 2px 12px rgba(26,16,8,0.08)}
+.plat-emoji{width:54px;height:54px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;border:1px solid var(--border)}
+.plat-info{flex:1;min-width:0}
+.plat-nom{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:var(--texte);margin-bottom:2px}
+.plat-desc{font-size:11px;color:var(--texte2);line-height:1.5;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plat-prix{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:var(--bordeaux)}
+.plat-add{width:32px;height:32px;border-radius:50%;background:var(--bordeaux);color:white;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s;font-weight:300;line-height:1}
+.plat-add:hover{transform:scale(1.1)}
+
+/* PANIER */
+.panier-fab{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,var(--bordeaux),var(--bordeaux2));color:white;border:none;padding:14px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;box-shadow:0 6px 20px rgba(139,26,26,0.4);display:none;align-items:center;gap:8px;z-index:100;transition:transform 0.2s}
+.panier-fab:hover{transform:translateY(-2px)}
+.panier-count{background:white;color:var(--bordeaux);width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+
+/* MODAL PANIER */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,16,8,0.6);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-top:3px solid var(--bordeaux);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:18px;color:var(--texte)}
+.panier-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.panier-item-nom{font-size:13px;font-weight:600;color:var(--texte)}
+.panier-item-prix{font-size:13px;font-weight:700;color:var(--bordeaux)}
+.panier-item-qty{display:flex;align-items:center;gap:8px}
+.qty-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--texte);font-weight:700}
+.panier-total{display:flex;justify-content:space-between;padding:14px 0 8px;font-weight:700;font-family:'Cormorant Garamond',serif;font-size:18px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:10px;font-weight:700;color:var(--texte2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;display:block}
+.form-input{width:100%;padding:12px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Jost',sans-serif;outline:none;color:var(--texte)}
+.form-input:focus{border-color:var(--bordeaux)}
+.btn-whatsapp{width:100%;padding:15px;background:#25D366;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(37,211,102,0.3);transition:all 0.2s}
+.btn-whatsapp:hover{transform:translateY(-1px)}
+.btn-cancel{width:100%;padding:12px;background:var(--bg);color:var(--texte2);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;margin-top:8px}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--texte2)}
+.empty-emoji{font-size:52px;margin-bottom:14px}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px;color:var(--texte)}
+
+/* FOOTER */
+.footer{text-align:center;padding:24px;border-top:1px solid var(--border);margin-top:20px}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--texte2);font-weight:600}
+.footer-logo span{color:var(--bordeaux)}
+
+/* LOADING */
+.loading{text-align:center;padding:60px 20px;color:var(--texte2)}
+.loader{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--bordeaux);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="loading">
+    <div class="loader"></div>
+    <div>Chargement du menu...</div>
+  </div>
+</div>
+
+<!-- Modal panier -->
+<div class="modal-overlay" id="modal-panier">
+  <div class="modal">
+    <div class="modal-title">🛒 Mon panier</div>
+    <div id="panier-items"></div>
+    <div class="panier-total">
+      <span>Total</span>
+      <span id="panier-total-val">0 FCFA</span>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px">
+      <div class="form-group">
+        <label class="form-label">Votre nom</label>
+        <input class="form-input" id="client-nom" placeholder="Ex: Fatou Diallo" type="text">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse de livraison</label>
+        <input class="form-input" id="client-adresse" placeholder="Ex: Almadies, Dakar" type="text">
+      </div>
+      <button class="btn-whatsapp" onclick="commanderWhatsApp()">
+        <span>📲</span> Commander sur WhatsApp
+      </button>
+      <button class="btn-cancel" onclick="fermerPanier()">Continuer mes achats</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bouton panier flottant -->
+<button class="panier-fab" id="panier-fab" onclick="ouvrirPanier()">
+  🛒 Mon panier
+  <span class="panier-count" id="panier-count">0</span>
+</button>
+
+<script>
+const API = 'https://traiteurpro-production.up.railway.app';
+const path = window.location.pathname;
+const TRAITEUR_ID = parseInt(path.split('/').pop()) || 1;
+
+let traiteur = null;
+let menus = [];
+let panier = [];
+let catActive = 'Tout';
+
+async function charger() {
+  try {
+    const r = await fetch(`${API}/api/menu-public/${TRAITEUR_ID}`);
+    const d = await r.json();
+    if (d.error) { afficherErreur(); return; }
+    traiteur = d.traiteur;
+    menus = d.menus;
+    afficherPage();
+  } catch(e) {
+    afficherErreur();
+  }
+}
+
+function afficherErreur() {
+  document.getElementById('app').innerHTML = `
+    <div class="empty" style="padding-top:80px">
+      <div class="empty-emoji">😔</div>
+      <div class="empty-title">Menu introuvable</div>
+      <div style="font-size:13px;margin-top:8px">Ce traiteur n'existe pas ou n'est pas disponible.</div>
+    </div>`;
+}
+
+function afficherPage() {
+  const cats = ['Tout', ...new Set(menus.map(m => m.categorie).filter(Boolean))];
+  
+  let html = `
+    <div class="header">
+      <div class="header-badge">
+        <div class="header-badge-dot"></div>
+        <span class="header-badge-text">Menu disponible</span>
+      </div>
+      <div class="header-nom">${traiteur.nom_boutique}</div>
+      <div class="header-desc">${traiteur.description || 'Cuisine sénégalaise authentique'}</div>
+      <div class="header-info">
+        <span class="header-chip">📍 ${traiteur.ville || 'Dakar'}</span>
+        ${traiteur.telephone ? `<span class="header-chip">📞 ${traiteur.telephone}</span>` : ''}
+      </div>
+    </div>
+    <div class="cats" id="cats">`;
+  
+  cats.forEach(c => {
+    html += `<button class="cat-btn ${c==='Tout'?'active':''}" onclick="filtrerCat('${c}')">${c}</button>`;
+  });
+  html += `</div><div class="menus" id="menus-list"></div>
+    <div class="footer">
+      <div class="footer-logo">Propulsé par Traiteur<span>Pro</span></div>
+    </div>`;
+  
+  document.getElementById('app').innerHTML = html;
+  afficherMenus();
+}
+
+function filtrerCat(cat) {
+  catActive = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === cat);
+  });
+  afficherMenus();
+}
+
+function afficherMenus() {
+  const liste = catActive === 'Tout' ? menus : menus.filter(m => m.categorie === catActive);
+  const container = document.getElementById('menus-list');
+  
+  if (liste.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-emoji">🍽️</div><div class="empty-title">Aucun plat disponible</div></div>`;
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  liste.forEach(m => {
+    const cat = m.categorie || 'Autres';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(m);
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([cat, plats]) => {
+    if (catActive === 'Tout') html += `<div class="section-title">${cat}</div>`;
+    plats.forEach(p => {
+      html += `
+        <div class="plat-card" onclick="ajouterAuPanier(${p.id})">
+          <div class="plat-emoji">${p.emoji || '🍽️'}</div>
+          <div class="plat-info">
+            <div class="plat-nom">${p.nom}</div>
+            <div class="plat-desc">${p.description || ''}</div>
+            <div class="plat-prix">${Number(p.prix).toLocaleString('fr-FR')} FCFA</div>
+          </div>
+          <button class="plat-add" onclick="event.stopPropagation();ajouterAuPanier(${p.id})">+</button>
+        </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function ajouterAuPanier(id) {
+  const plat = menus.find(m => m.id === id);
+  if (!plat) return;
+  const existing = panier.find(p => p.id === id);
+  if (existing) existing.qty++;
+  else panier.push({...plat, qty: 1});
+  mettreAJourPanier();
+  
+  // Animation feedback
+  const btn = event.target.closest('.plat-card');
+  if (btn) {
+    btn.style.borderColor = '#8B1A1A';
+    setTimeout(() => btn.style.borderColor = '', 500);
+  }
+}
+
+function mettreAJourPanier() {
+  const total = panier.reduce((s, p) => s + p.qty, 0);
+  const fab = document.getElementById('panier-fab');
+  const count = document.getElementById('panier-count');
+  if (total > 0) {
+    fab.style.display = 'flex';
+    count.textContent = total;
+  } else {
+    fab.style.display = 'none';
+  }
+}
+
+function ouvrirPanier() {
+  const container = document.getElementById('panier-items');
+  let html = '';
+  panier.forEach(p => {
+    html += `
+      <div class="panier-item">
+        <div>
+          <div class="panier-item-nom">${p.emoji || '🍽️'} ${p.nom}</div>
+          <div class="panier-item-prix">${(Number(p.prix) * p.qty).toLocaleString('fr-FR')} FCFA</div>
+        </div>
+        <div class="panier-item-qty">
+          <button class="qty-btn" onclick="changerQty(${p.id},-1)">−</button>
+          <span style="font-weight:700;min-width:20px;text-align:center">${p.qty}</span>
+          <button class="qty-btn" onclick="changerQty(${p.id},1)">+</button>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+  
+  const total = panier.reduce((s, p) => s + Number(p.prix) * p.qty, 0);
+  document.getElementById('panier-total-val').textContent = total.toLocaleString('fr-FR') + ' FCFA';
+  document.getElementById('modal-panier').classList.add('open');
+}
+
+function changerQty(id, delta) {
+  const item = panier.find(p => p.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) panier = panier.filter(p => p.id !== id);
+  mettreAJourPanier();
+  if (panier.length === 0) { fermerPanier(); return; }
+  ouvrirPanier();
+}
+
+function fermerPanier() {
+  document.getElementById('modal-panier').classList.remove('open');
+}
+
+function commanderWhatsApp() {
+  const nom = document.getElementById('client-nom').value.trim();
+  const adresse = document.getElementById('client-adresse').value.trim();
+  if (!nom) { alert('Entrez votre nom'); return; }
+  if (!adresse) { alert('Entrez votre adresse'); return; }
+  
+  const lignes = panier.map(p => `• ${p.emoji||'🍽️'} ${p.nom} x${p.qty} = ${(Number(p.prix)*p.qty).toLocaleString('fr-FR')} FCFA`).join('\n');
+  const total = panier.reduce((s, p) => s + Number(p.prix) * p.qty, 0);
+  
+  const msg = `🍽️ *Nouvelle commande — ${traiteur.nom_boutique}*\n\n👤 Client : ${nom}\n📍 Adresse : ${adresse}\n\n*Commande :*\n${lignes}\n\n💰 *Total : ${total.toLocaleString('fr-FR')} FCFA*\n\n_Via TraiteurPro_`;
+  
+  const tel = (traiteur.telephone || '').replace(/[^0-9]/g, '');
+  const waUrl = `https://wa.me/${tel.startsWith('221') ? tel : '221'+tel}?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
+  fermerPanier();
+}
+
+// Fermer modal en cliquant dehors
+document.getElementById('modal-panier').addEventListener('click', function(e) {
+  if (e.target === this) fermerPanier();
+});
+
+charger();
+</script>
+</body>
+</html>
