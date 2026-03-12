@@ -676,12 +676,14 @@ function afficherSousTab(id,btn){
 async function chargerDashboard(){
   try{
     const r=await fetch(`${API}/api/dashboard/${TRAITEUR_ID}`);
+    if(!r.ok){document.getElementById('last-update').textContent='Erreur HTTP '+r.status;return;}
     const d=await r.json();
+    if(!d.kpis){document.getElementById('last-update').textContent='Pas de kpis dans réponse';return;}
     const{commandes,revenus,clients,nouvelles}=d.kpis;
-    document.getElementById('kpi-commandes').textContent=commandes;
-    document.getElementById('kpi-nouvelles').textContent=nouvelles+' nouvelles';
-    document.getElementById('kpi-revenus').textContent=revenus>=1000000?(revenus/1000000).toFixed(1)+'M':revenus>=1000?(revenus/1000).toFixed(0)+'k':revenus;
-    document.getElementById('kpi-clients').textContent=clients;
+    document.getElementById('kpi-commandes').textContent=commandes??0;
+    document.getElementById('kpi-nouvelles').textContent=(nouvelles??0)+' nouvelles';
+    document.getElementById('kpi-revenus').textContent=(revenus??0)>=1000000?((revenus/1000000).toFixed(1)+'M'):(revenus??0)>=1000?((revenus/1000).toFixed(0)+'k'):(revenus??0);
+    document.getElementById('kpi-clients').textContent=clients??0;
     const plat=d.plats_top?.[0];
     document.getElementById('kpi-plat').textContent=plat?(plat.emoji||'🍽️')+' '+plat.nom?.split(' ')[0]:'—';
     document.getElementById('last-update').textContent='Mis à jour à '+new Date().toLocaleTimeString('fr-FR');
@@ -1057,6 +1059,16 @@ document.getElementById('pin-input').onkeyup = function(e){
   }
 };
 if(checkLogin()){demarrer();}
+// Fallback: si login overlay caché, charger dashboard
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var ov = document.getElementById('login-overlay');
+    if(ov && (ov.hidden || ov.style.display==='none' || getComputedStyle(ov).display==='none')){
+      chargerDashboard();
+      verifierEssai();
+    }
+  }, 500);
+});
 </script>
 
 <script>
