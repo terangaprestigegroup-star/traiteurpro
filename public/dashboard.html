@@ -401,16 +401,19 @@ let livreurs=JSON.parse(localStorage.getItem('tp_livreurs')||'[]');
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
 let avis=JSON.parse(localStorage.getItem('tp_avis')||'[]');
 
-function getSession(){return sessionStorage.getItem('tp_session')}
-function setSession(d){sessionStorage.setItem('tp_session',JSON.stringify(d))}
+function getSession(){try{return localStorage.getItem('tp_session_'+TRAITEUR_ID)}catch(e){return null}}
+function setSession(d){try{localStorage.setItem('tp_session_'+TRAITEUR_ID,JSON.stringify(d))}catch(e){}}
 function checkLogin(){
-  const s=getSession();
-  if(s && s.traiteur_id==TRAITEUR_ID){
-    document.getElementById('login-overlay').style.display='none';
-    return true;
-  }
-  // Session invalide ou mauvais traiteur - forcer login
-  sessionStorage.clear();
+  try{
+    const raw=getSession();
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s && s.traiteur_id==TRAITEUR_ID){
+        document.getElementById('login-overlay').style.display='none';
+        return true;
+      }
+    }
+  }catch(e){}
   document.getElementById('login-overlay').style.display='flex';
   return false;
 }
@@ -436,7 +439,7 @@ function saisirPin(n){if(event&&event.type==='click'&&event.sourceCapabilities&&
 function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
 async function validerPin(){if(currentPin.length<4)return;try{const r=await fetch(`${API}/api/traiteur/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:currentPin})});const d=await r.json();if(d.ok){setSession(d);document.getElementById('login-overlay').style.display='none';if(d.first_login)document.getElementById('setpin-overlay').style.display='flex';else demarrer()}else{document.getElementById('login-error').style.display='block';currentPin='';for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.remove('filled');setTimeout(()=>document.getElementById('login-error').style.display='none',2000)}}catch(e){document.getElementById('login-error').style.display='block';currentPin=''}}
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
-function seDeconnecter(){sessionStorage.removeItem('tp_session');location.reload()}
+function seDeconnecter(){try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}location.reload()}
 
 
 function goToAbonnement(){
@@ -715,7 +718,7 @@ function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
 // Vider session si ?reset dans URL
-if(window.location.search.includes('reset')) sessionStorage.clear();
+if(window.location.search.includes('reset')){try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}}
 if(!checkLogin()){}else{demarrer()}
 </script>
 
