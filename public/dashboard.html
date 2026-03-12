@@ -395,7 +395,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texte);mi
 
 <script>
 const API='https://traiteurpro-production.up.railway.app';
-const TRAITEUR_ID=parseInt(new URLSearchParams(window.location.search).get("id"))||1;
+const _urlId=parseInt(new URLSearchParams(window.location.search).get("id"))||0;
+// Sauvegarder l'ID dans localStorage si présent dans URL
+if(_urlId) try{localStorage.setItem('tp_last_id',_urlId)}catch(e){}
+// Lire l'ID depuis URL ou localStorage
+const TRAITEUR_ID=_urlId||parseInt((()=>{try{return localStorage.getItem('tp_last_id')}catch(e){return 1}})())||1;
+// Si ID manquant dans URL, rediriger avec l'ID
+if(!_urlId && TRAITEUR_ID) history.replaceState(null,'','/app?id='+TRAITEUR_ID);
 let currentPin='';
 let livreurs=JSON.parse(localStorage.getItem('tp_livreurs')||'[]');
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
