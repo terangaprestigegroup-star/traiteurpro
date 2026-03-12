@@ -549,6 +549,13 @@ app.post('/api/traiteur/set-pin', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/admin/activer', async (req, res) => {
+  const { secret, traiteur_id } = req.query;
+  if (secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Accès refusé' });
+  await pool.query('UPDATE traiteurs SET actif=true WHERE id=$1', [traiteur_id]);
+  res.json({ ok: true, message: `Traiteur ${traiteur_id} activé` });
+});
+
 app.get('/api/admin/reset-pin', async (req, res) => {
   const { secret, traiteur_id, pin } = req.query;
   if (secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Accès refusé' });
