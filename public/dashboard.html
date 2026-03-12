@@ -222,21 +222,21 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </head>
 <body>
 
-<div id="login-overlay">
-  <div class="login-box">
-    <div class="login-logo">
-  <div class="logo-mark"><span class="logo-mark-text">TP</span></div>
-</div>
-    <div class="login-title">TraiteurPro</div>
-    <div class="login-sub">Entrez votre PIN pour accéder à votre dashboard</div>
-    <input type="tel" id="pin-input" maxlength="4" placeholder="1234" inputmode="numeric" autocomplete="off"
-      style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:32px;text-align:center;letter-spacing:16px;margin:16px 0;font-family:'Jost',sans-serif;outline:none;box-sizing:border-box;background:var(--bg2);color:var(--texte)">
-    <button id="btn-login"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#8B1A1A,#A52A2A);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;margin-bottom:12px;letter-spacing:0.5px">
+<div id="login-overlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1A0A08,#2D0F0F);z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#FFF9F4;border-radius:20px;padding:36px 28px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+    <div style="width:60px;height:60px;background:linear-gradient(135deg,#8B1A1A,#A52A2A);border-radius:14px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#E8C97E">TP</span>
+    </div>
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1A1008;margin-bottom:6px">TraiteurPro</div>
+    <div style="font-size:13px;color:#6B5B45;margin-bottom:20px">Entrez votre PIN</div>
+    <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="1 2 3 4" autocomplete="off"
+      style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block">
+    <button id="btn-login" type="button"
+      style="width:100%;padding:14px;background:#8B1A1A;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block">
       Acceder
     </button>
-    <div class="login-hint">PIN par defaut : 1234</div>
-    <div id="login-error" style="color:#A52A2A;font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
+    <div style="font-size:11px;color:#A89880">PIN par defaut : 1234</div>
+    <div id="login-error" style="color:#8B1A1A;font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
   </div>
 </div>
 
@@ -533,12 +533,39 @@ function checkLogin(){
 }
 
 async function validerPinInput(pin){
-  pin = (pin||'').replace(/[^0-9]/g,'');
-  if(pin.length<4){
-    document.getElementById('login-error').textContent='Entrez 4 chiffres';
-    document.getElementById('login-error').style.display='block';
+  var p = String(pin||'').replace(/[^0-9]/g,'');
+  if(p.length < 4){
+    document.getElementById('login-error').textContent = 'Entrez 4 chiffres';
+    document.getElementById('login-error').style.display = 'block';
     return;
   }
+  document.getElementById('btn-login').textContent = 'Connexion...';
+  document.getElementById('btn-login').disabled = true;
+  try {
+    var resp = await fetch(API + '/api/traiteur/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({traiteur_id: TRAITEUR_ID, pin: p})
+    });
+    var d = await resp.json();
+    if(d.ok){
+      setSession({...d, traiteur_id: TRAITEUR_ID});
+      document.getElementById('login-overlay').style.display = 'none';
+      demarrer();
+    } else {
+      document.getElementById('login-error').textContent = 'PIN incorrect';
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('btn-login').textContent = 'Acceder';
+      document.getElementById('btn-login').disabled = false;
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Erreur reseau: ' + e.message;
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('btn-login').textContent = 'Acceder';
+    document.getElementById('btn-login').disabled = false;
+  }
+}
   try{
     const r=await fetch(API+'/api/traiteur/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:pin})});
     const d=await r.json();
@@ -846,18 +873,18 @@ const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
 // Vider session si ?reset dans URL
 
-if(!checkLogin()){}else{demarrer()}
-// Login button event
-document.getElementById('btn-login').addEventListener('click', function(){
+// Attach login events
+document.getElementById('btn-login').onclick = function(){
   var pin = (document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');
   validerPinInput(pin);
-});
-document.getElementById('pin-input').addEventListener('keydown', function(e){
-  if(e.key==='Enter'){
-    var pin = (this.value||'').replace(/[^0-9]/g,'');
-    validerPinInput(pin);
+};
+document.getElementById('pin-input').onkeyup = function(e){
+  if(e.key==='Enter' || this.value.replace(/[^0-9]/g,'').length===4){
+    var pin = this.value.replace(/[^0-9]/g,'');
+    if(pin.length===4) validerPinInput(pin);
   }
-});
+};
+if(!checkLogin()){}else{demarrer()}
 </script>
 
 <script>
