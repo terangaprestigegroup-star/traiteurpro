@@ -106,17 +106,17 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     </div>
     <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px">
       <div class="form-group">
-        <label class="form-label">Votre nom</label>
-        <input class="form-input" id="client-nom" placeholder="Ex: Fatou Diallo" type="text">
+        <label class="form-label">Votre nom complet</label>
+        <input class="form-input" id="client-nom" placeholder="Ex : Fatou Diallo" type="text">
       </div>
       <div class="form-group">
         <label class="form-label">Adresse de livraison</label>
-        <input class="form-input" id="client-adresse" placeholder="Ex: Almadies, Dakar" type="text">
+        <input class="form-input" id="client-adresse" placeholder="Ex : Almadies, Dakar — point de repère" type="text">
       </div>
       <button class="btn-whatsapp" onclick="commanderWhatsApp()">
-        <span>📲</span> Commander sur WhatsApp
+        <span>📲</span> Envoyer ma commande sur WhatsApp
       </button>
-      <button class="btn-cancel" onclick="fermerPanier()">Continuer mes achats</button>
+      <button class="btn-cancel" onclick="fermerPanier()">Continuer ma sélection</button>
     </div>
   </div>
 </div>
@@ -217,7 +217,7 @@ function afficherMenus() {
   const container = document.getElementById('menus-list');
   
   if (liste.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-emoji">🍽️</div><div class="empty-title">Aucun plat disponible</div></div>`;
+    container.innerHTML = `<div class="empty"><div class="empty-emoji">🍽️</div><div class="empty-title">Aucun plat disponible pour le moment</div></div>`;
     return;
   }
 
