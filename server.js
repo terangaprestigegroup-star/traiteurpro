@@ -52,6 +52,11 @@ async function initDB() {
       logo_emoji VARCHAR(10) DEFAULT '🍽️',
       description TEXT,
       zone_livraison TEXT,
+      facebook TEXT,
+      instagram TEXT,
+      tiktok TEXT,
+      youtube TEXT,
+      site_web TEXT,
       frais_livraison INTEGER DEFAULT 0,
       min_commande INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT NOW()
@@ -97,6 +102,11 @@ async function initDB() {
       UNIQUE(traiteur_id, phone)
     );
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS seuil_commandes INTEGER DEFAULT 30;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS facebook TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS instagram TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
     ALTER TABLE commandes_traiteur ADD COLUMN IF NOT EXISTS livreur_id INTEGER DEFAULT NULL;
   `);
 
@@ -525,6 +535,43 @@ app.get('/api/relances/:traiteur_id', adminMiddleware, async (req, res) => {
 // ============================================
 // LOGIN PIN
 // ============================================
+// ============================================
+// PROFIL TRAITEUR — Mise à jour réseaux sociaux
+// ============================================
+app.put('/api/traiteur/profil/:id', async (req, res) => {
+  try {
+    const { nom_boutique, description, zone_livraison, facebook, instagram, tiktok, youtube, site_web } = req.body;
+    await pool.query(
+      `UPDATE traiteurs SET
+        nom_boutique=COALESCE($1,nom_boutique),
+        description=COALESCE($2,description),
+        zone_livraison=COALESCE($3,zone_livraison),
+        facebook=COALESCE($4,facebook),
+        instagram=COALESCE($5,instagram),
+        tiktok=COALESCE($6,tiktok),
+        youtube=COALESCE($7,youtube),
+        site_web=COALESCE($8,site_web)
+      WHERE id=$9`,
+      [nom_boutique||null, description||null, zone_livraison||null,
+       facebook||null, instagram||null, tiktok||null, youtube||null, site_web||null,
+       req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET profil traiteur
+app.get('/api/traiteur/profil/:id', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT id, nom_boutique, proprietaire, whatsapp, ville, type_cuisine, description, zone_livraison, logo_emoji, plan, essai_expire, abonnement_expire, facebook, instagram, tiktok, youtube, site_web FROM traiteurs WHERE id=$1',
+      [req.params.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
+    res.json(r.rows[0]);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/traiteur/login', async (req, res) => {
   try {
     const { traiteur_id, pin } = req.body;
@@ -716,7 +763,7 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 
 app.get('/api/menu-public/:traiteur_id', async (req, res) => {
   try {
-    const t = await pool.query('SELECT id, nom_boutique, proprietaire, whatsapp as telephone, ville, description FROM traiteurs WHERE id=$1 AND actif=true', [req.params.traiteur_id]);
+    const t = await pool.query('SELECT id, nom_boutique, proprietaire, whatsapp as telephone, ville, description, facebook, instagram, tiktok, youtube, site_web FROM traiteurs WHERE id=$1 AND actif=true', [req.params.traiteur_id]);
     if (!t.rows[0]) return res.status(404).json({ error: 'Traiteur introuvable' });
     const menus = await pool.query('SELECT * FROM menus WHERE traiteur_id=$1 ORDER BY categorie, nom', [req.params.traiteur_id]);
     res.json({ traiteur: t.rows[0], menus: menus.rows });
@@ -887,6 +934,11 @@ app.get('/api/admin/migrate', async (req, res) => {
       ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS parrain_id INTEGER;
       ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS abonnement_expire TIMESTAMP;
       ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS seuil_commandes INTEGER DEFAULT 30;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS facebook TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS instagram TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
     `);
     // Activer essai 14j pour traiteurs existants sans essai_expire
     await pool.query(`
@@ -1059,6 +1111,11 @@ async function initAbonnements() {
     );
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS abonnement_expire TIMESTAMP;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS seuil_commandes INTEGER DEFAULT 30;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS facebook TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS instagram TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
   `);
 }
 initAbonnements().catch(e => console.log('Abonnements init:', e.message));
