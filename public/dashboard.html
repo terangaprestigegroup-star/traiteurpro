@@ -286,7 +286,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <button class="btn-header" onclick="voirMenuPublic()">🌐 Mon menu</button>
     <button class="btn-header" onclick="voirQRCode()">📱 QR Code</button>
     <button class="btn-header" id="btn-push" onclick="activerPush()">🔔 Notifs</button>
-      <button class="btn-header" onclick="chargerDashboard()">🔄 Actualiser</button>
+      <button class="btn-header" onclick="chargerDashboard();this.textContent='⏳';setTimeout(()=>this.textContent='🔄 Actualiser',2000)">🔄 Actualiser</button>
       <button class="btn-header" onclick="envoyerPromo()">📣 Promo flash</button>
       <button class="btn-header" onclick="seDeconnecter()">🔒 Déconnexion</button>
     </div>
@@ -704,7 +704,7 @@ async function chargerDashboard(){
     document.getElementById('nouvelles-commandes').innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div>';
     const pe=document.getElementById('plats-top');
     pe.innerHTML=d.plats_top?.length?d.plats_top.map(p=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span style="font-size:13px">${p.emoji||'🍽️'} ${p.nom}</span><span style="font-weight:800;color:#c0392b">${p.total} cmd</span></div>`).join(''):'<div style="text-align:center;color:#888;font-size:13px">Pas encore de données</div>';
-  }catch(e){console.error(e)}
+  }catch(e){document.getElementById('last-update').textContent='Erreur: '+e.message;console.error(e);}
 }
 
 function renderCmd(c,mini=false){
