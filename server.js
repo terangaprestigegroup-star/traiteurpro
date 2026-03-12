@@ -4,6 +4,13 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const app = express();
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -684,7 +691,10 @@ app.post('/api/admin/message', adminMiddleware, async (req, res) => {
 // PAGES
 // ============================================
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+// Route admin sécurisée - URL cachée
+app.get('/backoffice', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+// Ancienne URL /admin - redirige vers 404 pour cacher
+app.get('/admin', (req, res) => res.status(404).send('Not found'));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
