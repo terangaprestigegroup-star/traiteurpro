@@ -401,8 +401,25 @@ let livreurs=JSON.parse(localStorage.getItem('tp_livreurs')||'[]');
 let echelonnes=JSON.parse(localStorage.getItem('tp_echelonnes')||'[]');
 let avis=JSON.parse(localStorage.getItem('tp_avis')||'[]');
 
-function getSession(){try{return localStorage.getItem('tp_session_'+TRAITEUR_ID)}catch(e){return null}}
-function setSession(d){try{localStorage.setItem('tp_session_'+TRAITEUR_ID,JSON.stringify(d))}catch(e){}}
+function getSession(){
+  try{
+    // Essayer localStorage d'abord
+    const ls=localStorage.getItem('tp_session_'+TRAITEUR_ID);
+    if(ls) return ls;
+    // Sinon cookie
+    const name='tp_'+TRAITEUR_ID+'=';
+    const ca=document.cookie.split(';');
+    for(let c of ca){c=c.trim();if(c.startsWith(name))return decodeURIComponent(c.substring(name.length))}
+    return null;
+  }catch(e){return null}
+}
+function setSession(d){
+  const val=JSON.stringify(d);
+  try{localStorage.setItem('tp_session_'+TRAITEUR_ID,val)}catch(e){}
+  // Aussi sauvegarder en cookie (30 jours)
+  const exp=new Date();exp.setDate(exp.getDate()+30);
+  document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
+}
 function checkLogin(){
   try{
     const raw=getSession();
@@ -439,7 +456,11 @@ function saisirPin(n){if(event&&event.type==='click'&&event.sourceCapabilities&&
 function effacerPin(){currentPin=currentPin.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.toggle('filled',i<currentPin.length)}
 async function validerPin(){if(currentPin.length<4)return;try{const r=await fetch(`${API}/api/traiteur/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,pin:currentPin})});const d=await r.json();if(d.ok){setSession(d);document.getElementById('login-overlay').style.display='none';if(d.first_login)document.getElementById('setpin-overlay').style.display='flex';else demarrer()}else{document.getElementById('login-error').style.display='block';currentPin='';for(let i=0;i<4;i++)document.getElementById('dot-'+i).classList.remove('filled');setTimeout(()=>document.getElementById('login-error').style.display='none',2000)}}catch(e){document.getElementById('login-error').style.display='block';currentPin=''}}
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
-function seDeconnecter(){try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}location.reload()}
+function seDeconnecter(){
+  try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}
+  document.cookie='tp_'+TRAITEUR_ID+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+  location.href='/app?id='+TRAITEUR_ID+'&reset';
+}
 
 
 function goToAbonnement(){
