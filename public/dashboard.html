@@ -1066,6 +1066,85 @@ async function activerPush(){
   }
 }
 
+async function chargerProfil(){
+  try{
+    const r=await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
+    const d=await r.json();
+    document.getElementById('p-nom').value=d.nom_boutique||'';
+    document.getElementById('p-desc').value=d.description||'';
+    document.getElementById('p-zone').value=d.zone_livraison||'';
+    document.getElementById('p-site').value=d.site_web||'';
+    document.getElementById('p-facebook').value=d.facebook||'';
+    document.getElementById('p-instagram').value=d.instagram||'';
+    document.getElementById('p-tiktok').value=d.tiktok||'';
+    document.getElementById('p-youtube').value=d.youtube||'';
+    document.getElementById('p-adresse').value=d.adresse||'';
+    if(d.latitude)document.getElementById('p-lat').value=d.latitude;
+    if(d.longitude)document.getElementById('p-lng').value=d.longitude;
+  }catch(e){console.error('chargerProfil:',e);}
+}
+
+async function geocoderAdresse(){
+  const adresse=document.getElementById('p-adresse').value.trim();
+  if(!adresse){alert('Entrez une adresse d\'abord');return;}
+  const msg=document.getElementById('gps-msg');
+  msg.style.display='block';msg.style.color='var(--texte2)';
+  msg.textContent='📍 Localisation en cours…';
+  try{
+    const q=encodeURIComponent(adresse+', Sénégal');
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&accept-language=fr`);
+    const d=await r.json();
+    if(d.length){
+      const lat=parseFloat(d[0].lat).toFixed(6);
+      const lng=parseFloat(d[0].lon).toFixed(6);
+      document.getElementById('p-lat').value=lat;
+      document.getElementById('p-lng').value=lng;
+      const label=d[0].display_name.split(',').slice(0,3).join(',');
+      msg.style.color='#2D6A4F';
+      msg.textContent='✅ Position trouvée : '+label;
+    }else{
+      msg.style.color='#8B1A1A';
+      msg.textContent='❌ Adresse non trouvée. Essayez : "Parcelles assainies, Dakar"';
+    }
+  }catch(e){
+    msg.style.color='#8B1A1A';
+    msg.textContent='❌ Erreur réseau. Vérifiez votre connexion.';
+  }
+}
+
+async function sauvegarderProfil(){
+  const msg=document.getElementById('p-msg');
+  msg.style.display='block';msg.style.color='var(--texte2)';
+  msg.textContent='Enregistrement…';
+  try{
+    const lat=document.getElementById('p-lat').value;
+    const lng=document.getElementById('p-lng').value;
+    const adresse=document.getElementById('p-adresse').value;
+    if(lat&&lng){
+      await fetch(`${API}/api/traiteur/${TRAITEUR_ID}/gps`,{
+        method:'PUT',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({latitude:lat,longitude:lng,adresse})
+      });
+    }
+    const r=await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        nom_boutique:document.getElementById('p-nom').value,
+        description:document.getElementById('p-desc').value,
+        zone_livraison:document.getElementById('p-zone').value,
+        site_web:document.getElementById('p-site').value,
+        facebook:document.getElementById('p-facebook').value,
+        instagram:document.getElementById('p-instagram').value,
+        tiktok:document.getElementById('p-tiktok').value,
+        youtube:document.getElementById('p-youtube').value,
+      })
+    });
+    const d=await r.json();
+    if(d.ok){msg.style.color='#2D6A4F';msg.textContent='✅ Profil enregistré !';}
+    else{msg.style.color='#8B1A1A';msg.textContent='❌ Erreur : '+(d.error||'inconnue');}
+  }catch(e){msg.style.color='#8B1A1A';msg.textContent='❌ Erreur : '+e.message;}
+}
+
 function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000)}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
