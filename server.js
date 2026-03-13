@@ -107,6 +107,28 @@ async function initDB() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS avis (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      note INTEGER CHECK(note BETWEEN 1 AND 5),
+      commentaire TEXT,
+      commande_ref VARCHAR(50),
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS echelonnes (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom VARCHAR(200) NOT NULL,
+      description TEXT,
+      client_phone VARCHAR(20),
+      total DECIMAL(12,2) NOT NULL,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      date_solde DATE,
+      statut VARCHAR(20) DEFAULT 'en_cours',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS evenements (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
@@ -257,7 +279,7 @@ async function parserCommandeIA(texte, menus) {
           role: 'system',
           content: `Tu es un assistant pour un traiteur sénégalais. 
           Extrait les informations de commande du message.
-          Menus disponibles: ${JSON.stringify(menus.map(m => ({ nom: m.nom, prix: m.prix, emoji: m.emoji, nb_personnes: m.nb_personnes })))}
+          Menus disponibles: ${JSON.stringify(menus.map(m => ({ nom: m.nom.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1FFFF}]\s*/u,'').trim(), prix: m.prix, emoji: m.emoji, nb_personnes: m.nb_personnes })))}
           Réponds UNIQUEMENT en JSON:
           {"items": [{"nom": "...", "quantite": 1, "prix": 0}], "nb_personnes": 1, "date_livraison": null, "notes": ""}
           Si ce n'est pas une commande, réponds: {"intent": "autre", "message": "ta réponse en français"}`
@@ -552,6 +574,13 @@ app.put('/api/commandes/:id', async (req, res) => {
       annulé: `❌ *Commande annulée*\n\nRéf : *${cmd.reference}*\nNous sommes désolés.\nContactez-nous pour plus d'infos.\n\n_${t?.nom_boutique}_`
     };
     if (msgs[statut]) await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, cmd.client_phone, msgs[statut]);
+    // Si statut livré → sync livraison + remettre livreur disponible
+    if (statut === 'livré') {
+      const livRes = await pool.query("UPDATE livraisons SET statut='livrée', livree_at=NOW() WHERE commande_id=$1 RETURNING livreur_id", [cmd.id]);
+      if (livRes.rows[0]?.livreur_id) {
+        await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [livRes.rows[0].livreur_id]);
+      }
+    }
     res.json(cmd);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -744,7 +773,12 @@ app.put('/api/livraisons/:id/terminer', async (req, res) => {
   try {
     const lv = await pool.query('UPDATE livraisons SET statut=$1, livree_at=NOW() WHERE id=$2 RETURNING *', ['livrée', req.params.id]);
     if (lv.rows[0]) {
+      // 1. Remettre livreur disponible
       await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
+      // 2. Sync statut commande → livré
+      if (lv.rows[0].commande_id) {
+        await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
+      }
     }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -1021,6 +1055,73 @@ app.get('/backoffice', (req, res) => res.sendFile(path.join(__dirname, 'public',
 app.get('/admin', (req, res) => res.status(404).send('Not found'));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
 // ============================================
+// AVIS CLIENTS
+// ============================================
+app.get('/api/avis/:traiteur_id', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM avis WHERE traiteur_id=$1 ORDER BY created_at DESC', [req.params.traiteur_id]);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/avis', async (req, res) => {
+  try {
+    const { traiteur_id, client_nom, client_phone, note, commentaire, commande_ref } = req.body;
+    const r = await pool.query(
+      'INSERT INTO avis (traiteur_id, client_nom, client_phone, note, commentaire, commande_ref) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [traiteur_id, client_nom||null, client_phone||null, note||5, commentaire||null, commande_ref||null]
+    );
+    res.json({ ok: true, avis: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/avis/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM avis WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
+// ECHELONNES
+// ============================================
+app.get('/api/echelonnes/:traiteur_id', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM echelonnes WHERE traiteur_id=$1 ORDER BY created_at DESC', [req.params.traiteur_id]);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/echelonnes', async (req, res) => {
+  try {
+    const { traiteur_id, nom, description, client_phone, total, acompte, date_solde } = req.body;
+    const r = await pool.query(
+      'INSERT INTO echelonnes (traiteur_id, nom, description, client_phone, total, acompte, date_solde) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
+      [traiteur_id, nom, description||null, client_phone||null, total, acompte||0, date_solde||null]
+    );
+    res.json({ ok: true, echelonne: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/echelonnes/:id', async (req, res) => {
+  try {
+    const { acompte, statut } = req.body;
+    const r = await pool.query(
+      'UPDATE echelonnes SET acompte=COALESCE($1,acompte), statut=COALESCE($2,statut) WHERE id=$3 RETURNING *',
+      [acompte, statut, req.params.id]
+    );
+    res.json({ ok: true, echelonne: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/echelonnes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM echelonnes WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
 // AGENDA / EVENEMENTS
 // ============================================
 app.get('/api/evenements/:traiteur_id', async (req, res) => {
@@ -1238,7 +1339,7 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
       <table>
         <thead><tr><th>Plat</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead>
         <tbody>
-          ${items.map(i=>{return`<tr><td>${i.nom||'Plat'}</td><td style="color:#6B5B45">${i.quantite}</td><td style="color:#6B5B45">${Number(i.prix).toLocaleString('fr-FR')} F</td><td>${Number(i.prix*i.quantite).toLocaleString('fr-FR')} F</td></tr>`;}).join('')}
+          ${items.map(i=>{const n=(i.nom||'Plat').replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1FFFF}]\s*/u,'').trim();return`<tr><td>${i.emoji&&i.emoji!=='🍽️'?i.emoji:''} ${n||i.nom||'Plat'}</td><td style="color:#6B5B45">${i.quantite}</td><td style="color:#6B5B45">${Number(i.prix).toLocaleString('fr-FR')} F</td><td>${Number(i.prix*i.quantite).toLocaleString('fr-FR')} F</td></tr>`;}).join('')}
         </tbody>
       </table>
       <div class="total-section">
@@ -1360,6 +1461,28 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS avis (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      note INTEGER CHECK(note BETWEEN 1 AND 5),
+      commentaire TEXT,
+      commande_ref VARCHAR(50),
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS echelonnes (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom VARCHAR(200) NOT NULL,
+      description TEXT,
+      client_phone VARCHAR(20),
+      total DECIMAL(12,2) NOT NULL,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      date_solde DATE,
+      statut VARCHAR(20) DEFAULT 'en_cours',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS evenements (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
@@ -1592,6 +1715,28 @@ async function initAbonnements() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS avis (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      note INTEGER CHECK(note BETWEEN 1 AND 5),
+      commentaire TEXT,
+      commande_ref VARCHAR(50),
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS echelonnes (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      nom VARCHAR(200) NOT NULL,
+      description TEXT,
+      client_phone VARCHAR(20),
+      total DECIMAL(12,2) NOT NULL,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      date_solde DATE,
+      statut VARCHAR(20) DEFAULT 'en_cours',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS evenements (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
