@@ -1375,7 +1375,7 @@ async function sauvegarderProfil(){
   }catch(e){msg.style.color='#8B1A1A';msg.textContent='❌ Erreur : '+e.message;}
 }
 
-function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000)}
+function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000);setTimeout(chargerAgenda,500);}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
