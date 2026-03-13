@@ -475,10 +475,10 @@ app.get('/api/menus/:traiteur_id', async (req, res) => {
 
 app.post('/api/menus', async (req, res) => {
   try {
-    const { traiteur_id, nom, description, prix, categorie, emoji, nb_personnes } = req.body;
+    const { traiteur_id, nom, description, prix, categorie, emoji, nb_personnes, image_url } = req.body;
     const r = await pool.query(
-      'INSERT INTO menus (traiteur_id, nom, description, prix, categorie, emoji, nb_personnes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-      [traiteur_id, nom, description, prix, categorie||'plat', emoji||'🍽️', nb_personnes||1]
+      'INSERT INTO menus (traiteur_id, nom, description, prix, categorie, emoji, nb_personnes, image_url) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+      [traiteur_id, nom, description, prix, categorie||'plat', emoji||'🍽️', nb_personnes||1, image_url||null]
     );
     res.json({ ok: true, menu: r.rows[0] });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -486,10 +486,10 @@ app.post('/api/menus', async (req, res) => {
 
 app.put('/api/menus/:id', async (req, res) => {
   try {
-    const { nom, description, prix, categorie, emoji, disponible } = req.body;
+    const { nom, description, prix, categorie, emoji, disponible, image_url } = req.body;
     const r = await pool.query(
-      'UPDATE menus SET nom=COALESCE($1,nom), description=COALESCE($2,description), prix=COALESCE($3,prix), categorie=COALESCE($4,categorie), emoji=COALESCE($5,emoji), disponible=COALESCE($6,disponible) WHERE id=$7 RETURNING *',
-      [nom, description, prix, categorie, emoji, disponible, req.params.id]
+      'UPDATE menus SET nom=COALESCE($1,nom), description=COALESCE($2,description), prix=COALESCE($3,prix), categorie=COALESCE($4,categorie), emoji=COALESCE($5,emoji), disponible=COALESCE($6,disponible), image_url=COALESCE($7,image_url) WHERE id=$8 RETURNING *',
+      [nom, description, prix, categorie, emoji, disponible, image_url||null, req.params.id]
     );
     res.json({ ok: true, menu: r.rows[0] });
   } catch(e) { res.status(500).json({ error: e.message }); }
