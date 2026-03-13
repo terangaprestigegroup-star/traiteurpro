@@ -550,6 +550,27 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
 
 <!-- MODALS -->
+<div class="modal-overlay" id="modal-assigner-livreur">
+  <div class="modal">
+    <div class="modal-title">🚴 Assigner un livreur</div>
+    <div class="form-group">
+      <label class="form-label">Choisir un livreur</label>
+      <select class="form-select" id="al-livreur-select"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adresse de livraison</label>
+      <input class="form-input" id="al-adresse" placeholder="Adresse confirmée">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant livraison (FCFA)</label>
+      <input class="form-input" id="al-montant" type="number" placeholder="0">
+    </div>
+    <div id="al-msg" style="font-size:12px;text-align:center;margin-bottom:8px;display:none"></div>
+    <button class="btn-submit" onclick="confirmerAssignation()">🚴 Assigner & Notifier WhatsApp</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-assigner-livreur')">Annuler</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-menu">
   <div class="modal">
     <div class="modal-title">🍽️ Nouveau plat</div>
@@ -810,7 +831,8 @@ function renderCmd(c,mini=false){
   <div class="cmd-items">${prod||'Commande'}</div>${c.adresse_livraison?`<div class="cmd-adresse">📍 ${c.adresse_livraison}</div>`:''}
   <div class="cmd-total">💰 ${Number(c.total).toLocaleString('fr-FR')} FCFA</div>
   <div class="statut-btns">${!mini?`<button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button><button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button><button class="statut-btn" onclick="changerStatut(${c.id},'en route')">🚚 En route</button><button class="statut-btn" onclick="changerStatut(${c.id},'livré')">🎉 Livré</button><button class="statut-btn" style="color:#c0392b" onclick="changerStatut(${c.id},'annulé')">❌ Annuler</button>`:`<button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button><button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button>`}
-  <a href="${API}/api/facture/${c.id}" target="_blank" class="statut-btn">🧾 Facture</a></div></div>`;
+  <button class="statut-btn" style="color:#2D6A4F;font-weight:700" onclick="ouvrirAssignerLivreur(${c.id},'${c.adresse_livraison||''}',${c.total})">🚴 Assigner livreur</button>
+  <a href="${API}/api/facture/${c.reference||c.id}" target="_blank" class="statut-btn">🧾 Facture</a></div></div>`;
 }
 
 async function chargerCommandes(statut='tous'){
@@ -1287,6 +1309,58 @@ async function supprimerEvenement(id){
   if(!confirm('Supprimer cet événement ?'))return;
   await fetch(`${API}/api/evenements/${id}`,{method:'DELETE'});
   chargerAgenda();
+}
+
+let assignerCmdId = null;
+
+async function ouvrirAssignerLivreur(cmdId, adresse, montant){
+  assignerCmdId = cmdId;
+  document.getElementById('al-adresse').value = adresse || '';
+  document.getElementById('al-montant').value = montant || 0;
+  document.getElementById('al-msg').style.display = 'none';
+  // Charger livreurs disponibles
+  try{
+    const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
+    const livreurs = await r.json();
+    const sel = document.getElementById('al-livreur-select');
+    const dispo = livreurs.filter(l => l.disponible);
+    if(!dispo.length){
+      sel.innerHTML = '<option>Aucun livreur disponible</option>';
+    } else {
+      sel.innerHTML = dispo.map(l => `<option value="${l.id}">${l.nom} · ${l.transport||'Moto'} · ${l.zone||'—'}</option>`).join('');
+    }
+  }catch(e){ console.error(e); }
+  document.getElementById('modal-assigner-livreur').classList.add('open');
+}
+
+async function confirmerAssignation(){
+  const livreurId = document.getElementById('al-livreur-select').value;
+  const adresse = document.getElementById('al-adresse').value;
+  const montant = document.getElementById('al-montant').value;
+  const msg = document.getElementById('al-msg');
+  if(!livreurId){ alert('Choisissez un livreur'); return; }
+  msg.style.display = 'block';
+  msg.style.color = 'var(--texte2)';
+  msg.textContent = '⏳ Assignation en cours…';
+  try{
+    const r = await fetch(`${API}/api/livreurs/${livreurId}/assigner`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ commande_id: assignerCmdId, traiteur_id: TRAITEUR_ID, adresse, montant: parseFloat(montant)||0 })
+    });
+    const d = await r.json();
+    if(d.ok){
+      msg.style.color = '#2D6A4F';
+      msg.textContent = '✅ Livreur assigné et notifié sur WhatsApp !';
+      setTimeout(()=>{ fermerModal('modal-assigner-livreur'); chargerCommandes('tous'); chargerLivreurs(); }, 1500);
+    } else {
+      msg.style.color = '#8B1A1A';
+      msg.textContent = '❌ Erreur : ' + (d.error || 'inconnue');
+    }
+  }catch(e){
+    msg.style.color = '#8B1A1A';
+    msg.textContent = '❌ Erreur réseau : ' + e.message;
+  }
 }
 
 function previewPhoto(url){
