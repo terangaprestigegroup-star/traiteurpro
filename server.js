@@ -1186,8 +1186,10 @@ app.post('/api/livreur/login', async (req, res) => {
     const livreur = r.rows[0];
     if (!livreur) return res.status(404).json({ ok: false, error: 'Livreur introuvable' });
     const pinDB = livreur.pin || '1234';
-    if (String(pin) !== String(pinDB)) return res.json({ ok: false, error: 'PIN incorrect' });
-    res.json({ ok: true, livreur: { id: livreur.id, nom: livreur.nom, telephone: livreur.telephone, transport: livreur.transport, zone: livreur.zone, disponible: livreur.disponible, traiteur_id: livreur.traiteur_id } });
+    if (String(pin).trim() !== String(pinDB).trim()) return res.json({ ok: false, error: 'PIN incorrect' });
+    const tid = livreur.traiteur_id || livreur.merchant_id;
+    const tel = livreur.telephone || livreur.phone;
+    res.json({ ok: true, livreur: { id: livreur.id, nom: livreur.nom.trim(), telephone: tel, transport: livreur.transport, zone: livreur.zone, disponible: livreur.disponible, traiteur_id: tid } });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -1199,7 +1201,7 @@ app.get('/api/livreur/:id/livraisons', async (req, res) => {
        FROM livraisons lv
        LEFT JOIN commandes_traiteur ct ON ct.id = lv.commande_id
        WHERE lv.livreur_id=$1 AND lv.statut != 'livrée'
-       ORDER BY lv.created_at DESC`,
+       ORDER BY lv.created_at DESC LIMIT 20`,
       [req.params.id]
     );
     // Merge adresse: use livraisons.adresse if exists, else commande adresse
