@@ -612,6 +612,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <div class="form-group"><label class="form-label">Adresse livraison</label><input class="form-input" id="cmd-adresse" placeholder="Quartier, rue, point de repère"></div>
     <div class="form-group"><label class="form-label">Date livraison</label><input class="form-input" id="cmd-date" type="date"></div>
     <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="cmd-notes" placeholder="Instructions spéciales (ex : sans piment)"></div>
+    <input type="hidden" id="cmd-evenement-id" value="">
     <button class="btn-submit" onclick="sauvegarderCommande()">✅ Créer commande</button>
     <button class="btn-cancel" onclick="fermerModal('modal-commande')">Annuler</button>
   </div>
@@ -854,7 +855,7 @@ async function toggleDispo(id,dispo){await fetch(`${API}/api/menus/${id}`,{metho
 async function supprimerMenu(id){if(!confirm('Supprimer ce plat définitivement ?'))return;await fetch(`${API}/api/menus/${id}`,{method:'DELETE'});chargerMenus()}
 
 async function afficherModalCommande(){const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');document.getElementById('modal-commande').classList.add('open')}
-async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes:document.getElementById('cmd-notes').value})});const d=await r.json();if(d.ok){fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard()}}catch(e){alert('Erreur')}}
+async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes:document.getElementById('cmd-notes').value+(document.getElementById('cmd-evenement-id').value?' [EV#'+document.getElementById('cmd-evenement-id').value+']':'')})});const d=await r.json();if(d.ok){document.getElementById('cmd-evenement-id').value='';document.querySelector('#modal-commande .modal-title').textContent='📋 Nouvelle commande';fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard();if(window._afterCmdSave){window._afterCmdSave();window._afterCmdSave=null;}}}catch(e){alert('Erreur')}}
 
 async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
@@ -1261,9 +1262,10 @@ function renderListeEvenements(evs, titre='Événements du mois'){
         <div style="height:4px;background:var(--border);border-radius:4px"><div style="height:4px;background:var(--vert);border-radius:4px;width:${pct}%"></div></div>
       </div>`:''}
       ${e.notes?`<div style="font-size:11px;color:var(--texte2);font-style:italic;margin-bottom:8px">📝 ${e.notes}</div>`:''}
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="menu-btn" style="color:var(--vert);font-size:11px" onclick="confirmerEvenement(${e.id})">✅ Confirmer</button>
         <button class="menu-btn" style="color:var(--texte2);font-size:11px" onclick="terminerEvenement(${e.id})">✔️ Terminé</button>
+        <button class="menu-btn" style="color:var(--b);font-size:11px;font-weight:700" onclick="creerCommandeDepuisEvenement(${e.id},'${(e.client_nom||'').replace(/'/g,'')}','${(e.client_phone||'')}',${e.montant||0},'${(e.date_event||'').split('T')[0]}')">📦 Commande</button>
         <button class="menu-btn" style="color:var(--rouge);font-size:11px" onclick="supprimerEvenement(${e.id})">🗑️</button>
       </div>
     </div>`;
@@ -1313,6 +1315,24 @@ async function sauvegarderEvenement(){
       chargerAgenda();
     }
   }catch(e){alert('Erreur: '+e.message);}
+}
+
+async function creerCommandeDepuisEvenement(evId, clientNom, clientPhone, montant, dateEvent){
+  // Charger menus
+  const r = await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
+  const menus = await r.json();
+  document.getElementById('cmd-plat').innerHTML = menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');
+  // Pré-remplir
+  document.getElementById('cmd-nom').value = clientNom || '';
+  document.getElementById('cmd-phone').value = clientPhone || '';
+  document.getElementById('cmd-date').value = dateEvent || '';
+  document.getElementById('cmd-notes').value = '📅 Lié à un événement agenda';
+  document.getElementById('cmd-evenement-id').value = evId;
+  // Titre modal
+  document.querySelector('#modal-commande .modal-title').textContent = '📦 Commande — ' + (clientNom||'Événement agenda');
+  document.getElementById('modal-commande').classList.add('open');
+  // Switch to commandes tab after save
+  window._afterCmdSave = () => afficherTab('commandes', document.querySelector('[onclick*="commandes"]'));
 }
 
 async function confirmerEvenement(id){
