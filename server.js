@@ -107,6 +107,9 @@ async function initDB() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
     CREATE TABLE IF NOT EXISTS livreurs (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
@@ -1001,6 +1004,37 @@ app.get('/backoffice', (req, res) => res.sendFile(path.join(__dirname, 'public',
 app.get('/admin', (req, res) => res.status(404).send('Not found'));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
+
+// API carte publique
+app.get('/api/carte', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT id, nom_boutique, proprietaire, ville, type_cuisine, logo_emoji, 
+             description, zone_livraison, whatsapp, latitude, longitude, adresse,
+             facebook, instagram, tiktok, site_web
+      FROM traiteurs 
+      WHERE actif=true 
+      ORDER BY nom_boutique
+    `);
+    res.json(r.rows);
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Mise à jour coordonnées GPS traiteur
+app.put('/api/traiteur/:id/gps', async (req, res) => {
+  try {
+    const { latitude, longitude, adresse } = req.body;
+    await pool.query(
+      'UPDATE traiteurs SET latitude=$1, longitude=$2, adresse=$3 WHERE id=$4',
+      [latitude, longitude, adresse, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 
 // API CARTE TRAITEURS
@@ -1134,6 +1168,9 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
     CREATE TABLE IF NOT EXISTS livreurs (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
@@ -1346,6 +1383,9 @@ async function initAbonnements() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
     CREATE TABLE IF NOT EXISTS livreurs (
       id SERIAL PRIMARY KEY,
       traiteur_id INTEGER NOT NULL,
