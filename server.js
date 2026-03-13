@@ -107,6 +107,23 @@ async function initDB() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS evenements (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      titre VARCHAR(200) NOT NULL,
+      type VARCHAR(50) DEFAULT 'commande',
+      date_event DATE NOT NULL,
+      heure_event TIME,
+      lieu TEXT,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      nb_personnes INTEGER DEFAULT 1,
+      montant DECIMAL(12,2) DEFAULT 0,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      notes TEXT,
+      statut VARCHAR(30) DEFAULT 'planifie',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
@@ -1003,6 +1020,57 @@ app.get('/backoffice', (req, res) => res.sendFile(path.join(__dirname, 'public',
 // Ancienne URL /admin - redirige vers 404 pour cacher
 app.get('/admin', (req, res) => res.status(404).send('Not found'));
 app.get('/inscription', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inscription.html')));
+// ============================================
+// AGENDA / EVENEMENTS
+// ============================================
+app.get('/api/evenements/:traiteur_id', async (req, res) => {
+  try {
+    const { mois, annee } = req.query;
+    let query = 'SELECT * FROM evenements WHERE traiteur_id=$1';
+    const params = [req.params.traiteur_id];
+    if (mois && annee) {
+      query += ' AND EXTRACT(MONTH FROM date_event)=$2 AND EXTRACT(YEAR FROM date_event)=$3';
+      params.push(mois, annee);
+    }
+    query += ' ORDER BY date_event ASC, heure_event ASC';
+    const r = await pool.query(query, params);
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/evenements', async (req, res) => {
+  try {
+    const { traiteur_id, titre, type, date_event, heure_event, lieu, client_nom, client_phone, nb_personnes, montant, acompte, notes } = req.body;
+    const r = await pool.query(
+      `INSERT INTO evenements (traiteur_id, titre, type, date_event, heure_event, lieu, client_nom, client_phone, nb_personnes, montant, acompte, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+      [traiteur_id, titre, type||'commande', date_event, heure_event||null, lieu||null, client_nom||null, client_phone||null, nb_personnes||1, montant||0, acompte||0, notes||null]
+    );
+    res.json({ ok: true, evenement: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/evenements/:id', async (req, res) => {
+  try {
+    const { titre, type, date_event, heure_event, lieu, client_nom, client_phone, nb_personnes, montant, acompte, notes, statut } = req.body;
+    const r = await pool.query(
+      `UPDATE evenements SET titre=COALESCE($1,titre), type=COALESCE($2,type), date_event=COALESCE($3,date_event),
+       heure_event=COALESCE($4,heure_event), lieu=COALESCE($5,lieu), client_nom=COALESCE($6,client_nom),
+       client_phone=COALESCE($7,client_phone), nb_personnes=COALESCE($8,nb_personnes), montant=COALESCE($9,montant),
+       acompte=COALESCE($10,acompte), notes=COALESCE($11,notes), statut=COALESCE($12,statut) WHERE id=$13 RETURNING *`,
+      [titre, type, date_event, heure_event, lieu, client_nom, client_phone, nb_personnes, montant, acompte, notes, statut, req.params.id]
+    );
+    res.json({ ok: true, evenement: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/evenements/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM evenements WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 
 // API carte publique
@@ -1292,6 +1360,23 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS evenements (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      titre VARCHAR(200) NOT NULL,
+      type VARCHAR(50) DEFAULT 'commande',
+      date_event DATE NOT NULL,
+      heure_event TIME,
+      lieu TEXT,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      nb_personnes INTEGER DEFAULT 1,
+      montant DECIMAL(12,2) DEFAULT 0,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      notes TEXT,
+      statut VARCHAR(30) DEFAULT 'planifie',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
@@ -1507,6 +1592,23 @@ async function initAbonnements() {
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS tiktok TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS youtube TEXT;
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS site_web TEXT;
+    CREATE TABLE IF NOT EXISTS evenements (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      titre VARCHAR(200) NOT NULL,
+      type VARCHAR(50) DEFAULT 'commande',
+      date_event DATE NOT NULL,
+      heure_event TIME,
+      lieu TEXT,
+      client_nom VARCHAR(100),
+      client_phone VARCHAR(20),
+      nb_personnes INTEGER DEFAULT 1,
+      montant DECIMAL(12,2) DEFAULT 0,
+      acompte DECIMAL(12,2) DEFAULT 0,
+      notes TEXT,
+      statut VARCHAR(30) DEFAULT 'planifie',
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE traiteurs ADD COLUMN IF NOT EXISTS adresse TEXT;
