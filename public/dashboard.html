@@ -438,7 +438,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
       <button onclick="changerMois(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--texte2)">▶</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
-      ${['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(j=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">${j}</div>`).join('')}
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Lun</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mar</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mer</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Jeu</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Ven</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Sam</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Dim</div>
     </div>
     <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
   </div>
