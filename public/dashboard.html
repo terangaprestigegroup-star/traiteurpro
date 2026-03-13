@@ -486,6 +486,13 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   <div class="modal">
     <div class="modal-title">🍽️ Nouveau plat</div>
     <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="menu-emoji" value="🍽️" maxlength="2"></div>
+    <div class="form-group">
+      <label class="form-label">📸 Photo du plat (URL)</label>
+      <input class="form-input" id="menu-photo" placeholder="https://... ou laissez vide" oninput="previewPhoto(this.value)">
+      <div id="photo-preview" style="margin-top:8px;display:none">
+        <img id="photo-img" src="" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+      </div>
+    </div>
     <div class="form-group"><label class="form-label">Nom du plat *</label><input class="form-input" id="menu-nom" placeholder="Ex : Thiéboudienne, Yassa Poulet…"></div>
     <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="menu-desc" placeholder="Description courte du plat"></div>
     <div class="form-group"><label class="form-label">Prix (FCFA) *</label><input class="form-input" id="menu-prix" type="number" placeholder="5000"></div>
@@ -747,11 +754,11 @@ async function chargerMenus(){
   if(!menus.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🍽️</div><div class="empty-title">Votre carte est encore vide</div><div class="empty-sub">Ajoutez vos plats pour permettre à vos clients de commander directement depuis WhatsApp.</div><button class="btn-empty" onclick="afficherModalMenu()">🍽️ Créer ma carte de menus</button></div>`;return}
   const cats={plat:'🍽️ Plats individuels',famille:'👨‍👩‍👧 Formules famille',evenement:'🎊 Événements',cantine:'🏢 Cantine',grillade:'🥩 Grillade',healthy:'🥗 Healthy',boulangerie:'🍞 Boulangerie'};
   const grp={};menus.forEach(m=>{if(!grp[m.categorie])grp[m.categorie]=[];grp[m.categorie].push(m)});
-  let html='';for(const[cat,items]of Object.entries(grp)){html+=`<div style="font-size:12px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px">${cats[cat]||cat}</div>`;html+=items.map(m=>`<div class="menu-card"><div class="menu-emoji">${m.emoji||'🍽️'}</div><div class="menu-info"><div class="menu-nom">${m.nom}</div>${m.description?`<div class="menu-desc">${m.description}</div>`:''}<div class="cat-badge">${m.nb_personnes>1?m.nb_personnes+' pers.':'Individuel'}</div></div><div style="text-align:right"><div class="menu-prix">${Number(m.prix).toLocaleString('fr-FR')} F</div><div class="menu-actions" style="margin-top:6px"><button class="menu-btn" onclick="toggleDispo(${m.id},${!m.disponible})" style="color:${m.disponible?'#006633':'#c0392b'}">${m.disponible?'✅':'❌'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerMenu(${m.id})">🗑️</button></div></div></div>`).join('')}
+  let html='';for(const[cat,items]of Object.entries(grp)){html+=`<div style="font-size:12px;font-weight:900;color:#888;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px">${cats[cat]||cat}</div>`;html+=items.map(m=>`<div class="menu-card" style="overflow:hidden">${m.image_url?`<img src="${m.image_url}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px;border:1px solid var(--border)" onerror="this.style.display='none'">`:''}<div style="display:flex;align-items:flex-start;gap:10px"><div class="menu-emoji">${m.emoji||'🍽️'}</div><div class="menu-info"><div class="menu-nom">${m.nom}</div>${m.description?`<div class="menu-desc">${m.description}</div>`:''}<div class="cat-badge">${m.nb_personnes>1?m.nb_personnes+' pers.':'Individuel'}</div></div><div style="text-align:right"><div class="menu-prix">${Number(m.prix).toLocaleString('fr-FR')} F</div><div class="menu-actions" style="margin-top:6px"><button class="menu-btn" onclick="toggleDispo(${m.id},${!m.disponible})" style="color:${m.disponible?'#006633':'#c0392b'}">${m.disponible?'✅':'❌'}</button><button class="menu-btn" style="color:#c0392b" onclick="supprimerMenu(${m.id})">🗑️</button></div></div></div></div>`).join('')}
   el.innerHTML=html}catch(e){console.error(e)}
 }
 function afficherModalMenu(){document.getElementById('modal-menu').classList.add('open')}
-async function sauvegarderMenu(){const nom=document.getElementById('menu-nom').value,prix=document.getElementById('menu-prix').value;if(!nom||!prix){alert('Nom et prix obligatoires');return}try{const r=await fetch(`${API}/api/menus`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,nom,prix:parseInt(prix),description:document.getElementById('menu-desc').value,categorie:document.getElementById('menu-cat').value,emoji:document.getElementById('menu-emoji').value,nb_personnes:parseInt(document.getElementById('menu-pers').value)||1})});const d=await r.json();if(d.ok){fermerModal('modal-menu');chargerMenus();['menu-nom','menu-prix','menu-desc'].forEach(id=>document.getElementById(id).value='')}}catch(e){alert('Erreur: '+e.message)}}
+async function sauvegarderMenu(){const nom=document.getElementById('menu-nom').value,prix=document.getElementById('menu-prix').value;if(!nom||!prix){alert('Nom et prix obligatoires');return}try{const r=await fetch(`${API}/api/menus`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,nom,prix:parseInt(prix),description:document.getElementById('menu-desc').value,categorie:document.getElementById('menu-cat').value,emoji:document.getElementById('menu-emoji').value,nb_personnes:parseInt(document.getElementById('menu-pers').value)||1,image_url:document.getElementById('menu-photo').value||null})});const d=await r.json();if(d.ok){fermerModal('modal-menu');chargerMenus();['menu-nom','menu-prix','menu-desc','menu-photo'].forEach(id=>document.getElementById(id).value='');document.getElementById('photo-preview').style.display='none'}}catch(e){alert('Erreur: '+e.message)}}
 async function toggleDispo(id,dispo){await fetch(`${API}/api/menus/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({disponible:dispo})});chargerMenus()}
 async function supprimerMenu(id){if(!confirm('Supprimer ce plat définitivement ?'))return;await fetch(`${API}/api/menus/${id}`,{method:'DELETE'});chargerMenus()}
 
@@ -1064,6 +1071,13 @@ async function activerPush(){
   } else {
     alert('Autorisez les notifications dans les paramètres de votre navigateur');
   }
+}
+
+function previewPhoto(url){
+  const prev=document.getElementById('photo-preview');
+  const img=document.getElementById('photo-img');
+  if(url&&url.startsWith('http')){prev.style.display='block';img.src=url;img.onerror=()=>prev.style.display='none';}
+  else{prev.style.display='none';}
 }
 
 async function chargerProfil(){
