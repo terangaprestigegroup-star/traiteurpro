@@ -1130,7 +1130,7 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
       <div>
         <div class="top-label">TraiteurPro 🇸🇳</div>
         <div class="top-nom">${traiteur?.logo_emoji||'🍽️'} ${traiteur?.nom_boutique||'Traiteur'}</div>
-        <div class="top-sub">📍 ${traiteur?.ville||'Dakar'}${traiteur?.zone_livraison?' · '+traiteur.zone_livraison:''}</div>
+        <div class="top-sub">📍 ${[traiteur?.ville, traiteur?.zone_livraison].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' · ') || 'Dakar'}</div>
         ${traiteur?.whatsapp?`<div class="top-sub">📱 ${traiteur.whatsapp}</div>`:''}
       </div>
       <div class="facture-block">
