@@ -266,6 +266,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <button class="nav-tab" onclick="afficherTab('livreurs',this)"><span>🚚</span>Livreurs</button>
     <button class="nav-tab" onclick="afficherTab('finance',this)"><span>💰</span>Finance</button>
     <button class="nav-tab" onclick="afficherTab('avis',this)"><span>⭐</span>Avis</button>
+    <button class="nav-tab" onclick="afficherTab('agenda',this)"><span>📅</span>Agenda</button>
     <button class="nav-tab" onclick="afficherTab('parametres',this)"><span>⚙️</span>Paramètres</button>
   </div>
 </nav>
@@ -422,6 +423,67 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
 
 <!-- TAB PARAMETRES -->
+<div id="tab-agenda" class="tab-content">
+  <div class="page-header">
+    <h1>📅 Agenda</h1>
+    <p>Planifiez mariages, baptêmes, livraisons</p>
+    <button class="btn-header" onclick="afficherModalEvenement()">+ Nouvel événement</button>
+  </div>
+
+  <!-- Mini calendrier -->
+  <div class="section" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button onclick="changerMois(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--texte2)">◀</button>
+      <div id="cal-titre" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--texte)"></div>
+      <button onclick="changerMois(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--texte2)">▶</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
+      ${['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(j=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">${j}</div>`).join('')}
+    </div>
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+  </div>
+
+  <!-- Liste événements du mois -->
+  <div class="section">
+    <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Événements du mois</div>
+    <div id="agenda-liste"></div>
+  </div>
+</div>
+
+<!-- MODAL EVENEMENT -->
+<div class="modal-overlay" id="modal-evenement">
+  <div class="modal">
+    <div class="modal-title">📅 Nouvel événement</div>
+    <div class="form-group">
+      <label class="form-label">Type d'événement</label>
+      <select class="form-select" id="ev-type">
+        <option value="mariage">💍 Mariage</option>
+        <option value="bapteme">👶 Baptême</option>
+        <option value="anniversaire">🎂 Anniversaire</option>
+        <option value="cantine">🍱 Cantine / Livraison récurrente</option>
+        <option value="commande">📦 Commande spéciale</option>
+        <option value="autre">📋 Autre</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Titre *</label><input class="form-input" id="ev-titre" placeholder="Ex : Mariage Diallo — 80 personnes"></div>
+    <div style="display:flex;gap:8px">
+      <div class="form-group" style="flex:1"><label class="form-label">Date *</label><input class="form-input" id="ev-date" type="date"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">Heure</label><input class="form-input" id="ev-heure" type="time"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Lieu</label><input class="form-input" id="ev-lieu" placeholder="Ex : Salle Mariama, Médina"></div>
+    <div class="form-group"><label class="form-label">Client</label><input class="form-input" id="ev-client" placeholder="Nom du client"></div>
+    <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="ev-phone" placeholder="Ex : 221 77 123 45 67"></div>
+    <div style="display:flex;gap:8px">
+      <div class="form-group" style="flex:1"><label class="form-label">Nb personnes</label><input class="form-input" id="ev-pers" type="number" value="1" min="1"></div>
+      <div class="form-group" style="flex:1"><label class="form-label">Montant (FCFA)</label><input class="form-input" id="ev-montant" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Acompte reçu (FCFA)</label><input class="form-input" id="ev-acompte" type="number" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="ev-notes" rows="2" placeholder="Détails, spécialités demandées…" style="resize:vertical"></textarea></div>
+    <button class="btn-submit" onclick="sauvegarderEvenement()">✅ Enregistrer</button>
+    <button class="btn-cancel" onclick="fermerModal('modal-evenement')">Annuler</button>
+  </div>
+</div>
+
 <div id="tab-parametres" class="tab-content">
   <div class="page-header"><h1>⚙️ Paramètres</h1><p>Personnalisez votre profil et vos réseaux sociaux</p></div>
   <div class="section">
@@ -701,6 +763,7 @@ function afficherSousTab(id,btn){
   if(id==='abonnement')chargerAbonnement();
   if(id==='parrainage')chargerParrainage();
   if(id==='parametres')chargerProfil();
+  if(id==='agenda')chargerAgenda();
 }
 
 async function chargerDashboard(){
@@ -1071,6 +1134,148 @@ async function activerPush(){
   } else {
     alert('Autorisez les notifications dans les paramètres de votre navigateur');
   }
+}
+
+
+// ── AGENDA ──
+let calMois = new Date().getMonth();
+let calAnnee = new Date().getFullYear();
+const TYPES_EV = {mariage:'💍',bapteme:'👶',anniversaire:'🎂',cantine:'🍱',commande:'📦',autre:'📋'};
+const STATUTS_EV = {planifie:'🔵 Planifié',confirme:'✅ Confirmé',termine:'✔️ Terminé',annule:'❌ Annulé'};
+
+async function chargerAgenda(){
+  try{
+    const r=await fetch(`${API}/api/evenements/${TRAITEUR_ID}?mois=${calMois+1}&annee=${calAnnee}`);
+    const evs=await r.json();
+    renderCalendrier(evs);
+    renderListeEvenements(evs);
+  }catch(e){console.error('Agenda:',e);}
+}
+
+function renderCalendrier(evs){
+  const moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('cal-titre').textContent=moisNoms[calMois]+' '+calAnnee;
+  const premier=new Date(calAnnee,calMois,1);
+  const dernier=new Date(calAnnee,calMois+1,0);
+  let jourdeb=(premier.getDay()||7)-1; // Lundi=0
+  const datesEvs=new Set(evs.map(e=>new Date(e.date_event).getDate()));
+  let html='';
+  for(let i=0;i<jourdeb;i++) html+=`<div></div>`;
+  for(let j=1;j<=dernier.getDate();j++){
+    const auj=j===new Date().getDate()&&calMois===new Date().getMonth()&&calAnnee===new Date().getFullYear();
+    const hasEv=datesEvs.has(j);
+    html+=`<div onclick="filtrerJour(${j})" style="text-align:center;padding:6px 2px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:${hasEv?'700':'400'};background:${auj?'var(--b)':hasEv?'rgba(139,26,26,0.08)':'transparent'};color:${auj?'#fff':hasEv?'var(--b)':'var(--texte2)'};border:${hasEv&&!auj?'1px solid rgba(139,26,26,0.2)':'1px solid transparent'};position:relative">
+      ${j}${hasEv?`<div style="width:5px;height:5px;background:${auj?'#E8C97E':'var(--or)'};border-radius:50%;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)"></div>`:''}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+function filtrerJour(jour){
+  const date=`${calAnnee}-${String(calMois+1).padStart(2,'0')}-${String(jour).padStart(2,'0')}`;
+  fetch(`${API}/api/evenements/${TRAITEUR_ID}`).then(r=>r.json()).then(evs=>{
+    const filtres=evs.filter(e=>e.date_event&&e.date_event.startsWith(date));
+    renderListeEvenements(filtres,`Événements du ${jour}`);
+  });
+}
+
+function renderListeEvenements(evs, titre='Événements du mois'){
+  const el=document.getElementById('agenda-liste');
+  if(!evs.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-emoji">📅</div><div class="empty-title">Aucun événement</div><div class="empty-sub">Planifiez vos mariages, baptêmes et livraisons.</div><button class="btn-empty" onclick="afficherModalEvenement()">📅 Ajouter un événement</button></div>`;
+    return;
+  }
+  el.innerHTML=evs.map(e=>{
+    const date=new Date(e.date_event).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const reste=Number(e.montant)-Number(e.acompte);
+    const pct=e.montant>0?Math.round((e.acompte/e.montant)*100):0;
+    return`<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid var(--b)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:var(--texte)">${TYPES_EV[e.type]||'📋'} ${e.titre}</div>
+          <div style="font-size:11px;color:var(--texte2);margin-top:2px">📅 ${date}${e.heure_event?' · 🕐 '+e.heure_event.substring(0,5):''}${e.lieu?' · 📍 '+e.lieu:''}</div>
+          ${e.client_nom?`<div style="font-size:11px;color:var(--texte2)">👤 ${e.client_nom}${e.client_phone?' · 📱 '+e.client_phone:''}</div>`:''}
+          ${e.nb_personnes>1?`<div style="font-size:11px;color:var(--texte2)">👥 ${e.nb_personnes} personnes</div>`:''}
+        </div>
+        <div style="text-align:right">
+          ${e.montant>0?`<div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--b)">${Number(e.montant).toLocaleString('fr-FR')} F</div>`:''}
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(139,26,26,0.07);color:var(--b)">${STATUTS_EV[e.statut]||e.statut}</span>
+        </div>
+      </div>
+      ${e.montant>0?`<div style="background:var(--creme2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--texte2);margin-bottom:4px">
+          <span>✅ Acompte : ${Number(e.acompte).toLocaleString('fr-FR')} F</span>
+          <span>🔴 Reste : ${Number(reste).toLocaleString('fr-FR')} F</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:4px"><div style="height:4px;background:var(--vert);border-radius:4px;width:${pct}%"></div></div>
+      </div>`:''}
+      ${e.notes?`<div style="font-size:11px;color:var(--texte2);font-style:italic;margin-bottom:8px">📝 ${e.notes}</div>`:''}
+      <div style="display:flex;gap:6px">
+        <button class="menu-btn" style="color:var(--vert);font-size:11px" onclick="confirmerEvenement(${e.id})">✅ Confirmer</button>
+        <button class="menu-btn" style="color:var(--texte2);font-size:11px" onclick="terminerEvenement(${e.id})">✔️ Terminé</button>
+        <button class="menu-btn" style="color:var(--rouge);font-size:11px" onclick="supprimerEvenement(${e.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changerMois(delta){
+  calMois+=delta;
+  if(calMois>11){calMois=0;calAnnee++;}
+  if(calMois<0){calMois=11;calAnnee--;}
+  chargerAgenda();
+}
+
+function afficherModalEvenement(){
+  // Set default date to today
+  document.getElementById('ev-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('modal-evenement').classList.add('open');
+}
+
+async function sauvegarderEvenement(){
+  const titre=document.getElementById('ev-titre').value;
+  const date=document.getElementById('ev-date').value;
+  if(!titre||!date){alert('Titre et date obligatoires');return;}
+  try{
+    const r=await fetch(`${API}/api/evenements`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        traiteur_id:TRAITEUR_ID,
+        titre,
+        type:document.getElementById('ev-type').value,
+        date_event:date,
+        heure_event:document.getElementById('ev-heure').value||null,
+        lieu:document.getElementById('ev-lieu').value||null,
+        client_nom:document.getElementById('ev-client').value||null,
+        client_phone:document.getElementById('ev-phone').value||null,
+        nb_personnes:parseInt(document.getElementById('ev-pers').value)||1,
+        montant:parseFloat(document.getElementById('ev-montant').value)||0,
+        acompte:parseFloat(document.getElementById('ev-acompte').value)||0,
+        notes:document.getElementById('ev-notes').value||null,
+      })
+    });
+    const d=await r.json();
+    if(d.ok){
+      fermerModal('modal-evenement');
+      ['ev-titre','ev-lieu','ev-client','ev-phone','ev-notes','ev-montant','ev-acompte'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('ev-pers').value='1';
+      chargerAgenda();
+    }
+  }catch(e){alert('Erreur: '+e.message);}
+}
+
+async function confirmerEvenement(id){
+  await fetch(`${API}/api/evenements/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({statut:'confirme'})});
+  chargerAgenda();
+}
+async function terminerEvenement(id){
+  await fetch(`${API}/api/evenements/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({statut:'termine'})});
+  chargerAgenda();
+}
+async function supprimerEvenement(id){
+  if(!confirm('Supprimer cet événement ?'))return;
+  await fetch(`${API}/api/evenements/${id}`,{method:'DELETE'});
+  chargerAgenda();
 }
 
 function previewPhoto(url){
