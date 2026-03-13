@@ -884,6 +884,7 @@ async function chargerLivreurs(){
           <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
             <button class="menu-btn" onclick="toggleLivreurDispo(${l.id},${l.disponible})">${l.disponible?'Occuper':'Libérer'}</button>
             <button class="menu-btn" onclick="voirHistorique(${l.id},'${l.nom}')">📊 Stats</button>
+            <button class="menu-btn" style="color:#2D6A4F;font-weight:700" onclick="envoyerLienLivreur(${l.id},'${l.nom.trim()}',${l.telephone?`'`+l.telephone+`'`:'null'})">📲 Lien</button>
             <button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${l.id})">🗑️</button>
           </div>
         </div>
@@ -912,6 +913,19 @@ async function sauvegarderLivreur(){
 async function toggleLivreurDispo(id,actuel){
   await fetch(`${API}/api/livreurs/${id}/dispo`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({disponible:!actuel})});
   chargerLivreurs();
+}
+
+function envoyerLienLivreur(id, nom, telephone){
+  const lien = `https://traiteurpro-production.up.railway.app/livreur?id=${id}`;
+  const msg = `Bonjour ${nom} 👋\n\nVoici votre espace livreur TraiteurPro :\n${lien}\n\nPIN par défaut : 1234\n\nVous y trouverez vos livraisons en temps réel 🛵`;
+  if(telephone){
+    const phone = String(telephone).replace(/\D/g,'');
+    const tel = phone.startsWith('221') ? phone : '221'+phone;
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+  } else {
+    // Copier dans le presse-papier
+    navigator.clipboard?.writeText(lien).then(()=>alert('✅ Lien copié !\n\n'+lien)).catch(()=>alert('Lien livreur :\n\n'+lien));
+  }
 }
 
 async function supprimerLivreur(id){
