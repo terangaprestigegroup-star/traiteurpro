@@ -1170,7 +1170,7 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
       <table>
         <thead><tr><th>Plat</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead>
         <tbody>
-          ${items.map(i=>`<tr><td>${i.emoji||'🍽️'} ${i.nom}</td><td style="color:#6B5B45">${i.quantite}</td><td style="color:#6B5B45">${Number(i.prix).toLocaleString('fr-FR')} F</td><td>${Number(i.prix*i.quantite).toLocaleString('fr-FR')} F</td></tr>`).join('')}
+          ${items.map(i=>{const nomClean=i.nom?.replace(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s*/u,'').trim()||i.nom;return`<tr><td>${i.emoji||'🍽️'} ${nomClean}</td><td style="color:#6B5B45">${i.quantite}</td><td style="color:#6B5B45">${Number(i.prix).toLocaleString('fr-FR')} F</td><td>${Number(i.prix*i.quantite).toLocaleString('fr-FR')} F</td></tr>`;}).join('')}
         </tbody>
       </table>
       <div class="total-section">
