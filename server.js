@@ -1064,21 +1064,119 @@ app.get('/api/villes-traiteurs', async (req, res) => {
 app.get('/api/facture/:id', async (req, res) => {
   try {
     const r = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [req.params.id]);
-    const c = r.rows[0];
-    if (!c) return res.status(404).send('Commande introuvable');
-    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [c.traiteur_id]);
+    const cmd = r.rows[0];
+    if (!cmd) return res.status(404).send('Commande introuvable');
+    const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [cmd.traiteur_id]);
     const traiteur = t.rows[0];
-    const items = Array.isArray(c.items) ? c.items : JSON.parse(c.items || '[]');
-    const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'});
-    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-    <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:32px;color:#0d0d0d;max-width:600px;margin:0 auto}.header{border-bottom:3px solid #c0392b;padding-bottom:20px;margin-bottom:24px}.nom{font-size:22px;font-weight:900;color:#c0392b}.sub{font-size:12px;color:#888}.facture-num{font-size:20px;font-weight:900;color:#c0392b}.table{width:100%;border-collapse:collapse;margin-bottom:20px}.table th{background:#c0392b;color:white;padding:10px;text-align:left;font-size:12px}.table td{padding:10px;border-bottom:1px solid #f0f0f0;font-size:13px}.total-row{font-weight:900;font-size:15px;color:#c0392b}.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;text-align:center}@media print{body{padding:16px}}</style></head><body>
-    <div class="header"><div style="font-size:32px">🍽️</div><div class="nom">${traiteur?.nom_boutique || 'TraiteurPro'}</div><div class="sub">${traiteur?.ville || 'Dakar'} · TraiteurPro 🇸🇳</div></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px"><div><div class="facture-num">FACTURE #${c.reference || c.id}</div><div style="font-size:12px;color:#888;margin-top:4px">Date : ${date}</div><div style="font-size:12px;color:#888">Client : ${c.client_nom || c.client_phone}</div>${c.adresse_livraison ? `<div style="font-size:12px;color:#888">📍 ${c.adresse_livraison}</div>` : ''}</div></div>
-    <table class="table"><thead><tr><th>Plat</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead><tbody>
-    ${items.map(i => `<tr><td>${i.emoji||'🍽️'} ${i.nom}</td><td>${i.quantite}</td><td>${Number(i.prix).toLocaleString('fr-FR')} FCFA</td><td>${Number(i.prix * i.quantite).toLocaleString('fr-FR')} FCFA</td></tr>`).join('')}
-    <tr class="total-row"><td colspan="3">TOTAL</td><td>${Number(c.total).toLocaleString('fr-FR')} FCFA</td></tr></tbody></table>
-    <div class="footer"><p>${traiteur?.nom_boutique} · TraiteurPro 🇸🇳</p><p style="margin-top:4px">Merci de votre confiance ! 🙏</p></div>
-    <script>window.onload=()=>window.print()<\/script></body></html>`;
+    const items = Array.isArray(cmd.items) ? cmd.items : JSON.parse(cmd.items || '[]');
+    const date = new Date(cmd.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'});
+    const dateHeure = new Date(cmd.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    const subtotal = items.reduce((s,i) => s + (i.prix * i.quantite), 0);
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facture ${cmd.reference || '#'+cmd.id} — ${traiteur?.nom_boutique || 'TraiteurPro'}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;900&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Jost',sans-serif;background:#F5F0E8;color:#1A1008;min-height:100vh;padding:32px 16px}
+.page{max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(26,16,8,0.12)}
+.top-bar{background:linear-gradient(135deg,#8B1A1A,#A52A2A);padding:28px 32px;color:#fff;position:relative;overflow:hidden}
+.top-bar::after{content:'🍽️';position:absolute;font-size:120px;opacity:0.07;right:-10px;bottom:-20px}
+.top-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-weight:700}
+.top-nom{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:4px}
+.top-sub{font-size:12px;color:rgba(255,255,255,0.65)}
+.top-right{position:absolute;top:28px;right:32px;text-align:right}
+.facture-num{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#E8C97E}
+.facture-date{font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px}
+.body{padding:28px 32px}
+.section{margin-bottom:24px}
+.section-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A89880;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #E8DDD0}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-box{background:#FAF7F2;border:1px solid #E8DDD0;border-radius:10px;padding:12px}
+.info-label{font-size:9px;font-weight:700;color:#A89880;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.info-val{font-size:13px;font-weight:600;color:#1A1008}
+table{width:100%;border-collapse:collapse;margin-bottom:0}
+thead tr{background:#FAF7F2}
+th{padding:10px 12px;text-align:left;font-size:9px;font-weight:700;color:#A89880;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #E8DDD0}
+th:last-child{text-align:right}
+td{padding:12px;font-size:13px;color:#1A1008;border-bottom:1px solid #F5F0E8}
+td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
+.total-section{background:#FAF7F2;border-radius:12px;padding:16px;margin-top:16px}
+.total-row-item{display:flex;justify-content:space-between;font-size:13px;color:#6B5B45;margin-bottom:8px}
+.total-final{display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid #E8DDD0;margin-top:4px}
+.total-final-label{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#1A1008}
+.total-final-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#8B1A1A}
+.statut-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700}
+.statut-livre{background:rgba(45,106,79,0.1);color:#2D6A4F;border:1px solid rgba(45,106,79,0.2)}
+.statut-autre{background:rgba(139,26,26,0.07);color:#8B1A1A;border:1px solid rgba(139,26,26,0.15)}
+.footer{background:linear-gradient(135deg,#FAF7F2,#F5F0E8);border-top:1px solid #E8DDD0;padding:20px 32px;text-align:center}
+.footer-nom{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#8B1A1A;margin-bottom:4px}
+.footer-sub{font-size:11px;color:#A89880}
+.print-btn{display:block;text-align:center;margin:20px auto;padding:12px 28px;background:#8B1A1A;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif}
+@media print{
+  body{background:#fff;padding:0}
+  .page{box-shadow:none;border-radius:0}
+  .print-btn{display:none}
+}
+</style></head><body>
+<div class="page">
+  <div class="top-bar">
+    <div class="top-label">TraiteurPro 🇸🇳</div>
+    <div class="top-nom">${traiteur?.logo_emoji||'🍽️'} ${traiteur?.nom_boutique||'Traiteur'}</div>
+    <div class="top-sub">📍 ${traiteur?.ville||'Dakar'}${traiteur?.zone_livraison?' · '+traiteur.zone_livraison:''}${traiteur?.whatsapp?' · '+traiteur.whatsapp:''}</div>
+    <div class="top-right">
+      <div class="facture-num">FACTURE<br>#${cmd.reference||cmd.id}</div>
+      <div class="facture-date">${date} à ${dateHeure}</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="section">
+      <div class="section-title">Informations</div>
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-label">Client</div>
+          <div class="info-val">${cmd.client_nom||'—'}</div>
+          <div style="font-size:11px;color:#A89880;margin-top:2px">📱 ${cmd.client_phone||'—'}</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">Livraison</div>
+          <div class="info-val" style="font-size:12px">${cmd.adresse_livraison||'À emporter'}</div>
+          ${cmd.date_livraison?`<div style="font-size:11px;color:#A89880;margin-top:2px">📅 ${new Date(cmd.date_livraison).toLocaleDateString('fr-FR')}</div>`:''}
+        </div>
+        <div class="info-box">
+          <div class="info-label">Statut</div>
+          <div style="margin-top:4px"><span class="statut-badge ${cmd.statut==='livré'?'statut-livre':'statut-autre'}">${{nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 En route',livré:'✅ Livré',annulé:'❌ Annulé'}[cmd.statut]||cmd.statut}</span></div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">Référence</div>
+          <div class="info-val">${cmd.reference||'#'+cmd.id}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Détail de la commande</div>
+      <table>
+        <thead><tr><th>Plat</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead>
+        <tbody>
+          ${items.map(i=>`<tr><td>${i.emoji||'🍽️'} ${i.nom}</td><td style="color:#6B5B45">${i.quantite}</td><td style="color:#6B5B45">${Number(i.prix).toLocaleString('fr-FR')} F</td><td>${Number(i.prix*i.quantite).toLocaleString('fr-FR')} F</td></tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="total-section">
+        <div class="total-row-item"><span>Sous-total</span><span>${Number(subtotal).toLocaleString('fr-FR')} FCFA</span></div>
+        <div class="total-row-item"><span>Livraison</span><span>Incluse</span></div>
+        <div class="total-final">
+          <span class="total-final-label">Total à payer</span>
+          <span class="total-final-val">${Number(cmd.total).toLocaleString('fr-FR')} FCFA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="footer-nom">${traiteur?.nom_boutique||'TraiteurPro'}</div>
+    <div class="footer-sub">Merci de votre confiance ! 🙏 · TraiteurPro 🇸🇳</div>
+  </div>
+</div>
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer / Télécharger PDF</button>
+</body></html>`;
     res.send(html);
   } catch(e) { res.status(500).send('Erreur : ' + e.message); }
 });
