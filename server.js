@@ -164,6 +164,7 @@ async function initDB() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -1172,6 +1173,73 @@ app.delete('/api/evenements/:id', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ============================================
+// ESPACE LIVREUR
+// ============================================
+app.get('/livreur', (req, res) => res.sendFile(path.join(__dirname, 'public', 'livreur.html')));
+
+// Login livreur par PIN
+app.post('/api/livreur/login', async (req, res) => {
+  try {
+    const { livreur_id, pin } = req.body;
+    const r = await pool.query('SELECT * FROM livreurs WHERE id=$1', [livreur_id]);
+    const livreur = r.rows[0];
+    if (!livreur) return res.status(404).json({ ok: false, error: 'Livreur introuvable' });
+    const pinDB = livreur.pin || '1234';
+    if (String(pin) !== String(pinDB)) return res.json({ ok: false, error: 'PIN incorrect' });
+    res.json({ ok: true, livreur: { id: livreur.id, nom: livreur.nom, telephone: livreur.telephone, transport: livreur.transport, zone: livreur.zone, disponible: livreur.disponible, traiteur_id: livreur.traiteur_id } });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Livraisons actives du livreur
+app.get('/api/livreur/:id/livraisons', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT lv.*, ct.client_phone, ct.client_nom, ct.adresse_livraison as adresse, ct.reference, ct.total as montant_cmd
+       FROM livraisons lv
+       LEFT JOIN commandes_traiteur ct ON ct.id = lv.commande_id
+       WHERE lv.livreur_id=$1 AND lv.statut != 'livrée'
+       ORDER BY lv.created_at DESC`,
+      [req.params.id]
+    );
+    // Merge adresse: use livraisons.adresse if exists, else commande adresse
+    const rows = r.rows.map(row => ({
+      ...row,
+      adresse: row.adresse || row.adresse_livraison || 'À confirmer',
+      montant: row.montant || row.montant_cmd || 0
+    }));
+    res.json(rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Livreur part en livraison → statut "en route"
+app.post('/api/livreur/partir', async (req, res) => {
+  try {
+    const { livraison_id, commande_id, livreur_id } = req.body;
+    // Update livraison statut
+    await pool.query("UPDATE livraisons SET statut='en route' WHERE id=$1", [livraison_id]);
+    // Update commande statut + notif client
+    if (commande_id) {
+      const cmdRes = await pool.query("UPDATE commandes_traiteur SET statut='en route' WHERE id=$1 RETURNING *", [commande_id]);
+      const cmd = cmdRes.rows[0];
+      if (cmd) {
+        const traiteurRes = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [cmd.traiteur_id]);
+        const t = traiteurRes.rows[0];
+        const msg = `🚚 *Votre commande est en route !*
+
+Réf : *${cmd.reference}*
+Votre livreur arrive bientôt 🛵
+
+_${t?.nom_boutique}_`;
+        await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, cmd.client_phone, msg);
+      }
+    }
+    // Marquer livreur occupé
+    await pool.query('UPDATE livreurs SET disponible=false WHERE id=$1', [livreur_id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 
 // API carte publique
@@ -1518,6 +1586,7 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -1772,6 +1841,7 @@ async function initAbonnements() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS transport TEXT DEFAULT 'Moto';
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
