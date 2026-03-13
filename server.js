@@ -1079,7 +1079,7 @@ app.get('/api/facture/:id', async (req, res) => {
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Jost',sans-serif;background:#F5F0E8;color:#1A1008;min-height:100vh;padding:32px 16px}
 .page{max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(26,16,8,0.12)}
-.top-bar{background:linear-gradient(135deg,#8B1A1A,#A52A2A);padding:28px 32px;color:#fff;position:relative;overflow:hidden}
+.top-bar{background:linear-gradient(135deg,#8B1A1A,#A52A2A);padding:28px 32px;color:#fff;position:relative;overflow:hidden;padding-right:160px}
 .top-bar::after{content:'🍽️';position:absolute;font-size:120px;opacity:0.07;right:-10px;bottom:-20px}
 .top-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-weight:700}
 .top-nom{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:4px}
@@ -1120,11 +1120,11 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
 </style></head><body>
 <div class="page">
   <div class="top-bar">
-    <div class="top-label">TraiteurPro 🇸🇳</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div class="top-label">TraiteurPro 🇸🇳</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);font-weight:700">FACTURE</div></div>
     <div class="top-nom">${traiteur?.logo_emoji||'🍽️'} ${traiteur?.nom_boutique||'Traiteur'}</div>
     <div class="top-sub">📍 ${traiteur?.ville||'Dakar'}${traiteur?.zone_livraison?' · '+traiteur.zone_livraison:''}${traiteur?.whatsapp?' · '+traiteur.whatsapp:''}</div>
     <div class="top-right">
-      <div class="facture-num">FACTURE<br>#${cmd.reference||cmd.id}</div>
+      <div class="facture-num">#${cmd.reference||cmd.id}</div>
       <div class="facture-date">${date} à ${dateHeure}</div>
     </div>
   </div>
