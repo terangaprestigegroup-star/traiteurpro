@@ -1151,11 +1151,16 @@ const STATUTS_EV = {planifie:'🔵 Planifié',confirme:'✅ Confirmé',termine:'
 
 async function chargerAgenda(){
   try{
+    document.getElementById('cal-titre').textContent='Chargement…';
     const r=await fetch(`${API}/api/evenements/${TRAITEUR_ID}?mois=${calMois+1}&annee=${calAnnee}`);
+    if(!r.ok){document.getElementById('cal-titre').textContent='Erreur '+r.status;return;}
     const evs=await r.json();
     renderCalendrier(evs);
     renderListeEvenements(evs);
-  }catch(e){console.error('Agenda:',e);}
+  }catch(e){
+    document.getElementById('cal-titre').textContent='Erreur: '+e.message;
+    console.error('Agenda:',e);
+  }
 }
 
 function renderCalendrier(evs){
