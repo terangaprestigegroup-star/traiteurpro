@@ -1063,7 +1063,8 @@ app.get('/api/villes-traiteurs', async (req, res) => {
 // ============================================
 app.get('/api/facture/:id', async (req, res) => {
   try {
-    const r = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [req.params.id]);
+    const idParam = req.params.id;
+    const r = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1 OR reference=$2', [isNaN(idParam)?null:idParam, idParam]);
     const cmd = r.rows[0];
     if (!cmd) return res.status(404).send('Commande introuvable');
     const t = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [cmd.traiteur_id]);
