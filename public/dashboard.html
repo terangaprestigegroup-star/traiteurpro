@@ -1164,7 +1164,7 @@ function renderCalendrier(evs){
   const premier=new Date(calAnnee,calMois,1);
   const dernier=new Date(calAnnee,calMois+1,0);
   let jourdeb=(premier.getDay()||7)-1; // Lundi=0
-  const datesEvs=new Set(evs.map(e=>new Date(e.date_event).getDate()));
+  const datesEvs=new Set(evs.map(e=>parseInt((e.date_event||'').split('T')[0].split('-')[2]||0)));
   let html='';
   for(let i=0;i<jourdeb;i++) html+=`<div></div>`;
   for(let j=1;j<=dernier.getDate();j++){
@@ -1192,7 +1192,7 @@ function renderListeEvenements(evs, titre='Événements du mois'){
     return;
   }
   el.innerHTML=evs.map(e=>{
-    const date=new Date(e.date_event).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const dp=e.date_event?e.date_event.split('T')[0].split('-'):null;const date=dp?new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2])).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}):'—';
     const reste=Number(e.montant)-Number(e.acompte);
     const pct=e.montant>0?Math.round((e.acompte/e.montant)*100):0;
     return`<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid var(--b)">
