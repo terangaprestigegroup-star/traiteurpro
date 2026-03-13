@@ -1080,14 +1080,15 @@ app.get('/api/facture/:id', async (req, res) => {
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Jost',sans-serif;background:#F5F0E8;color:#1A1008;min-height:100vh;padding:32px 16px}
 .page{max-width:600px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(26,16,8,0.12)}
-.top-bar{background:linear-gradient(135deg,#8B1A1A,#A52A2A);padding:28px 32px;color:#fff;position:relative;overflow:hidden;padding-right:160px}
-.top-bar::after{content:'🍽️';position:absolute;font-size:120px;opacity:0.07;right:-10px;bottom:-20px}
-.top-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;font-weight:700}
-.top-nom{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:4px}
-.top-sub{font-size:12px;color:rgba(255,255,255,0.65)}
-.top-right{position:absolute;top:28px;right:32px;text-align:right}
-.facture-num{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#E8C97E}
-.facture-date{font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px}
+.top-bar{background:linear-gradient(135deg,#8B1A1A,#A52A2A);padding:28px 32px;color:#fff}
+.top-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.top-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;font-weight:700}
+.top-nom{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#fff;margin-bottom:4px}
+.top-sub{font-size:11px;color:rgba(255,255,255,0.65)}
+.facture-block{background:rgba(0,0,0,0.2);border-radius:12px;padding:14px 18px;text-align:right;min-width:180px}
+.facture-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);font-weight:700;margin-bottom:6px}
+.facture-num{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#E8C97E;word-break:break-all}
+.facture-date{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px}
 .body{padding:28px 32px}
 .section{margin-bottom:24px}
 .section-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A89880;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #E8DDD0}
@@ -1107,8 +1108,12 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
 .total-final-label{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#1A1008}
 .total-final-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#8B1A1A}
 .statut-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700}
-.statut-livre{background:rgba(45,106,79,0.1);color:#2D6A4F;border:1px solid rgba(45,106,79,0.2)}
-.statut-autre{background:rgba(139,26,26,0.07);color:#8B1A1A;border:1px solid rgba(139,26,26,0.15)}
+.statut-nouveau{background:#FFF3CD;color:#856404;border:1px solid #FFEAA7;font-weight:700}
+.statut-confirme{background:#D4EDDA;color:#155724;border:1px solid #C3E6CB;font-weight:700}
+.statut-preparation{background:#CCE5FF;color:#004085;border:1px solid #B8DAFF;font-weight:700}
+.statut-route{background:#E2D9F3;color:#6F42C1;border:1px solid #D4C5F9;font-weight:700}
+.statut-livre{background:rgba(45,106,79,0.12);color:#2D6A4F;border:1px solid rgba(45,106,79,0.25);font-weight:700}
+.statut-annule{background:#F8D7DA;color:#721C24;border:1px solid #F5C6CB;font-weight:700}
 .footer{background:linear-gradient(135deg,#FAF7F2,#F5F0E8);border-top:1px solid #E8DDD0;padding:20px 32px;text-align:center}
 .footer-nom{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#8B1A1A;margin-bottom:4px}
 .footer-sub{font-size:11px;color:#A89880}
@@ -1121,12 +1126,19 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
 </style></head><body>
 <div class="page">
   <div class="top-bar">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div class="top-label">TraiteurPro 🇸🇳</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);font-weight:700">FACTURE</div></div>
-    <div class="top-nom">${traiteur?.logo_emoji||'🍽️'} ${traiteur?.nom_boutique||'Traiteur'}</div>
-    <div class="top-sub">📍 ${traiteur?.ville||'Dakar'}${traiteur?.zone_livraison?' · '+traiteur.zone_livraison:''}${traiteur?.whatsapp?' · '+traiteur.whatsapp:''}</div>
-    <div class="top-right">
-      <div class="facture-num">#${cmd.reference||cmd.id}</div>
-      <div class="facture-date">${date} à ${dateHeure}</div>
+    <div class="top-header">
+      <div>
+        <div class="top-label">TraiteurPro 🇸🇳</div>
+        <div class="top-nom">${traiteur?.logo_emoji||'🍽️'} ${traiteur?.nom_boutique||'Traiteur'}</div>
+        <div class="top-sub">📍 ${traiteur?.ville||'Dakar'}${traiteur?.zone_livraison?' · '+traiteur.zone_livraison:''}</div>
+        ${traiteur?.whatsapp?`<div class="top-sub">📱 ${traiteur.whatsapp}</div>`:''}
+      </div>
+      <div class="facture-block">
+        <div class="facture-label">Facture</div>
+        <div class="facture-num">${cmd.reference||'#'+cmd.id}</div>
+        <div class="facture-date">📅 ${date}</div>
+        <div class="facture-date">🕐 ${dateHeure}</div>
+      </div>
     </div>
   </div>
   <div class="body">
@@ -1136,7 +1148,7 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
         <div class="info-box">
           <div class="info-label">Client</div>
           <div class="info-val">${cmd.client_nom||'—'}</div>
-          <div style="font-size:11px;color:#A89880;margin-top:2px">📱 ${cmd.client_phone||'—'}</div>
+          <div style="font-size:11px;color:#A89880;margin-top:2px">📱 ${(cmd.client_phone||'—').replace(/^221(\d{2})(\d{3})(\d{2})(\d{2})$/,'+221 $1 $2 $3 $4')}</div>
         </div>
         <div class="info-box">
           <div class="info-label">Livraison</div>
@@ -1145,7 +1157,7 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
         </div>
         <div class="info-box">
           <div class="info-label">Statut</div>
-          <div style="margin-top:4px"><span class="statut-badge ${cmd.statut==='livré'?'statut-livre':'statut-autre'}">${{nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 En route',livré:'✅ Livré',annulé:'❌ Annulé'}[cmd.statut]||cmd.statut}</span></div>
+          <div style="margin-top:4px"><span class="statut-badge ${{nouveau:'statut-nouveau',confirmé:'statut-confirme',preparation:'statut-preparation','en route':'statut-route',livré:'statut-livre',annulé:'statut-annule'}[cmd.statut]||'statut-nouveau'}">${{nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 En route',livré:'✅ Livré',annulé:'❌ Annulé'}[cmd.statut]||cmd.statut}</span></div>
         </div>
         <div class="info-box">
           <div class="info-label">Référence</div>
@@ -1168,6 +1180,19 @@ td:last-child{text-align:right;font-weight:700;color:#8B1A1A}
           <span class="total-final-label">Total à payer</span>
           <span class="total-final-val">${Number(cmd.total).toLocaleString('fr-FR')} FCFA</span>
         </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:16px 32px;background:#FAF7F2;border-top:1px solid #E8DDD0">
+    <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A89880;margin-bottom:10px">Conditions de paiement</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px;background:#fff;border:1px solid #E8DDD0;border-radius:10px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#1A1008;margin-bottom:2px">📱 Wave</div>
+        <div style="font-size:11px;color:#6B5B45">${traiteur?.whatsapp||'Contactez-nous'}</div>
+      </div>
+      <div style="flex:1;min-width:140px;background:#fff;border:1px solid #E8DDD0;border-radius:10px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#1A1008;margin-bottom:2px">📳 Orange Money</div>
+        <div style="font-size:11px;color:#6B5B45">${traiteur?.whatsapp||'Contactez-nous'}</div>
       </div>
     </div>
   </div>
