@@ -170,6 +170,8 @@ async function initDB() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
     CREATE TABLE IF NOT EXISTS messages_livreur (
@@ -833,6 +835,47 @@ app.post('/api/livreurs/:id/assigner', async (req, res) => {
     // Marquer livreur occupé
     await pool.query('UPDATE livreurs SET disponible=false WHERE id=$1', [req.params.id]);
 
+    // Générer code confirmation 4 chiffres
+    const codeConf = Math.floor(1000 + Math.random() * 9000).toString();
+    await pool.query('UPDATE livraisons SET code_confirmation=$1 WHERE livreur_id=$2 AND commande_id=$3',
+      [codeConf, req.params.id, commande_id||null]);
+    // Envoyer code au client
+    if (commande_id) {
+      const cmdRes = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [commande_id]);
+      const cmd = cmdRes.rows[0];
+      if (cmd?.client_phone) {
+        await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, cmd.client_phone,
+          `🔐 *Code de confirmation livraison*
+
+Réf : *${cmd.reference}*
+
+Votre code : *${codeConf}*
+
+Donnez ce code à votre livreur à la réception de votre commande ✅
+
+_TraiteurPro 🇸🇳_`);
+      }
+    }
+
+    // Générer code confirmation client (4 chiffres)
+    const codeConfirm = Math.floor(1000 + Math.random() * 9000).toString();
+    await pool.query('UPDATE livraisons SET code_confirmation=$1 WHERE livreur_id=$2 AND commande_id=$3',
+      [codeConfirm, req.params.id, commande_id||null]);
+    // Envoyer code au client
+    if (commande_id) {
+      const cmdRes = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [commande_id]);
+      const cmd = cmdRes.rows[0];
+      if (cmd?.client_phone) {
+        await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, cmd.client_phone,
+          `🔐 *Code de confirmation livraison*
+
+Votre code : *${codeConfirm}*
+
+Donnez ce code à votre livreur à la réception de votre commande.
+
+_TraiteurPro 🍽️_`);
+      }
+    }
     // Notif WhatsApp au livreur
     const traiteur = await pool.query('SELECT nom_boutique FROM traiteurs WHERE id=$1', [traiteur_id]);
     const nomTrateur = traiteur.rows[0]?.nom_boutique || 'TraiteurPro';
@@ -1459,6 +1502,40 @@ app.put('/api/livraisons/:id/terminer', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Vérifier code confirmation livraison
+app.post('/api/livraisons/:id/confirmer-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    const r = await pool.query('SELECT * FROM livraisons WHERE id=$1', [req.params.id]);
+    const lv = r.rows[0];
+    if (!lv) return res.json({ ok: false, error: 'Livraison introuvable' });
+    if (!lv.code_confirmation) return res.json({ ok: true, message: 'Pas de code requis' });
+    if (String(lv.code_confirmation).trim() !== String(code).trim()) return res.json({ ok: false, error: 'Code incorrect' });
+    // Terminer livraison automatiquement
+    await pool.query("UPDATE livraisons SET statut='livrée', livree_at=NOW(), duree_minutes=EXTRACT(EPOCH FROM (NOW()-created_at))/60 WHERE id=$1", [req.params.id]);
+    await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.livreur_id]);
+    if (lv.commande_id) await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.commande_id]);
+    res.json({ ok: true, message: '✅ Livraison confirmée !' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Vérifier code confirmation client
+app.post('/api/livraisons/:id/confirmer-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    const lv = await pool.query('SELECT * FROM livraisons WHERE id=$1', [req.params.id]);
+    if (!lv.rows[0]) return res.json({ ok: false, error: 'Livraison introuvable' });
+    const codeDB = lv.rows[0].code_confirmation;
+    if (!codeDB) return res.json({ ok: true, skip: true }); // Pas de code = validation directe
+    if (String(code).trim() !== String(codeDB).trim()) return res.json({ ok: false, error: 'Code incorrect' });
+    // Terminer livraison automatiquement
+    await pool.query(`UPDATE livraisons SET statut='livrée', livree_at=NOW(), duree_minutes=EXTRACT(EPOCH FROM (NOW()-created_at))/60 WHERE id=$1`, [req.params.id]);
+    await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
+    if (lv.rows[0].commande_id) await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // PUT position GPS livreur
 app.put('/api/livreur/:id/position', async (req, res) => {
   try {
@@ -1837,6 +1914,8 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
     CREATE TABLE IF NOT EXISTS messages_livreur (
@@ -2109,6 +2188,8 @@ async function initAbonnements() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS code_confirmation VARCHAR(10);
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
     CREATE TABLE IF NOT EXISTS messages_livreur (
