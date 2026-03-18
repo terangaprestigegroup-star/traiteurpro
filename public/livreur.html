@@ -85,6 +85,7 @@
   .tab{flex:1;padding:8px 4px;border:none;background:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;color:var(--texte3);cursor:pointer;transition:.2s;}
   .tab.active{background:var(--b);color:#fff;}
 
+  :root{--serif:'Cormorant Garamond',serif}
   .refresh-btn{width:100%;padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:12px;font-weight:700;color:var(--texte2);cursor:pointer;margin-bottom:16px;}
   .msg-livreur{background:var(--b);color:#fff;border-radius:12px 12px 4px 12px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;margin-left:auto;text-align:right}
   .msg-traiteur{background:var(--creme2);color:var(--texte);border-radius:12px 12px 12px 4px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;border:1px solid var(--border)}
@@ -352,14 +353,14 @@ function renderLivraisonCard(l){
     <div style="background:linear-gradient(135deg,var(--b),#5a0f0f);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px">💰 À encaisser</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-1px">${Number(l.montant||0).toLocaleString('fr-FR')} F</div>
+        <div style="font-family:var(--serif,serif);font-size:26px;font-weight:700;color:#fff;letter-spacing:-1px">${Number(l.montant||0).toLocaleString('fr-FR')} F</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:10px;color:rgba(255,255,255,.7)">🕐 ${heure}</div>
       </div>
     </div>
     <div class="card-actions">
-      ${!isEnRoute ? `<button class="btn-action btn-partir" onclick="partirEnLivraison(${l.id}, ${l.commande_id||'null'})">🛵 Je pars !</button>` : ''}
+      ${!isEnRoute ? `<button class="btn-action btn-partir" onclick="partirEnLivraison(${l.id}, ${l.commande_id||0})">🛵 Je pars !</button>` : ''}
       <button class="btn-action btn-livrer" onclick="saisirCodeConfirmation(${l.id})">🔐 Code client</button>
       ${l.client_phone ? `<button class="btn-action btn-appel" onclick="appelerClient('${l.client_phone}')">📞 Client</button>` : ''}
       <button class="btn-action btn-maps" onclick="ouvrirMaps('${adresseMaps}')">🗺️ Maps</button>
