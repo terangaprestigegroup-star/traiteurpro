@@ -478,7 +478,7 @@ async function chargerChat(){
     const msgs = await r.json();
     const el = document.getElementById('chat-messages');
     if(!msgs.length){
-      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--texte3);font-size:12px">Aucun message pour l'instant</div>';
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--texte3);font-size:12px">Aucun message pour linstant</div>';
       return;
     }
     el.innerHTML = msgs.map(m => {
