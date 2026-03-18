@@ -841,18 +841,48 @@ async function chargerDashboard(){
   }catch(e){document.getElementById('last-update').textContent='Erreur: '+e.message;console.error(e);}
 }
 
-function renderCmd(c,mini=false){
-  const items=Array.isArray(c.items)?c.items:(typeof c.items==='string'?JSON.parse(c.items||'[]'):[]);
-  const prod=items.map(i=>`${i.emoji||'🍽️'} ${i.quantite}x ${i.nom}`).join(', ');
-  const st={nouveau:'b-nouveau',confirmé:'b-confirmé',preparation:'b-preparation','en route':'b-route',livré:'b-livré',annulé:'b-annulé'};
-  const lb={nouveau:'🕐 Nouveau',confirmé:'✅ Confirmé',preparation:'👨‍🍳 Préparation','en route':'🚚 Livraison en cours',livré:'✅ Livré',annulé:'❌ Annulé'};
-  const date=new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  return `<div class="cmd-card"><div class="cmd-top"><div><div class="cmd-ref">${c.reference||'#'+c.id}</div><div class="cmd-client">📱 ${c.client_nom||c.client_phone} · ${date}</div></div><span class="badge ${st[c.statut]||'b-nouveau'}">${lb[c.statut]||c.statut}</span></div>
-  <div class="cmd-items">${prod||'Commande'}</div>${c.adresse_livraison?`<div class="cmd-adresse">📍 ${c.adresse_livraison}</div>`:''}
-  <div class="cmd-total">💰 ${Number(c.total).toLocaleString('fr-FR')} FCFA</div>
-  <div class="statut-btns">${!mini?`<button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button><button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button><button class="statut-btn" onclick="changerStatut(${c.id},'en route')">🚚 En route</button><button class="statut-btn" onclick="changerStatut(${c.id},'livré')">🎉 Livré</button><button class="statut-btn" style="color:#c0392b" onclick="changerStatut(${c.id},'annulé')">❌ Annuler</button>`:`<button class="statut-btn" onclick="changerStatut(${c.id},'confirmé')">✅ Confirmer</button><button class="statut-btn" onclick="changerStatut(${c.id},'preparation')">👨‍🍳 Préparer</button>`}
-  <button class="statut-btn" style="color:#2D6A4F;font-weight:700" onclick="ouvrirAssignerLivreur(${c.id},'${c.adresse_livraison||''}',${c.total})">🚴 Assigner livreur</button>
-  <a href="${API}/api/facture/${c.reference||c.id}" target="_blank" class="statut-btn">🧾 Facture</a></div></div>`;
+function renderCmd(c, mini=false){
+  const items = Array.isArray(c.items) ? c.items : (typeof c.items==='string' ? JSON.parse(c.items||'[]') : []);
+  const prod = items.map(i => {
+    const nom = (i.nom||'').replace(/^[^\w\s]+\s*/u, '').trim();
+    return i.quantite + 'x ' + (nom||i.nom);
+  }).join(' · ');
+  const date = new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const nextBtns = {
+    nouveau: ['<button class="statut-btn" style="background:rgba(42,107,79,0.1);color:var(--vert);border-color:rgba(42,107,79,0.2)" onclick="changerStatut('+c.id+',\'confirme\u0301\')">&#x2705; Confirmer</button>','<button class="statut-btn" style="color:var(--rouge)" onclick="changerStatut('+c.id+',\'annule\u0301\')">&#x274C;</button>'],
+    'confirme\u0301': ['<button class="statut-btn" style="background:rgba(107,39,55,0.08);color:var(--b)" onclick="changerStatut('+c.id+',\'preparation\')">&#x1F468;&#x200D;&#x1F373; Pr\u00e9parer</button>'],
+    preparation: ['<button class="statut-btn" style="background:rgba(196,151,58,0.1);color:var(--or)" onclick="changerStatut('+c.id+',\'en route\')">&#x1F69A; Envoyer</button>'],
+    'en route': ['<button class="statut-btn" style="background:rgba(42,107,79,0.1);color:var(--vert)" onclick="changerStatut('+c.id+',\'livre\u0301\')">&#x1F389; Livr\u00e9</button>'],
+    'livre\u0301': [], annule: []
+  };
+  const sf = {
+    nouveau:{bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:'&#x1F550; Nouveau'},
+    'confirme\u0301':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'&#x2705; Confirm\u00e9'},
+    preparation:{bg:'rgba(107,39,55,0.1)',cl:'var(--b)',lb:'&#x1F468;&#x200D;&#x1F373; En cuisine'},
+    'en route':{bg:'rgba(196,151,58,0.12)',cl:'var(--or)',lb:'&#x1F69A; En route'},
+    'livre\u0301':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'&#x2705; Livr\u00e9'},
+    annule:{bg:'rgba(192,57,43,0.1)',cl:'var(--rouge)',lb:'&#x274C; Annul\u00e9'}
+  }[c.statut] || {bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:c.statut};
+  const btns = (nextBtns[c.statut]||[]).join('');
+  const addrClean = (c.adresse_livraison||'').replace(/'/g,'');
+  return '<div class="cmd-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
+    + '<div><div style="font-family:\'Playfair Display\',serif;font-size:14px;font-weight:700;color:var(--b)">'+(c.reference||'#'+c.id)+'</div>'
+    + '<div style="font-size:11px;color:var(--texte3);margin-top:2px">'+(c.client_nom||c.client_phone)+' · '+date+'</div></div>'
+    + '<span style="padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:'+sf.bg+';color:'+sf.cl+'">'+sf.lb+'</span>'
+    + '</div>'
+    + '<div style="background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:10px">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--texte)">'+(prod||'Commande')+'</div>'
+    + (c.adresse_livraison ? '<div style="font-size:11px;color:var(--texte3);margin-top:4px">&#x1F4CD; '+c.adresse_livraison+'</div>' : '')
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+((!mini&&btns)?'10':'0')+'px">'
+    + '<div style="font-family:\'Playfair Display\',serif;font-size:18px;font-weight:700;color:var(--texte)">'+Number(c.total).toLocaleString('fr-FR')+' <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>'
+    + '<div style="display:flex;gap:6px">'
+    + '<a href="'+API+'/api/facture/'+(c.reference||c.id)+'" target="_blank" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;color:var(--texte2);text-decoration:none">&#x1F9FE;</a>'
+    + '<button onclick="ouvrirAssignerLivreur('+c.id+',\''+addrClean+'\','+c.total+')" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(42,107,79,0.2);background:rgba(42,107,79,0.06);font-size:11px;font-weight:600;color:var(--vert);cursor:pointer;font-family:\'Inter\',sans-serif">&#x1F6B4;</button>'
+    + '</div></div>'
+    + (!mini && btns ? '<div style="display:flex;gap:6px;flex-wrap:wrap">'+btns+'</div>' : '')
+    + '</div>';
 }
 
 async function chargerCommandes(statut='tous'){
