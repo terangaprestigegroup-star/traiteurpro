@@ -86,6 +86,10 @@
   .tab.active{background:var(--b);color:#fff;}
 
   .refresh-btn{width:100%;padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:12px;font-weight:700;color:var(--texte2);cursor:pointer;margin-bottom:16px;}
+  .msg-livreur{background:var(--b);color:#fff;border-radius:12px 12px 4px 12px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;margin-left:auto;text-align:right}
+  .msg-traiteur{background:var(--creme2);color:var(--texte);border-radius:12px 12px 12px 4px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;border:1px solid var(--border)}
+  .msg-heure{font-size:9px;opacity:.6;margin-top:2px}
+  .photo-preview{width:100%;border-radius:10px;margin-top:8px;border:2px solid var(--border)}
 </style>
 </head>
 <body>
@@ -121,6 +125,20 @@
 </div>
 
 <!-- APP -->
+<!-- MODAL PHOTO PREUVE -->
+<div id="modal-photo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:16px">📸 Photo preuve</div>
+    <div style="font-size:12px;color:var(--texte2);margin-bottom:12px">Prenez une photo de la livraison pour confirmer</div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="previewPhoto()" style="margin-bottom:12px;font-size:12px">
+    <img id="photo-preview-img" style="display:none;width:100%;border-radius:10px;margin-bottom:12px;max-height:200px;object-fit:cover">
+    <div style="display:flex;gap:8px">
+      <button onclick="confirmerLivraison()" style="flex:1;background:var(--vert);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:700;cursor:pointer">✅ Confirmer livraison</button>
+      <button onclick="document.getElementById('modal-photo').style.display='none'" style="background:var(--creme2);color:var(--texte);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <div id="app" style="display:none">
   <!-- HEADER -->
   <div class="header">
@@ -147,7 +165,8 @@
   <div class="content">
     <div class="tabs">
       <button class="tab active" onclick="afficherTab('livraisons',this)">🛵 Livraisons</button>
-      <button class="tab" onclick="afficherTab('historique',this)">📊 Historique</button>
+      <button class="tab" onclick="afficherTab('chat',this)">💬 Chat <span id="badge-msg" style="display:none;background:#c0392b;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px">0</span></button>
+      <button class="tab" onclick="afficherTab('historique',this)">📊 Stats</button>
     </div>
 
     <button class="refresh-btn" onclick="chargerDonnees()">🔄 Actualiser</button>
@@ -156,6 +175,16 @@
     <div id="tab-livraisons">
       <div class="section-title">Livraisons du jour</div>
       <div id="livraisons-liste"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="tab-chat" style="display:none">
+      <div class="section-title">Messages avec le traiteur</div>
+      <div id="chat-messages" style="background:#fff;border-radius:12px;border:1px solid var(--border);padding:12px;min-height:200px;max-height:350px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input id="chat-input" class="pin-btn" style="flex:1;border-radius:10px;border:1.5px solid var(--border);padding:10px 14px;font-size:13px;font-family:'Jost',sans-serif;background:#fff;text-align:left" placeholder="Votre message…">
+        <button onclick="envoyerMessage()" style="background:var(--b);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:18px;cursor:pointer">➤</button>
+      </div>
     </div>
 
     <!-- HISTORIQUE -->
@@ -216,9 +245,14 @@ function initialiserApp(){
   const toggle = document.getElementById('dispo-toggle');
   toggle.classList.toggle('on', livreurData.disponible);
   document.getElementById('dispo-label').textContent = livreurData.disponible ? 'Disponible' : 'Occupé';
+  traiteurId = livreurData.traiteur_id;
   chargerDonnees();
   // Auto-refresh toutes les 30s
   setInterval(chargerDonnees, 30000);
+  // Vérifier nouvelles livraisons toutes les 15s
+  setInterval(verifierNouvellesLivraisons, 15000);
+  // Vérifier nouveaux messages toutes les 20s
+  setInterval(verifierNouveauxMessages, 20000);
   // Démarrer GPS si livreur occupé (livraison en cours)
   if(!livreurData.disponible) demarrerGPS();
 }
@@ -289,11 +323,47 @@ async function partirEnLivraison(livraisonId, commandeId){
   }catch(e){ alert('Erreur: '+e.message); }
 }
 
-async function marquerLivre(livraisonId){
-  if(!confirm('Confirmer la livraison ?')) return;
+let livraisonEnCours = null;
+function marquerLivre(livraisonId){
+  livraisonEnCours = livraisonId;
+  document.getElementById('modal-photo').style.display = 'flex';
+}
+
+function previewPhoto(){
+  const file = document.getElementById('photo-input').files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('photo-preview-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function confirmerLivraison(){
+  if(!livraisonEnCours) return;
   try{
-    await fetch(`${API}/api/livraisons/${livraisonId}/terminer`, { method: 'PUT' });
-    arreterGPS(); // Arrêter GPS après livraison
+    // Upload photo si présente
+    const file = document.getElementById('photo-input').files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = async e => {
+        await fetch(`${API}/api/livraisons/${livraisonEnCours}/photo`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ photo_base64: e.target.result })
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+    // Terminer livraison
+    await fetch(`${API}/api/livraisons/${livraisonEnCours}/terminer`, { method: 'PUT' });
+    arreterGPS();
+    document.getElementById('modal-photo').style.display = 'none';
+    document.getElementById('photo-input').value = '';
+    document.getElementById('photo-preview-img').style.display = 'none';
+    livraisonEnCours = null;
     chargerDonnees();
   }catch(e){ alert('Erreur: '+e.message); }
 }
@@ -362,12 +432,107 @@ async function chargerHistorique(){
   }catch(e){}
 }
 
+// ── NOTIFICATION SONORE ──
+let derniereLivraisonId = null;
+function jouerSon(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523, 659, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i*0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.15 + 0.3);
+      osc.start(ctx.currentTime + i*0.15);
+      osc.stop(ctx.currentTime + i*0.15 + 0.3);
+    });
+  }catch(e){}
+}
+
+async function verifierNouvellesLivraisons(){
+  try{
+    const r = await fetch(`${API}/api/livreur/${LIVREUR_ID}/livraisons`);
+    const livs = await r.json();
+    const actives = livs.filter(l => l.statut !== 'livrée');
+    if(actives.length > 0){
+      const premiereId = actives[0].id;
+      if(derniereLivraisonId === null){ derniereLivraisonId = premiereId; }
+      else if(premiereId !== derniereLivraisonId){
+        jouerSon();
+        derniereLivraisonId = premiereId;
+        // Vibrer si possible
+        if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      }
+    }
+  }catch(e){}
+}
+
+// ── CHAT ──
+let traiteurId = null;
+async function chargerChat(){
+  if(!traiteurId || !LIVREUR_ID) return;
+  try{
+    const r = await fetch(`${API}/api/messages/${traiteurId}/${LIVREUR_ID}`);
+    const msgs = await r.json();
+    const el = document.getElementById('chat-messages');
+    if(!msgs.length){
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--texte3);font-size:12px">Aucun message pour l'instant</div>';
+      return;
+    }
+    el.innerHTML = msgs.map(m => {
+      const isLiv = m.expediteur === 'livreur';
+      const heure = new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="${isLiv?'msg-livreur':'msg-traiteur'}">
+        ${m.contenu}
+        <div class="msg-heure">${heure}</div>
+      </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+    document.getElementById('badge-msg').style.display = 'none';
+  }catch(e){}
+}
+
+async function envoyerMessage(){
+  const input = document.getElementById('chat-input');
+  const contenu = input.value.trim();
+  if(!contenu || !traiteurId) return;
+  input.value = '';
+  try{
+    await fetch(`${API}/api/messages`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ traiteur_id: traiteurId, livreur_id: LIVREUR_ID, expediteur: 'livreur', contenu })
+    });
+    chargerChat();
+  }catch(e){}
+}
+
+async function verifierNouveauxMessages(){
+  if(!traiteurId) return;
+  try{
+    // Simple check via chargerChat si tab actif
+    const badge = document.getElementById('badge-msg');
+    const r = await fetch(`${API}/api/messages/${traiteurId}/${LIVREUR_ID}`);
+    const msgs = await r.json();
+    const nonLus = msgs.filter(m => !m.lu && m.expediteur === 'traiteur').length;
+    if(nonLus > 0){
+      badge.textContent = nonLus;
+      badge.style.display = 'inline';
+      if(navigator.vibrate) navigator.vibrate(100);
+    }
+  }catch(e){}
+}
+
 function afficherTab(id, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['livraisons','historique'].forEach(t=>{
+  ['livraisons','chat','historique'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
   });
+  if(id === 'chat') chargerChat();
+  if(id === 'historique') chargerHistorique();
 }
 
 // ── GPS TEMPS RÉEL ──
