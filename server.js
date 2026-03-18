@@ -1248,6 +1248,16 @@ _${t?.nom_boutique}_`;
 // ============================================
 // CHAT LIVREUR ↔ TRAITEUR
 // ============================================
+app.get('/api/messages/nonlus/:traiteur_id', async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT livreur_id, COUNT(*) as nb FROM messages_livreur WHERE traiteur_id=$1 AND lu=false AND expediteur='livreur' GROUP BY livreur_id",
+      [req.params.traiteur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/messages/:traiteur_id/:livreur_id', async (req, res) => {
   try {
     const r = await pool.query(
@@ -1274,15 +1284,7 @@ app.post('/api/messages', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/messages/nonlus/:traiteur_id', async (req, res) => {
-  try {
-    const r = await pool.query(
-      "SELECT livreur_id, COUNT(*) as nb FROM messages_livreur WHERE traiteur_id=$1 AND lu=false AND expediteur='livreur' GROUP BY livreur_id",
-      [req.params.traiteur_id]
-    );
-    res.json(r.rows);
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
+
 
 // ============================================
 // PHOTO PREUVE DE LIVRAISON
