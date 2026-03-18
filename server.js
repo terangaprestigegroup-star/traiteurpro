@@ -165,6 +165,7 @@ async function initDB() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    UPDATE livreurs SET traiteur_id = merchant_id WHERE traiteur_id IS NULL AND merchant_id IS NOT NULL;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
@@ -786,7 +787,6 @@ app.get('/api/livreurs/:id/historique', async (req, res) => {
 });
 
 // PUT marquer livraison terminée
-// terminer route moved above
 
 // ============================================
 // PROFIL TRAITEUR — Mise à jour réseaux sociaux
@@ -1734,6 +1734,7 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    UPDATE livreurs SET traiteur_id = merchant_id WHERE traiteur_id IS NULL AND merchant_id IS NOT NULL;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
@@ -2005,6 +2006,7 @@ async function initAbonnements() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    UPDATE livreurs SET traiteur_id = merchant_id WHERE traiteur_id IS NULL AND merchant_id IS NOT NULL;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
