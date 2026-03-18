@@ -951,7 +951,7 @@ async function chargerPlanningLivreurs(){
   try{
     const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}/planning`);
     const plan = await r.json();
-    if(!plan.length){ el.innerHTML='<div style="text-align:center;padding:30px"><div style="font-size:32px">🗓️</div><div style="color:var(--texte3);font-size:13px;margin-top:8px">Aucune livraison aujourd'hui</div></div>'; return; }
+    if(!plan.length){ el.innerHTML='<div style="text-align:center;padding:30px"><div style="font-size:32px">🗓️</div><div style="color:var(--texte3);font-size:13px;margin-top:8px">Aucune livraison ce jour</div></div>'; return; }
     // Grouper par livreur
     const grouped = {};
     plan.forEach(p=>{ if(!grouped[p.livreur_nom]) grouped[p.livreur_nom]=[]; grouped[p.livreur_nom].push(p); });
