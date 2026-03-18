@@ -131,6 +131,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 .client-total{font-size:15px;font-weight:700;color:var(--vert);font-family:'Cormorant Garamond',serif}
 
 /* ── LIVREURS ── */
+.nav-tab-sm{flex:1;padding:7px 4px;border:none;background:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:10px;font-weight:700;color:var(--texte3);cursor:pointer;transition:.2s}
+.nav-tab-sm.active{background:var(--b);color:#fff}
 .livreur-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:all 0.2s}
 .livreur-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
 .livreur-avatar{width:46px;height:46px;border-radius:50%;background:var(--bg3);color:var(--texte2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1.5px solid var(--border)}
@@ -366,7 +368,24 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   <div class="page-header"><h1>🚚 Mes Livreurs</h1><p>Gérez votre équipe et suivez les performances</p>
     <div class="header-actions"><button class="btn-header" onclick="afficherModalLivreur()">+ Nouveau livreur</button></div>
   </div>
-  <div class="section" style="padding-top:14px"><div id="livreurs-liste"></div></div>
+  <!-- Sous-onglets -->
+  <div style="display:flex;gap:6px;margin:0 0 14px;background:#fff;padding:6px;border-radius:12px;border:1px solid var(--border)">
+    <button class="nav-tab-sm active" onclick="afficherSousTabLivreur('liste',this)">👥 Équipe</button>
+    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('stats',this)">📊 Performances</button>
+    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('planning',this)">🗓️ Planning</button>
+    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('chat',this)">💬 Chat <span id="badge-chat-dash" style="display:none;background:#c0392b;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span></button>
+  </div>
+  <div id="sous-tab-liste"><div class="section" style="padding-top:4px"><div id="livreurs-liste"></div></div></div>
+  <div id="sous-tab-stats" style="display:none"><div id="livreurs-stats"></div></div>
+  <div id="sous-tab-planning" style="display:none"><div id="livreurs-planning"></div></div>
+  <div id="sous-tab-chat" style="display:none">
+    <div id="chat-livreur-select" style="margin-bottom:12px"></div>
+    <div id="chat-dash-messages" style="background:#fff;border-radius:12px;border:1px solid var(--border);padding:12px;min-height:200px;max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="chat-dash-input" class="form-input" placeholder="Message au livreur…" style="flex:1">
+      <button onclick="envoyerMessageDash()" class="btn-submit" style="padding:10px 16px;font-size:16px">➤</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL HISTORIQUE LIVREUR -->
@@ -861,6 +880,165 @@ async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TR
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
 
 // ── LIVREURS (DB) ──
+function afficherSousTabLivreur(id, btn){
+  document.querySelectorAll('.nav-tab-sm').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['liste','stats','planning','chat'].forEach(t=>{
+    const el = document.getElementById('sous-tab-'+t);
+    if(el) el.style.display = t===id ? 'block' : 'none';
+  });
+  if(id==='stats') chargerStatsLivreurs();
+  if(id==='planning') chargerPlanningLivreurs();
+  if(id==='chat') chargerSelectLivreurChat();
+}
+
+async function chargerStatsLivreurs(){
+  const el = document.getElementById('livreurs-stats');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--texte2)">⏳ Chargement…</div>';
+  try{
+    const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}/stats`);
+    const stats = await r.json();
+    if(!stats.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--texte3)">Aucun livreur</div>'; return; }
+    el.innerHTML = `
+      <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🏆 Classement</div>
+      ${stats.map((l,i)=>{
+        const taux = l.total_livraisons>0 ? Math.round((l.livrees/l.total_livraisons)*100) : 0;
+        const medals = ['🥇','🥈','🥉'];
+        return `<div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-size:22px">${medals[i]||'🎖️'}</div>
+              <div>
+                <div style="font-weight:700;font-size:14px">${l.nom}</div>
+                <div style="font-size:11px;color:var(--texte2)">${l.transport||'Moto'} · ${l.zone||'—'}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--b)">${Number(l.revenus_total).toLocaleString('fr-FR')} F</div>
+              <div style="font-size:10px;color:var(--texte3)">revenus générés</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
+            <div style="background:var(--creme2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:16px;font-weight:900;color:var(--texte)">${l.livrees||0}</div>
+              <div style="font-size:9px;color:var(--texte3)">Livrées</div>
+            </div>
+            <div style="background:var(--creme2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:16px;font-weight:900;color:var(--or)">${l.livraisons_today||0}</div>
+              <div style="font-size:9px;color:var(--texte3)">Aujourd'hui</div>
+            </div>
+            <div style="background:var(--creme2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:16px;font-weight:900;color:var(--vert)">${Math.round(l.temps_moyen||0)}</div>
+              <div style="font-size:9px;color:var(--texte3)">Min moy.</div>
+            </div>
+            <div style="background:var(--creme2);border-radius:8px;padding:8px;text-align:center">
+              <div style="font-size:16px;font-weight:900;color:var(--b)">${taux}%</div>
+              <div style="font-size:9px;color:var(--texte3)">Taux</div>
+            </div>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:4px">
+            <div style="height:4px;background:${taux>80?'var(--vert)':taux>50?'var(--or)':'var(--rouge)'};border-radius:4px;width:${taux}%"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    `;
+  }catch(e){ el.innerHTML='<div style="text-align:center;color:var(--rouge);padding:20px">Erreur</div>'; }
+}
+
+async function chargerPlanningLivreurs(){
+  const el = document.getElementById('livreurs-planning');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--texte2)">⏳ Chargement…</div>';
+  try{
+    const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}/planning`);
+    const plan = await r.json();
+    if(!plan.length){ el.innerHTML='<div style="text-align:center;padding:30px"><div style="font-size:32px">🗓️</div><div style="color:var(--texte3);font-size:13px;margin-top:8px">Aucune livraison aujourd'hui</div></div>'; return; }
+    // Grouper par livreur
+    const grouped = {};
+    plan.forEach(p=>{ if(!grouped[p.livreur_nom]) grouped[p.livreur_nom]=[]; grouped[p.livreur_nom].push(p); });
+    el.innerHTML = Object.entries(grouped).map(([nom, livs])=>`
+      <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
+        <div style="font-weight:700;font-size:14px;margin-bottom:10px">🛵 ${nom} <span style="font-size:11px;color:var(--texte3);font-weight:400">${livs.length} livraison(s)</span></div>
+        ${livs.map(l=>{
+          const heure = new Date(l.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+          const statutCoul = {assignée:'var(--or)',livrée:'var(--vert)','en route':'var(--b)'}[l.statut]||'var(--texte3)';
+          return `<div style="border-left:3px solid ${statutCoul};padding-left:10px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:700">${l.reference||'#'+l.id} · ${heure}</div>
+            <div style="font-size:11px;color:var(--texte2)">📍 ${l.adresse_livraison||l.adresse||'—'}</div>
+            <div style="font-size:11px;color:var(--texte2)">👤 ${l.client_nom||l.client_phone||'—'} · ${Number(l.montant||l.montant_cmd||0).toLocaleString('fr-FR')} F</div>
+            <span style="font-size:9px;font-weight:700;color:${statutCoul}">${l.statut}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('');
+  }catch(e){ el.innerHTML='<div style="text-align:center;color:var(--rouge);padding:20px">Erreur</div>'; }
+}
+
+let chatLivreurActif = null;
+async function chargerSelectLivreurChat(){
+  const el = document.getElementById('chat-livreur-select');
+  try{
+    const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
+    const livs = await r.json();
+    if(!livs.length){ el.innerHTML='<div style="color:var(--texte3);font-size:12px">Aucun livreur</div>'; return; }
+    if(!chatLivreurActif) chatLivreurActif = livs[0].id;
+    el.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      ${livs.map(l=>`<button onclick="selectionnerLivreurChat(${l.id})" style="padding:6px 12px;border-radius:8px;border:1.5px solid ${chatLivreurActif===l.id?'var(--b)':'var(--border)'};background:${chatLivreurActif===l.id?'var(--b)':'#fff'};color:${chatLivreurActif===l.id?'#fff':'var(--texte2)'};font-size:11px;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif">${l.nom.trim()}</button>`).join('')}
+    </div>`;
+    chargerChatDash();
+  }catch(e){}
+}
+
+async function selectionnerLivreurChat(id){
+  chatLivreurActif = id;
+  chargerSelectLivreurChat();
+}
+
+async function chargerChatDash(){
+  if(!chatLivreurActif) return;
+  const el = document.getElementById('chat-dash-messages');
+  try{
+    const r = await fetch(`${API}/api/messages/${TRAITEUR_ID}/${chatLivreurActif}`);
+    const msgs = await r.json();
+    if(!msgs.length){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--texte3);font-size:12px">Aucun message</div>'; return; }
+    el.innerHTML = msgs.map(m=>{
+      const isTrait = m.expediteur === 'traiteur';
+      const heure = new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="margin-bottom:8px;display:flex;flex-direction:column;align-items:${isTrait?'flex-end':'flex-start'}">
+        <div style="background:${isTrait?'var(--b)':'var(--creme2)'};color:${isTrait?'#fff':'var(--texte)'};border-radius:${isTrait?'12px 12px 4px 12px':'12px 12px 12px 4px'};padding:8px 12px;font-size:12px;max-width:80%;border:${isTrait?'none':'1px solid var(--border)'}">
+          ${m.contenu}
+          <div style="font-size:9px;opacity:.6;margin-top:2px">${heure}</div>
+        </div>
+      </div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+    document.getElementById('badge-chat-dash').style.display = 'none';
+  }catch(e){}
+}
+
+async function envoyerMessageDash(){
+  const input = document.getElementById('chat-dash-input');
+  const contenu = input.value.trim();
+  if(!contenu || !chatLivreurActif) return;
+  input.value = '';
+  try{
+    await fetch(`${API}/api/messages`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ traiteur_id: TRAITEUR_ID, livreur_id: chatLivreurActif, expediteur: 'traiteur', contenu })
+    });
+    chargerChatDash();
+  }catch(e){}
+}
+
+async function verifierMsgNonLus(){
+  try{
+    const r = await fetch(`${API}/api/messages/nonlus/${TRAITEUR_ID}`);
+    const data = await r.json();
+    const total = data.reduce((s,d)=>s+parseInt(d.nb),0);
+    const badge = document.getElementById('badge-chat-dash');
+    if(badge && total>0){ badge.style.display='inline'; badge.textContent='!'; }
+  }catch(e){}
+}
+
 async function chargerLivreurs(){
   const el=document.getElementById('livreurs-liste');
   try {
@@ -1501,7 +1679,7 @@ async function sauvegarderProfil(){
   }catch(e){msg.style.color='#8B1A1A';msg.textContent='❌ Erreur : '+e.message;}
 }
 
-function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000);setTimeout(chargerAgenda,500);}
+function demarrer(){chargerDashboard();setTimeout(verifierEssai,1000);setTimeout(verifierEssai,3000);setInterval(chargerDashboard,30000);setTimeout(chargerAgenda,500);setInterval(verifierMsgNonLus,30000);}
 // Check success param
 const urlP=new URLSearchParams(window.location.search);
 if(urlP.get("success")==="1")setTimeout(()=>alert("🎉 Paiement réussi ! Votre abonnement est activé."),1000);
