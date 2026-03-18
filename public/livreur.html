@@ -245,7 +245,7 @@ function initialiserApp(){
   const toggle = document.getElementById('dispo-toggle');
   toggle.classList.toggle('on', livreurData.disponible);
   document.getElementById('dispo-label').textContent = livreurData.disponible ? 'Disponible' : 'Occupé';
-  traiteurId = livreurData.traiteur_id;
+  traiteurId = livreurData.traiteur_id || parseInt(params.get('traiteur')) || 2;
   chargerDonnees();
   // Auto-refresh toutes les 30s
   setInterval(chargerDonnees, 30000);
