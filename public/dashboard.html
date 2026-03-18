@@ -1681,8 +1681,10 @@ function demarrer(){
   try{
     const lastTab = localStorage.getItem('tp_tab_'+TRAITEUR_ID);
     if(lastTab && lastTab !== 'dashboard'){
-      const btn = document.querySelector(`.nav-tab[onclick*="'${lastTab}'"]`);
-      setTimeout(()=>afficherTab(lastTab, btn), 300);
+      const allBtns = document.querySelectorAll('.nav-tab');
+      let foundBtn = null;
+      allBtns.forEach(b=>{ if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+lastTab+"'")) foundBtn=b; });
+      setTimeout(()=>afficherTab(lastTab, foundBtn), 300);
     }
   }catch(e){}
 }
