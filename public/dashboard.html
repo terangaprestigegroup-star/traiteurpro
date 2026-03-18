@@ -330,10 +330,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
   <script>
   </script>
   <div class="kpis">
-    <div class="kpi"><div class="kpi-icon">📋</div><div class="kpi-val" id="kpi-commandes">—</div><div class="kpi-lbl">Commandes totales</div><div class="kpi-badge" id="kpi-nouvelles">— nouvelles</div></div>
-    <div class="kpi"><div class="kpi-icon">💰</div><div class="kpi-val" id="kpi-revenus">—</div><div class="kpi-lbl">Revenus FCFA</div></div>
-    <div class="kpi"><div class="kpi-icon">👥</div><div class="kpi-val" id="kpi-clients">—</div><div class="kpi-lbl">Clients actifs</div></div>
-    <div class="kpi"><div class="kpi-icon">⭐</div><div class="kpi-val" id="kpi-plat">—</div><div class="kpi-lbl">Plat star</div></div>
+    <div class="kpi">
+      <div style="font-size:20px;margin-bottom:6px">📋</div>
+      <div class="kpi-val" id="kpi-commandes">—</div>
+      <div class="kpi-lbl">Commandes</div>
+      <div style="font-size:10px;color:var(--or);margin-top:4px;font-weight:600" id="kpi-nouvelles">— nouvelles</div>
+    </div>
+    <div class="kpi">
+      <div style="font-size:20px;margin-bottom:6px">💰</div>
+      <div class="kpi-val" id="kpi-revenus">—</div>
+      <div class="kpi-lbl">Revenus FCFA</div>
+    </div>
+    <div class="kpi">
+      <div style="font-size:20px;margin-bottom:6px">👥</div>
+      <div class="kpi-val" id="kpi-clients">—</div>
+      <div class="kpi-lbl">Clients</div>
+    </div>
+    <div class="kpi">
+      <div style="font-size:20px;margin-bottom:6px">⭐</div>
+      <div class="kpi-val" id="kpi-plat" style="font-size:16px">—</div>
+      <div class="kpi-lbl">Plat star</div>
+    </div>
   </div>
   <div class="section">
     <div class="section-header"><div class="section-title">🕐 Nouvelles commandes</div></div>
@@ -825,7 +842,7 @@ async function chargerDashboard(){
     document.getElementById('kpi-revenus').textContent=(revenus??0)>=1000000?((revenus/1000000).toFixed(1)+'M'):(revenus??0)>=1000?((revenus/1000).toFixed(0)+'k'):(revenus??0);
     document.getElementById('kpi-clients').textContent=clients??0;
     const plat=d.plats_top?.[0];
-    document.getElementById('kpi-plat').textContent=plat?(plat.emoji||'🍽️')+' '+plat.nom?.split(' ')[0]:'—';
+    document.getElementById('kpi-plat').textContent=plat?(plat.nom||'—').replace(/^[^\w\s]+\s*/u,'').split(' ')[0]:'—';
     document.getElementById('last-update').textContent='Mis à jour à '+new Date().toLocaleTimeString('fr-FR');
     const rM=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
     const menus=await rM.json();
@@ -837,7 +854,7 @@ async function chargerDashboard(){
     const cmds=await r2.json();
     document.getElementById('nouvelles-commandes').innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div>';
     const pe=document.getElementById('plats-top');
-    pe.innerHTML=d.plats_top?.length?d.plats_top.map(p=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span style="font-size:13px">${p.emoji||'🍽️'} ${p.nom}</span><span style="font-weight:800;color:#c0392b">${p.total} cmd</span></div>`).join(''):'<div style="text-align:center;color:#888;font-size:13px">Pas encore de données</div>';
+    pe.innerHTML=d.plats_top?.length?d.plats_top.map(p=>{const n=(p.nom||'').replace(/^[^\w\s]+\s*/u,'').trim();return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-weight:600;color:var(--texte)">${n||p.nom}</span><span style="font-size:12px;font-weight:700;color:var(--b);background:rgba(107,39,55,0.08);padding:3px 10px;border-radius:20px">${p.total} cmd</span></div>`}).join(''):'<div style="text-align:center;color:var(--texte3);font-size:13px;padding:16px">Pas encore de données</div>';
   }catch(e){document.getElementById('last-update').textContent='Erreur: '+e.message;console.error(e);}
 }
 
