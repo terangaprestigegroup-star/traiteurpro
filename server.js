@@ -342,11 +342,22 @@ app.post('/webhook', async (req, res) => {
     const phone_id = change.metadata.phone_number_id;
     const texte = msg.text?.body?.trim() || '';
 
-    // Identifier le traiteur
+    // Identifier le traiteur par le numéro WhatsApp du bot (phone_number_id → traiteur)
     let traiteur_id = clientTraiteurMap[phone];
     if (!traiteur_id) {
-      const r = await pool.query('SELECT id FROM traiteurs WHERE actif=true LIMIT 1');
-      if (r.rows[0]) { traiteur_id = r.rows[0].id; clientTraiteurMap[phone] = traiteur_id; }
+      // Chercher le traiteur dont le whatsapp correspond au numéro entrant
+      const cmdClient = await pool.query(
+        'SELECT traiteur_id FROM commandes_traiteur WHERE client_phone=$1 ORDER BY created_at DESC LIMIT 1',
+        [phone]
+      );
+      if (cmdClient.rows[0]) {
+        traiteur_id = cmdClient.rows[0].traiteur_id;
+      } else {
+        // Fallback: premier traiteur actif avec WhatsApp configuré
+        const r = await pool.query('SELECT id FROM traiteurs WHERE actif=true AND whatsapp IS NOT NULL ORDER BY id LIMIT 1');
+        if (r.rows[0]) traiteur_id = r.rows[0].id;
+      }
+      if (traiteur_id) clientTraiteurMap[phone] = traiteur_id;
     }
     const traiteurRes = await pool.query('SELECT * FROM traiteurs WHERE id=$1', [traiteur_id]);
     const traiteur = traiteurRes.rows[0];
@@ -411,6 +422,58 @@ app.post('/webhook', async (req, res) => {
     }
 
     // ---- MENU DU JOUR
+    // ---- BONJOUR / BIENVENUE
+    if (/^(bonjour|bonsoir|salut|salam|hello|hi|bjr|bsr)$/i.test(texte.trim())) {
+      await envoyerWhatsApp(phone_id, phone,
+        `👋 *Bonjour !*\n\nBienvenue chez *${traiteur.nom_boutique}* 🍽️\n\n` +
+        `Que puis-je faire pour vous ?\n\n` +
+        `📋 *menu* — Voir nos plats\n` +
+        `📦 *commande* — Passer une commande\n` +
+        `📍 *livraison* — Infos livraison\n` +
+        `📞 *contact* — Nous contacter\n\n` +
+        `_Répondez avec un mot-clé ou commandez directement !_`
+      );
+      return res.sendStatus(200);
+    }
+
+    // ---- INFOS LIVRAISON
+    if (/livraison|délai|zone|quartier|frais|gratuit/i.test(texte)) {
+      await envoyerWhatsApp(phone_id, phone,
+        `🚚 *Informations livraison*\n\n` +
+        `📍 Zones : ${traiteur.zone_livraison || 'Dakar et environs'}\n` +
+        `⏱️ Délai : 30 à 60 minutes\n` +
+        `💰 Frais : Inclus dans le prix\n\n` +
+        `_Pour commander, envoyez votre plat directement !_\n\n` +
+        `_${traiteur.nom_boutique} · TraiteurPro 🇸🇳_`
+      );
+      return res.sendStatus(200);
+    }
+
+    // ---- CONTACT
+    if (/contact|numéro|appel|téléphone|joindre/i.test(texte)) {
+      await envoyerWhatsApp(phone_id, phone,
+        `📞 *Contactez-nous*\n\n` +
+        `📱 WhatsApp : ${traiteur.whatsapp || 'Ce numéro'}\n` +
+        `📍 Ville : ${traiteur.ville || 'Dakar'}\n\n` +
+        `_${traiteur.nom_boutique} · TraiteurPro 🇸🇳_`
+      );
+      return res.sendStatus(200);
+    }
+
+    // ---- AIDE
+    if (/aide|help|comment|que faire|quoi faire/i.test(texte)) {
+      await envoyerWhatsApp(phone_id, phone,
+        `ℹ️ *Comment commander ?*\n\n` +
+        `1️⃣ Envoyez *"menu"* pour voir les plats\n` +
+        `2️⃣ Dites ce que vous voulez : _"Je veux 2 thiéboudiennes"_\n` +
+        `3️⃣ Donnez votre adresse\n` +
+        `4️⃣ Choisissez la date de livraison\n` +
+        `5️⃣ Commande confirmée ! ✅\n\n` +
+        `_${traiteur.nom_boutique} · TraiteurPro 🇸🇳_`
+      );
+      return res.sendStatus(200);
+    }
+
     if (/menu|carte|plat|manger|commander|quoi|disponible/i.test(texte)) {
       const categories = { plat: '🍽️ Plats', famille: '👨‍👩‍👧 Formules Famille', evenement: '🎊 Événements', cantine: '🏢 Cantine Entreprise' };
       let msg = `🍽️ *Menu — ${traiteur.nom_boutique}*\n\n`;
@@ -423,6 +486,31 @@ app.post('/webhook', async (req, res) => {
       }
       msg += `📲 Envoyez votre commande directement !\nEx: _"Je veux 2 thiéboudiennes"_\n\n_${traiteur.zone_livraison ? '📍 Livraison : '+traiteur.zone_livraison : ''}_`;
       await envoyerWhatsApp(phone_id, phone, msg);
+      return res.sendStatus(200);
+    }
+
+    // ---- AVIS CLIENT (réponse ⭐ 1-5 après livraison)
+    if (/^[1-5]$/.test(texte.trim()) || /^[⭐]{1,5}$/.test(texte.trim())) {
+      const note = parseInt(texte.trim()) || texte.trim().length;
+      const lastCmd = await pool.query(
+        'SELECT * FROM commandes_traiteur WHERE client_phone=$1 AND traiteur_id=$2 AND statut=$3 ORDER BY created_at DESC LIMIT 1',
+        [phone, traiteur_id, 'livré']
+      );
+      const ref = lastCmd.rows[0]?.reference || null;
+      // Récupérer nom client si dispo
+      const nomClient = lastCmd.rows[0]?.client_nom || phone;
+      await pool.query(
+        'INSERT INTO avis (traiteur_id, client_nom, client_phone, note, commande_ref) VALUES ($1,$2,$3,$4,$5)',
+        [traiteur_id, nomClient, phone, Math.min(5, Math.max(1, note)), ref]
+      );
+      const remercie = note >= 4
+        ? `Merci pour votre ${note}⭐ ! Votre satisfaction est notre priorité 🙏`
+        : `Merci pour votre retour. Nous allons nous améliorer 🙏`;
+      await envoyerWhatsApp(phone_id, phone,
+        `${remercie}
+
+_${traiteur.nom_boutique} · TraiteurPro 🇸🇳_`
+      );
       return res.sendStatus(200);
     }
 
@@ -930,12 +1018,17 @@ app.post('/api/inscription', async (req, res) => {
 // Stats globales
 app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
   try {
-    const [traiteurs, commandes, clients, actifs, plans] = await Promise.all([
+    const [traiteurs, commandes, clients, actifs, plans, livreurs, avis, evenements, messages, revenus_mois] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM traiteurs'),
       pool.query('SELECT COUNT(*) FROM commandes_traiteur'),
       pool.query('SELECT COUNT(DISTINCT client_phone) FROM commandes_traiteur'),
       pool.query('SELECT COUNT(*) FROM traiteurs WHERE actif=true'),
-      pool.query('SELECT plan, COUNT(*) as nb FROM traiteurs GROUP BY plan')
+      pool.query('SELECT plan, COUNT(*) as nb FROM traiteurs GROUP BY plan'),
+      pool.query('SELECT COUNT(*) FROM livreurs'),
+      pool.query('SELECT COUNT(*) FROM avis'),
+      pool.query('SELECT COUNT(*) FROM evenements'),
+      pool.query('SELECT COUNT(*) FROM messages_livreur'),
+      pool.query("SELECT COALESCE(SUM(total),0) as total FROM commandes_traiteur WHERE created_at > NOW() - INTERVAL '30 days' AND statut='livré'"),
     ]);
     const plansMap = {};
     plans.rows.forEach(p => { plansMap[p.plan] = parseInt(p.nb); });
@@ -944,6 +1037,11 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
       commandes: parseInt(commandes.rows[0].count),
       clients: parseInt(clients.rows[0].count),
       actifs: parseInt(actifs.rows[0].count),
+      livreurs: parseInt(livreurs.rows[0].count),
+      avis: parseInt(avis.rows[0].count),
+      evenements: parseInt(evenements.rows[0].count),
+      messages: parseInt(messages.rows[0].count),
+      revenus_mois: parseInt(revenus_mois.rows[0].total),
       plans: plansMap
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
