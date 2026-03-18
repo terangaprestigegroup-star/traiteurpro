@@ -168,6 +168,19 @@ async function initDB() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
+    CREATE TABLE IF NOT EXISTS messages_livreur (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      livreur_id INTEGER NOT NULL,
+      livraison_id INTEGER,
+      expediteur VARCHAR(20) NOT NULL,
+      contenu TEXT NOT NULL,
+      lu BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -773,20 +786,7 @@ app.get('/api/livreurs/:id/historique', async (req, res) => {
 });
 
 // PUT marquer livraison terminée
-app.put('/api/livraisons/:id/terminer', async (req, res) => {
-  try {
-    const lv = await pool.query('UPDATE livraisons SET statut=$1, livree_at=NOW() WHERE id=$2 RETURNING *', ['livrée', req.params.id]);
-    if (lv.rows[0]) {
-      // 1. Remettre livreur disponible
-      await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
-      // 2. Sync statut commande → livré
-      if (lv.rows[0].commande_id) {
-        await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
-      }
-    }
-    res.json({ ok: true });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
+// terminer route moved above
 
 // ============================================
 // PROFIL TRAITEUR — Mise à jour réseaux sociaux
@@ -1245,6 +1245,120 @@ _${t?.nom_boutique}_`;
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ============================================
+// CHAT LIVREUR ↔ TRAITEUR
+// ============================================
+app.get('/api/messages/:traiteur_id/:livreur_id', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT * FROM messages_livreur WHERE traiteur_id=$1 AND livreur_id=$2 ORDER BY created_at ASC',
+      [req.params.traiteur_id, req.params.livreur_id]
+    );
+    // Marquer comme lus
+    await pool.query(
+      "UPDATE messages_livreur SET lu=true WHERE traiteur_id=$1 AND livreur_id=$2",
+      [req.params.traiteur_id, req.params.livreur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { traiteur_id, livreur_id, livraison_id, expediteur, contenu } = req.body;
+    const r = await pool.query(
+      'INSERT INTO messages_livreur (traiteur_id, livreur_id, livraison_id, expediteur, contenu) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [traiteur_id, livreur_id, livraison_id||null, expediteur, contenu]
+    );
+    res.json({ ok: true, message: r.rows[0] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/messages/nonlus/:traiteur_id', async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT livreur_id, COUNT(*) as nb FROM messages_livreur WHERE traiteur_id=$1 AND lu=false AND expediteur='livreur' GROUP BY livreur_id",
+      [req.params.traiteur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
+// PHOTO PREUVE DE LIVRAISON
+// ============================================
+app.post('/api/livraisons/:id/photo', async (req, res) => {
+  try {
+    const { photo_base64 } = req.body;
+    await pool.query('UPDATE livraisons SET photo_preuve=$1 WHERE id=$2', [photo_base64, req.params.id]);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
+// STATS AVANCÉES LIVREURS
+// ============================================
+app.get('/api/livreurs/:traiteur_id/stats', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT 
+        l.id, l.nom, l.transport, l.zone, l.disponible,
+        COUNT(lv.id) as total_livraisons,
+        SUM(CASE WHEN lv.statut='livrée' THEN 1 ELSE 0 END) as livrees,
+        COALESCE(AVG(lv.duree_minutes) FILTER (WHERE lv.duree_minutes IS NOT NULL), 0) as temps_moyen,
+        COALESCE(SUM(lv.montant) FILTER (WHERE lv.statut='livrée'), 0) as revenus_total,
+        COUNT(CASE WHEN lv.created_at > NOW() - INTERVAL '7 days' THEN 1 END) as livraisons_semaine,
+        COUNT(CASE WHEN DATE(lv.created_at) = CURRENT_DATE THEN 1 END) as livraisons_today
+       FROM livreurs l
+       LEFT JOIN livraisons lv ON lv.livreur_id = l.id
+       WHERE l.traiteur_id=$1 OR l.merchant_id=$1
+       GROUP BY l.id, l.nom, l.transport, l.zone, l.disponible
+       ORDER BY livrees DESC`,
+      [req.params.traiteur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================
+// PLANNING LIVREURS DU JOUR
+// ============================================
+app.get('/api/livreurs/:traiteur_id/planning', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT lv.*, l.nom as livreur_nom, l.transport, l.telephone,
+              ct.client_nom, ct.client_phone, ct.adresse_livraison, ct.reference, ct.total as montant_cmd
+       FROM livraisons lv
+       JOIN livreurs l ON l.id = lv.livreur_id
+       LEFT JOIN commandes_traiteur ct ON ct.id = lv.commande_id
+       WHERE (l.traiteur_id=$1 OR l.merchant_id=$1)
+       AND DATE(lv.created_at) = CURRENT_DATE
+       ORDER BY lv.created_at DESC`,
+      [req.params.traiteur_id]
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Terminer livraison avec durée calculée automatiquement
+app.put('/api/livraisons/:id/terminer', async (req, res) => {
+  try {
+    const lv = await pool.query(
+      `UPDATE livraisons SET statut='livrée', livree_at=NOW(),
+       duree_minutes=EXTRACT(EPOCH FROM (NOW()-created_at))/60
+       WHERE id=$1 RETURNING *`,
+      [req.params.id]
+    );
+    if (lv.rows[0]) {
+      await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
+      if (lv.rows[0].commande_id) {
+        await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
+      }
+    }
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // PUT position GPS livreur
 app.put('/api/livreur/:id/position', async (req, res) => {
   try {
@@ -1621,6 +1735,19 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
+    CREATE TABLE IF NOT EXISTS messages_livreur (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      livreur_id INTEGER NOT NULL,
+      livraison_id INTEGER,
+      expediteur VARCHAR(20) NOT NULL,
+      contenu TEXT NOT NULL,
+      lu BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -1879,6 +2006,19 @@ async function initAbonnements() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS photo_preuve TEXT;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS duree_minutes INTEGER;
+    ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS note_client INTEGER;
+    CREATE TABLE IF NOT EXISTS messages_livreur (
+      id SERIAL PRIMARY KEY,
+      traiteur_id INTEGER NOT NULL,
+      livreur_id INTEGER NOT NULL,
+      livraison_id INTEGER,
+      expediteur VARCHAR(20) NOT NULL,
+      contenu TEXT NOT NULL,
+      lu BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
