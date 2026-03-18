@@ -652,7 +652,16 @@ const _urlId=parseInt(new URLSearchParams(window.location.search).get("id"))||0;
 // Sauvegarder l'ID dans localStorage si présent dans URL
 if(_urlId) try{localStorage.setItem('tp_last_id',_urlId)}catch(e){}
 // Lire l'ID depuis URL ou localStorage
-const TRAITEUR_ID=_urlId||parseInt((()=>{try{return localStorage.getItem('tp_last_id')}catch(e){return 1}})())||1;
+const _lastId=(()=>{
+  try{
+    const ls=localStorage.getItem('tp_last_id');
+    if(ls) return parseInt(ls);
+    const m=document.cookie.match(/tp_last_id=(\d+)/);
+    if(m) return parseInt(m[1]);
+  }catch(e){}
+  return 1;
+})();
+const TRAITEUR_ID=_urlId||_lastId||1;
 // Si ID manquant dans URL, rediriger avec l'ID
 try{if(!_urlId && TRAITEUR_ID) history.replaceState(null,'','/app?id='+TRAITEUR_ID);}catch(e){}
 let currentPin='';
@@ -674,10 +683,14 @@ function getSession(){
 }
 function setSession(d){
   const val=JSON.stringify(d);
-  try{localStorage.setItem('tp_session_'+TRAITEUR_ID,val)}catch(e){}
+  try{
+    localStorage.setItem('tp_session_'+TRAITEUR_ID,val);
+    localStorage.setItem('tp_last_id', String(TRAITEUR_ID)); // Toujours garder le dernier ID
+  }catch(e){}
   // Aussi sauvegarder en cookie (30 jours)
   const exp=new Date();exp.setDate(exp.getDate()+30);
   document.cookie='tp_'+TRAITEUR_ID+'='+encodeURIComponent(val)+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
+  document.cookie='tp_last_id='+TRAITEUR_ID+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
   const sess = getSession();
