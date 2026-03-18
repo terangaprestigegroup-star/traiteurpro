@@ -36,7 +36,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 #login-error{color:var(--bordeaux2);font-size:12px;font-weight:700;margin-top:8px;display:none}
 
 /* ── NAV ── */
-.nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;overflow-x:auto}
+.nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 8px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:2px}
 .nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;margin-right:10px}
 .nav-logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--bordeaux),var(--bordeaux2));display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
 .nav-logo-mark::after{content:'';position:absolute;inset:2px;border-radius:8px;border:1px solid rgba(201,168,76,0.35)}
@@ -57,6 +57,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 .header-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .btn-header{background:var(--bg2);color:var(--texte2);border:1.5px solid var(--border);padding:8px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;white-space:nowrap;transition:all 0.2s;letter-spacing:0.3px}
 .btn-header:hover{background:var(--bordeaux);color:white;border-color:var(--bordeaux)}
+.dropdown-item{display:block;width:100%;padding:10px 12px;background:none;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;color:var(--texte);cursor:pointer;text-align:left;transition:.15s}
+.dropdown-item:hover{background:var(--bg2)}
 
 /* ── KPIs ── */
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:16px}
@@ -105,7 +107,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 .b-livré{background:rgba(45,106,79,0.1);color:var(--vert);border:1px solid rgba(45,106,79,0.2)}
 .b-annulé{background:rgba(139,26,26,0.1);color:var(--bordeaux2);border:1px solid var(--border2)}
 .statut-btns{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.statut-btn{background:var(--bg2);color:var(--texte2);border:1.5px solid var(--border);padding:6px 12px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;text-decoration:none;display:inline-block;transition:all 0.15s;letter-spacing:0.3px}
+.statut-btn{background:var(--bg2);color:var(--texte2);border:1.5px solid var(--border);padding:9px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Jost',sans-serif;white-space:nowrap;transition:all 0.15s;min-height:38px}xt-decoration:none;display:inline-block;transition:all 0.15s;letter-spacing:0.3px}
 .statut-btn:hover{background:var(--bordeaux);color:white;border-color:var(--bordeaux)}
 
 /* ── MENUS ── */
@@ -284,14 +286,18 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   <div class="page-header">
     <h1>Tableau de bord</h1>
     <p id="last-update">Synchronisation en cours…</p>
-    <div class="header-actions">
-    <button class="btn-header" onclick="voirMenuPublic()">🌐 Mon menu</button>
-    <button class="btn-header" onclick="window.open('/carte','_blank')">🗺️ Carte</button>
-    <button class="btn-header" onclick="voirQRCode()">📱 QR Code</button>
-    <button class="btn-header" id="btn-push" onclick="activerPush()">🔔 Notifs</button>
-      <button class="btn-header" onclick="chargerDashboard();this.textContent='⏳';setTimeout(()=>this.textContent='🔄 Actualiser',2000)">🔄 Actualiser</button>
-      <button class="btn-header" onclick="envoyerPromo()">📣 Promo flash</button>
-      <button class="btn-header" onclick="seDeconnecter()">🔒 Déconnexion</button>
+    <div class="header-actions" style="position:relative">
+      <button class="btn-header" onclick="voirMenuPublic()">🌐 Menu</button>
+      <button class="btn-header" onclick="envoyerPromo()">📣 Promo</button>
+      <button class="btn-header" onclick="chargerDashboard();this.textContent='⏳';setTimeout(()=>this.textContent='🔄',1500)" style="padding:8px 10px">🔄</button>
+      <button class="btn-header" onclick="toggleMenuHeader()" id="btn-plus" style="padding:8px 12px;font-weight:900">⋮</button>
+      <div id="menu-header-dropdown" style="display:none;position:absolute;right:0;top:44px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:8px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:180px">
+        <button onclick="window.open('/carte','_blank');toggleMenuHeader()" class="dropdown-item">🗺️ Voir la carte</button>
+        <button onclick="voirQRCode();toggleMenuHeader()" class="dropdown-item">📱 QR Code</button>
+        <button onclick="activerPush();toggleMenuHeader()" id="btn-push" class="dropdown-item">🔔 Activer notifs</button>
+        <div style="height:1px;background:var(--border);margin:6px 0"></div>
+        <button onclick="seDeconnecter()" class="dropdown-item" style="color:var(--rouge)">🔒 Déconnexion</button>
+      </div>
     </div>
   </div>
   <div id="bienvenue-block" style="display:none">
@@ -395,7 +401,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <div id="chat-livreur-select" style="margin-bottom:12px"></div>
     <div id="chat-dash-messages" style="background:#fff;border-radius:12px;border:1px solid var(--border);padding:12px;min-height:200px;max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <input id="chat-dash-input" class="form-input" placeholder="Message au livreur…" style="flex:1;min-height:44px;font-size:14px;padding:10px 14px">
+      <input id="chat-dash-input" class="form-input" placeholder="Message au livreur…" style="flex:1;min-height:48px;font-size:14px;padding:12px 16px;-webkit-appearance:none">
       <button onclick="envoyerMessageDash()" class="btn-submit" style="padding:12px 20px;font-size:18px;min-width:52px">➤</button>
     </div>
   </div>
@@ -1581,6 +1587,22 @@ async function confirmerAssignation(){
   }catch(e){
     msg.style.color = '#8B1A1A';
     msg.textContent = '❌ Erreur réseau : ' + e.message;
+  }
+}
+
+function toggleMenuHeader(){
+  const d = document.getElementById('menu-header-dropdown');
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+  // Close on outside click
+  if(d.style.display === 'block'){
+    setTimeout(()=>{
+      document.addEventListener('click', function handler(e){
+        if(!d.contains(e.target) && e.target.id !== 'btn-plus'){
+          d.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 100);
   }
 }
 
