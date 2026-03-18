@@ -855,18 +855,16 @@ function renderCmd(c, mini=false){
     'en route': ['<button class="statut-btn" style="background:rgba(42,107,79,0.1);color:var(--vert)" onclick="changerStatut('+c.id+',\'livre\u0301\')">&#x1F389; Livr\u00e9</button>'],
     'livre\u0301': [], annule: []
   };
+  const _s = (c.statut||'').normalize('NFC').toLowerCase().trim();
   const sfMap = {
     'nouveau':{bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:'🕐 Nouveau'},
-    'confirmé':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'✅ Confirmé'},
     'confirmé':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'✅ Confirmé'},
     'preparation':{bg:'rgba(107,39,55,0.1)',cl:'var(--b)',lb:'👨‍🍳 En cuisine'},
     'en route':{bg:'rgba(196,151,58,0.12)',cl:'var(--or)',lb:'🚚 En route'},
     'livré':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'✅ Livré'},
-    'livré':{bg:'rgba(42,107,79,0.1)',cl:'var(--vert)',lb:'✅ Livré'},
-    'annulé':{bg:'rgba(192,57,43,0.1)',cl:'var(--rouge)',lb:'❌ Annulé'},
     'annulé':{bg:'rgba(192,57,43,0.1)',cl:'var(--rouge)',lb:'❌ Annulé'}
   };
-  const sf = sfMap[c.statut] || {bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:c.statut};
+  const sf = sfMap[_s] || {bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:c.statut};
   const btns = (nextBtns[c.statut]||[]).join('');
   const addrClean = (c.adresse_livraison||'').replace(/'/g,'');
   return '<div class="cmd-card">'
