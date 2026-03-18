@@ -132,7 +132,10 @@
       </div>
     </div>
     <div class="livreur-name" id="livreur-name">—</div>
-    <div class="livreur-info" id="livreur-info">—</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+      <div class="livreur-info" id="livreur-info">—</div>
+      <div id="gps-indicator" style="width:8px;height:8px;border-radius:50%;background:#A89880;flex-shrink:0" title="GPS"></div>
+    </div>
     <div class="stats-bar">
       <div class="stat-item"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Livraisons</div></div>
       <div class="stat-item"><div class="stat-val" id="stat-encours">0</div><div class="stat-lbl">En cours</div></div>
@@ -216,6 +219,8 @@ function initialiserApp(){
   chargerDonnees();
   // Auto-refresh toutes les 30s
   setInterval(chargerDonnees, 30000);
+  // Démarrer GPS si livreur occupé (livraison en cours)
+  if(!livreurData.disponible) demarrerGPS();
 }
 
 async function chargerDonnees(){
@@ -279,6 +284,7 @@ async function partirEnLivraison(livraisonId, commandeId){
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ livraison_id: livraisonId, commande_id: commandeId, livreur_id: LIVREUR_ID })
     });
+    demarrerGPS(); // Activer GPS dès le départ
     chargerLivraisons();
   }catch(e){ alert('Erreur: '+e.message); }
 }
@@ -287,6 +293,7 @@ async function marquerLivre(livraisonId){
   if(!confirm('Confirmer la livraison ?')) return;
   try{
     await fetch(`${API}/api/livraisons/${livraisonId}/terminer`, { method: 'PUT' });
+    arreterGPS(); // Arrêter GPS après livraison
     chargerDonnees();
   }catch(e){ alert('Erreur: '+e.message); }
 }
@@ -297,6 +304,7 @@ async function toggleDispo(){
   const newDispo = !isOn;
   toggle.classList.toggle('on', newDispo);
   document.getElementById('dispo-label').textContent = newDispo ? 'Disponible' : 'Occupé';
+  if(newDispo){ arreterGPS(); } else { demarrerGPS(); }
   try{
     await fetch(`${API}/api/livreurs/${LIVREUR_ID}/dispo`, {
       method: 'PUT',
@@ -360,6 +368,45 @@ function afficherTab(id, btn){
   ['livraisons','historique'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
   });
+}
+
+// ── GPS TEMPS RÉEL ──
+let gpsActif = false;
+let gpsInterval = null;
+
+function demarrerGPS(){
+  if(!navigator.geolocation){ return; }
+  gpsActif = true;
+  envoyerPosition(); // Immédiat
+  gpsInterval = setInterval(envoyerPosition, 30000); // Toutes les 30s
+}
+
+function arreterGPS(){
+  gpsActif = false;
+  if(gpsInterval) clearInterval(gpsInterval);
+}
+
+function envoyerPosition(){
+  if(!gpsActif || !LIVREUR_ID) return;
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      try{
+        await fetch(`${API}/api/livreur/${LIVREUR_ID}/position`, {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
+        });
+        // Mettre à jour indicateur GPS
+        const ind = document.getElementById('gps-indicator');
+        if(ind) ind.style.background = '#2D6A4F';
+      }catch(e){}
+    },
+    (err) => {
+      const ind = document.getElementById('gps-indicator');
+      if(ind) ind.style.background = '#c0392b';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 </script>
 </body>
