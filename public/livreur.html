@@ -125,6 +125,50 @@
 </div>
 
 <!-- APP -->
+<!-- MODAL CODE CONFIRMATION -->
+<div id="modal-code-conf" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">🔐</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
+    <div style="font-size:13px;color:var(--texte2);margin-bottom:20px">Demandez le code 4 chiffres au client</div>
+    <input type="number" id="code-conf-input" placeholder="Code à 4 chiffres" maxlength="4"
+      style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:28px;text-align:center;letter-spacing:8px;font-family:'Cormorant Garamond',serif;outline:none;margin-bottom:12px">
+    <div id="code-conf-error" style="color:var(--rouge);font-size:12px;min-height:18px;margin-bottom:8px"></div>
+    <button onclick="validerCodeConfirmation()" style="width:100%;padding:14px;background:var(--vert);color:#fff;border:none;border-radius:12px;font-family:'Jost',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">✅ Valider et confirmer livraison</button>
+    <button onclick="document.getElementById('modal-code-conf').style.display='none'" style="width:100%;padding:12px;background:var(--creme2);color:var(--texte2);border:1px solid var(--border);border-radius:12px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL CODE CONFIRMATION -->
+<div id="modal-code" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">🔐</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
+    <div style="font-size:13px;color:var(--texte2);margin-bottom:20px">Demandez le code reçu par WhatsApp au client</div>
+    <input id="code-input" type="number" maxlength="4" placeholder="0000" style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:32px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:8px;outline:none;margin-bottom:12px;color:var(--texte)">
+    <div id="code-error" style="color:var(--rouge);font-size:12px;margin-bottom:12px;min-height:18px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="validerCode()" style="flex:1;background:var(--vert);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Jost',sans-serif;font-size:14px;font-weight:700;cursor:pointer">✅ Valider</button>
+      <button onclick="pasDeCode()" style="flex:1;background:var(--creme2);color:var(--texte);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer">Sans code</button>
+    </div>
+    <button onclick="document.getElementById('modal-code').style.display='none'" style="width:100%;margin-top:8px;background:none;border:none;color:var(--texte3);font-size:12px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL PROBLEME -->
+<div id="modal-probleme" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin-bottom:16px">⚠️ Signaler un problème</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <button onclick="envoyerProbleme('Client absent')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">👤 Client absent</button>
+      <button onclick="envoyerProbleme('Mauvaise adresse')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">📍 Mauvaise adresse</button>
+      <button onclick="envoyerProbleme('Client refuse la commande')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">❌ Client refuse la commande</button>
+      <button onclick="envoyerProbleme('Problème de paiement')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">💰 Problème de paiement</button>
+    </div>
+    <button onclick="document.getElementById('modal-probleme').style.display='none'" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer;color:var(--texte3)">Annuler</button>
+  </div>
+</div>
+
 <!-- MODAL PHOTO PREUVE -->
 <div id="modal-photo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px">
@@ -246,6 +290,12 @@ function initialiserApp(){
   toggle.classList.toggle('on', livreurData.disponible);
   document.getElementById('dispo-label').textContent = livreurData.disponible ? 'Disponible' : 'Occupé';
   traiteurId = livreurData.traiteur_id || parseInt(params.get('traiteur')) || 2;
+  // Charger numéro traiteur pour appel direct
+  try{
+    const tRes = await fetch(`${API}/api/traiteur/profil/${traiteurId}`);
+    const t = await tRes.json();
+    if(t.whatsapp) livreurData.traiteur_phone = t.whatsapp;
+  }catch(e){}
   chargerDonnees();
   // Auto-refresh toutes les 30s
   setInterval(chargerDonnees, 30000);
@@ -298,15 +348,22 @@ function renderLivraisonCard(l){
     </div>
     <div class="card-client">👤 ${l.client_nom || l.client_phone || 'Client'}</div>
     <div class="card-adresse">📍 ${l.adresse || 'Adresse à confirmer'}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="card-montant">${Number(l.montant||0).toLocaleString('fr-FR')} FCFA</div>
-      <div class="card-heure">🕐 ${heure}</div>
+    <!-- Montant bien visible -->
+    <div style="background:linear-gradient(135deg,var(--b),#5a0f0f);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px">💰 À encaisser</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-1px">${Number(l.montant||0).toLocaleString('fr-FR')} F</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:rgba(255,255,255,.7)">🕐 ${heure}</div>
+      </div>
     </div>
     <div class="card-actions">
       ${!isEnRoute ? `<button class="btn-action btn-partir" onclick="partirEnLivraison(${l.id}, ${l.commande_id||'null'})">🛵 Je pars !</button>` : ''}
-      <button class="btn-action btn-livrer" onclick="marquerLivre(${l.id})">✅ Livré</button>
-      ${l.client_phone ? `<button class="btn-action btn-appel" onclick="appelerClient('${l.client_phone}')">📞 Appel</button>` : ''}
+      <button class="btn-action btn-livrer" onclick="saisirCodeConfirmation(${l.id})">🔐 Code client</button>
+      ${l.client_phone ? `<button class="btn-action btn-appel" onclick="appelerClient('${l.client_phone}')">📞 Client</button>` : ''}
       <button class="btn-action btn-maps" onclick="ouvrirMaps('${adresseMaps}')">🗺️ Maps</button>
+      <button class="btn-action" style="background:var(--creme2);color:var(--texte);border:1px solid var(--border)" onclick="appelerTraiteur()">📞 Traiteur</button>
     </div>
   </div>`;
 }
@@ -326,7 +383,70 @@ async function partirEnLivraison(livraisonId, commandeId){
 let livraisonEnCours = null;
 function marquerLivre(livraisonId){
   livraisonEnCours = livraisonId;
+  document.getElementById('code-input').value = '';
+  document.getElementById('code-error').textContent = '';
+  document.getElementById('modal-code').style.display = 'flex';
+}
+
+async function validerCode(){
+  const code = document.getElementById('code-input').value;
+  if(!code || code.length < 4){ document.getElementById('code-error').textContent = 'Entrez le code à 4 chiffres'; return; }
+  try{
+    const r = await fetch(`${API}/api/livraisons/${livraisonEnCours}/confirmer-code`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({code})
+    });
+    const d = await r.json();
+    if(d.ok){
+      document.getElementById('modal-code').style.display = 'none';
+      arreterGPS();
+      chargerDonnees();
+    } else {
+      document.getElementById('code-error').textContent = '❌ Code incorrect — réessayez';
+      document.getElementById('code-input').value = '';
+    }
+  }catch(e){ document.getElementById('code-error').textContent = 'Erreur réseau'; }
+}
+
+async function pasDeCode(){
+  // Livraison sans code — confirmation directe
+  document.getElementById('modal-code').style.display = 'none';
   document.getElementById('modal-photo').style.display = 'flex';
+}
+
+function ouvrirNavigation(adresse){
+  // Essaie Waze d'abord, sinon Google Maps
+  const wazeUrl = `https://waze.com/ul?q=${adresse}&navigate=yes`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${adresse}`;
+  // Ouvre Waze si disponible, sinon Maps
+  window.open(wazeUrl, '_blank');
+}
+
+function appelerTraiteur(){
+  if(livreurData?.traiteur_id){
+    // Récupérer le numéro du traiteur
+    fetch(`${API}/api/traiteur/profil/${traiteurId}`).then(r=>r.json()).then(v=>{
+      if(v.whatsapp){ const p=v.whatsapp.replace(/\D/g,''); window.location.href='tel:+'+p; }
+      else { alert('Numéro traiteur non disponible'); }
+    });
+  }
+}
+
+async function signalerProbleme(livraisonId){
+  livraisonEnCours = livraisonId;
+  document.getElementById('modal-probleme').style.display = 'flex';
+}
+
+async function envoyerProbleme(type){
+  document.getElementById('modal-probleme').style.display = 'none';
+  try{
+    // Envoyer message au traiteur
+    await fetch(`${API}/api/messages`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ traiteur_id: traiteurId, livreur_id: LIVREUR_ID, expediteur:'livreur',
+        contenu: `⚠️ Problème livraison #${livraisonEnCours}: ${type}` })
+    });
+    alert('⚠️ Problème signalé au traiteur !');
+  }catch(e){}
 }
 
 function previewPhoto(){
@@ -533,6 +653,47 @@ function afficherTab(id, btn){
   });
   if(id === 'chat') chargerChat();
   if(id === 'historique') chargerHistorique();
+}
+
+// ── CODE CONFIRMATION ──
+let livraisonCodeId = null;
+
+function saisirCodeConfirmation(livraisonId){
+  livraisonCodeId = livraisonId;
+  document.getElementById('code-conf-input').value = '';
+  document.getElementById('code-conf-error').textContent = '';
+  document.getElementById('modal-code-conf').style.display = 'flex';
+}
+
+async function validerCodeConfirmation(){
+  const code = document.getElementById('code-conf-input').value.trim();
+  if(code.length < 4){ document.getElementById('code-conf-error').textContent = 'Code à 4 chiffres requis'; return; }
+  try{
+    const r = await fetch(`${API}/api/livraisons/${livraisonCodeId}/confirmer-code`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ code })
+    });
+    const d = await r.json();
+    if(d.ok){
+      document.getElementById('modal-code-conf').style.display = 'none';
+      arreterGPS();
+      chargerDonnees();
+      // Petit son de succès
+      jouerSon();
+    } else {
+      document.getElementById('code-conf-error').textContent = '❌ ' + (d.error || 'Code incorrect');
+      if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    }
+  }catch(e){ document.getElementById('code-conf-error').textContent = 'Erreur connexion'; }
+}
+
+// Appel traiteur direct
+function appelerTraiteur(){
+  if(livreurData?.traiteur_phone){
+    window.location.href = 'tel:+' + livreurData.traiteur_phone.replace(/\D/g,'');
+  } else {
+    alert('Numéro traiteur non disponible');
+  }
 }
 
 // ── GPS TEMPS RÉEL ──
