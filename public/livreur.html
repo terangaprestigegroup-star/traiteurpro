@@ -284,7 +284,7 @@ async function validerPin(){
   }
 }
 
-function initialiserApp(){
+async function initialiserApp(){
   document.getElementById('livreur-name').textContent = livreurData.nom;
   document.getElementById('livreur-info').textContent = (livreurData.transport||'Moto') + ' · ' + (livreurData.zone||'Dakar');
   const toggle = document.getElementById('dispo-toggle');
@@ -422,15 +422,7 @@ function ouvrirNavigation(adresse){
   window.open(wazeUrl, '_blank');
 }
 
-function appelerTraiteur(){
-  if(livreurData?.traiteur_id){
-    // Récupérer le numéro du traiteur
-    fetch(`${API}/api/traiteur/profil/${traiteurId}`).then(r=>r.json()).then(v=>{
-      if(v.whatsapp){ const p=v.whatsapp.replace(/\D/g,''); window.location.href='tel:+'+p; }
-      else { alert('Numéro traiteur non disponible'); }
-    });
-  }
-}
+// appelerTraiteur défini plus bas
 
 async function signalerProbleme(livraisonId){
   livraisonEnCours = livraisonId;
