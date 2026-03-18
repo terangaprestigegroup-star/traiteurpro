@@ -165,6 +165,9 @@ async function initDB() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -1242,6 +1245,32 @@ _${t?.nom_boutique}_`;
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// PUT position GPS livreur
+app.put('/api/livreur/:id/position', async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    await pool.query(
+      'UPDATE livreurs SET latitude=$1, longitude=$2, position_at=NOW() WHERE id=$3',
+      [latitude, longitude, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET positions livreurs actifs pour la carte (avec livraison en cours)
+app.get('/api/carte/livreurs', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT l.id, l.nom, l.transport, l.latitude, l.longitude, l.position_at, l.traiteur_id, l.merchant_id
+       FROM livreurs l
+       WHERE l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+       AND l.disponible = false
+       AND l.position_at > NOW() - INTERVAL '5 minutes'`
+    );
+    res.json(r.rows);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/carte', (req, res) => res.sendFile(path.join(__dirname, 'public', 'carte.html')));
 
 // API carte publique
@@ -1589,6 +1618,9 @@ app.get('/api/admin/migrate', async (req, res) => {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
@@ -1844,6 +1876,9 @@ async function initAbonnements() {
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS zone TEXT;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS disponible BOOLEAN DEFAULT true;
     ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS pin VARCHAR(10) DEFAULT '1234';
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
+    ALTER TABLE livreurs ADD COLUMN IF NOT EXISTS position_at TIMESTAMP;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS traiteur_id INTEGER;
     ALTER TABLE livraisons ADD COLUMN IF NOT EXISTS montant INTEGER DEFAULT 0;
     -- Renommer merchant_id en traiteur_id dans livreurs si nécessaire
