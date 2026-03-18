@@ -157,6 +157,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
   <!-- KPIs -->
   <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-val" id="k-livreurs">—</div><div class="kpi-label">🚚 Livreurs</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-avis">—</div><div class="kpi-label">⭐ Avis</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-evenements">—</div><div class="kpi-label">📅 Événements</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-revenus-reel">—</div><div class="kpi-label">💰 CA réel/mois</div></div>
     <div class="kpi rouge"><div class="kpi-val" id="k-traiteurs">—</div><div class="kpi-lbl">🍽️ Traiteurs</div></div>
     <div class="kpi or"><div class="kpi-val" id="k-revenus">—</div><div class="kpi-lbl">💰 Revenus/mois</div></div>
     <div class="kpi vert"><div class="kpi-val" id="k-commandes">—</div><div class="kpi-lbl">📋 Commandes</div></div>
@@ -312,6 +316,11 @@ async function chargerStats() {
     document.getElementById('k-commandes').textContent = d.commandes || 0;
     document.getElementById('k-clients').textContent = d.clients || 0;
     document.getElementById('nav-actifs').textContent = (d.actifs || 0) + ' actifs';
+    // Nouveaux stats
+    if(document.getElementById('k-livreurs')) document.getElementById('k-livreurs').textContent = d.livreurs || 0;
+    if(document.getElementById('k-avis')) document.getElementById('k-avis').textContent = d.avis || 0;
+    if(document.getElementById('k-evenements')) document.getElementById('k-evenements').textContent = d.evenements || 0;
+    if(document.getElementById('k-revenus-reel')) document.getElementById('k-revenus-reel').textContent = Number(d.revenus_mois||0).toLocaleString('fr-FR') + ' FCFA';
 
     const revStarter = (d.plans?.starter || 0) * 15000;
     const revPro = (d.plans?.pro || 0) * 35000;
@@ -324,6 +333,7 @@ async function chargerStats() {
     document.getElementById('rev-starter').textContent = revStarter.toLocaleString('fr-FR') + ' FCFA';
     document.getElementById('rev-pro').textContent = revPro.toLocaleString('fr-FR') + ' FCFA';
     document.getElementById('rev-total').textContent = 'Total : ' + revTotal.toLocaleString('fr-FR') + ' FCFA/mois';
+    if(document.getElementById('k-revenus-reel')) document.getElementById('k-revenus-reel').textContent = Number(d.revenus_mois||0).toLocaleString('fr-FR') + ' FCFA';
   } catch(e) { console.error(e); }
 }
 
