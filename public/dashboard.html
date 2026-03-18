@@ -1055,25 +1055,45 @@ async function chargerLivreurs(){
       el.innerHTML=`<div class="empty-state"><div class="empty-emoji">🚚</div><div class="empty-title">Aucun livreur enregistré</div><div class="empty-sub">Enregistrez vos livreurs pour leur attribuer des commandes et suivre les livraisons.</div><button class="btn-empty" onclick="afficherModalLivreur()">🚚 Nouveau livreur</button></div>`;
       return;
     }
-    el.innerHTML=livreurs.map(l=>`
-      <div class="livreur-card">
-        <div class="livreur-avatar">🚚</div>
-        <div class="livreur-info">
-          <div class="livreur-nom">${l.nom}</div>
-          <div class="livreur-phone">📱 ${l.telephone} · ${l.transport||'Moto'}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">📍 ${l.zone||'Zone non définie'}</div>
-          <div style="font-size:11px;color:var(--bordeaux);margin-top:3px;font-weight:600">📦 ${l.nb_livraisons||0} livraison(s) · ✅ ${l.nb_livrees||0} terminée(s)</div>
+    el.innerHTML=livreurs.map(l=>{
+      const taux = l.nb_livraisons>0 ? Math.round((l.nb_livrees/l.nb_livraisons)*100) : 0;
+      const isOccupe = !l.disponible;
+      return `<div style="background:var(--card);border:1.5px solid ${isOccupe?'rgba(107,39,55,0.2)':'var(--border)'};border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(107,39,55,0.06);transition:all 0.2s">
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+          <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--b),var(--b2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${l.transport==='🚗 Voiture'||l.transport==='Voiture'?'🚗':l.transport==='Vélo'?'🚲':'🏍️'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:2px">${l.nom}</div>
+            <div style="font-size:11px;color:var(--texte3)">📱 ${l.telephone||'—'} · ${l.zone||'Zone —'}</div>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${isOccupe?'rgba(192,57,43,0.1)':'rgba(42,107,79,0.1)'};color:${isOccupe?'var(--rouge)':'var(--vert)'};border:1px solid ${isOccupe?'rgba(192,57,43,0.2)':'rgba(42,107,79,0.2)'}">
+            ${isOccupe?'🔴 Occupé':'🟢 Dispo'}
+          </span>
         </div>
-        <div>
-          <span class="${l.disponible?'dispo-oui':'dispo-non'}">${l.disponible?'✅ Dispo':'🔴 Occupé'}</span>
-          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
-            <button class="menu-btn" onclick="toggleLivreurDispo(${l.id},${l.disponible})">${l.disponible?'🟢 Dispo':'🔴 Occupé'}</button>
-            <button class="menu-btn" onclick="voirHistorique(${l.id},'${l.nom}')">📊 Stats</button>
-            <button class="menu-btn" style="color:#2D6A4F;font-weight:700" onclick="envoyerLienLivreur(${l.id},'${l.nom.trim()}',${l.telephone?`'`+l.telephone+`'`:'null'})">📲 Lien</button>
-            <button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${l.id})">🗑️</button>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div style="background:var(--bg2);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte)">${l.nb_livraisons||0}</div>
+            <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">Total</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--vert)">${l.nb_livrees||0}</div>
+            <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">Livrées</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--or)">${taux}%</div>
+            <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">Taux</div>
           </div>
         </div>
-      </div>`).join('');
+        <div style="height:4px;background:var(--bg3);border-radius:4px;margin-bottom:12px">
+          <div style="height:4px;background:linear-gradient(90deg,var(--b),var(--or));border-radius:4px;width:${taux}%;transition:width .5s"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="toggleLivreurDispo(${l.id},${l.disponible})" style="flex:1;min-width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;cursor:pointer;color:var(--texte2);font-family:'Inter',sans-serif;transition:.2s">${isOccupe?'✅ Libérer':'⏸ Occuper'}</button>
+          <button onclick="voirHistorique(${l.id},'${l.nom}')" style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;cursor:pointer;color:var(--texte2);font-family:'Inter',sans-serif">📊</button>
+          <button onclick="envoyerLienLivreur(${l.id},'${l.nom.trim()}',${l.telephone?`'`+l.telephone+`'`:'null'})" style="padding:8px 12px;border-radius:8px;border:1.5px solid rgba(42,107,79,0.3);background:rgba(42,107,79,0.06);font-size:11px;font-weight:700;cursor:pointer;color:var(--vert);font-family:'Inter',sans-serif">📲</button>
+          <button onclick="supprimerLivreur(${l.id})" style="padding:8px 12px;border-radius:8px;border:1.5px solid rgba(192,57,43,0.2);background:rgba(192,57,43,0.05);font-size:11px;cursor:pointer;color:var(--rouge);font-family:'Inter',sans-serif">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
   } catch(e){ el.innerHTML='<div style="color:#888;padding:20px;text-align:center">Erreur de chargement</div>'; }
 }
 
