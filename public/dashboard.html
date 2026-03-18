@@ -357,10 +357,25 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 
 <!-- CLIENTS -->
 <div id="tab-clients" class="tab-content">
-  <div class="page-header"><h1>👥 Mes Clients</h1><p>Clients WhatsApp fidèles</p>
-    <div class="header-actions"><button class="btn-header" onclick="envoyerRelances()">📲 Relancer inactifs</button></div>
+  <div style="display:flex;gap:6px;margin-bottom:14px;background:#fff;padding:6px;border-radius:12px;border:1px solid var(--border)">
+    <button class="nav-tab-sm active" onclick="afficherSousTabClients('liste',this)">👥 Clients</button>
+    <button class="nav-tab-sm" onclick="afficherSousTabClients('avis',this)">⭐ Avis</button>
   </div>
-  <div class="section" style="padding-top:14px"><div id="clients-liste"></div></div>
+  <div id="sous-tab-clients-liste">
+    <div class="page-header"><h1>👥 Mes Clients</h1><p>Clients WhatsApp fidèles</p>
+      <div class="header-actions"><button class="btn-header" onclick="envoyerRelances()">📲 Relancer inactifs</button></div>
+    </div>
+    <div class="section" style="padding-top:14px"><div id="clients-liste"></div></div>
+  </div>
+  <div id="sous-tab-clients-avis" style="display:none">
+    <div class="page-header"><h1>⭐ Avis Clients</h1><p>Ce que disent vos clients</p>
+      <div class="header-actions">
+        <button class="btn-header" onclick="demanderAvis()">📲 Demander avis</button>
+        <button class="btn-header" onclick="ajouterAvisManuel()">+ Ajouter un avis</button>
+      </div>
+    </div>
+    <div class="section" style="padding-top:14px"><div id="avis-liste"></div></div>
+  </div>
 </div>
 
 <!-- LIVREURS -->
@@ -429,51 +444,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
 
 <!-- AVIS -->
-  </div><!-- end sous-tab-clients-liste -->
-  <div id="sous-tab-clients-avis" style="display:none">
-  <div class="page-header"><h1>⭐ Avis Clients</h1><p>Ce que disent vos clients</p>
-    <div class="header-actions">
-      <button class="btn-header" onclick="demanderAvis()">📲 Demander avis</button>
-      <button class="btn-header" onclick="ajouterAvisManuel()">+ Ajouter un avis</button>
-    </div>
-  </div>
-  <div class="section" style="padding-top:14px"><div id="avis-liste"></div></div>
-</div>
 
-<!-- TAB PARAMETRES -->
-<div id="tab-agenda" class="tab-content">
-  <div class="page-header">
-    <h1>📅 Agenda</h1>
-    <p>Planifiez mariages, baptêmes, livraisons</p>
-    <button class="btn-header" onclick="afficherModalEvenement()">+ Nouvel événement</button>
-  </div>
-
-  <!-- Mini calendrier -->
-  <div class="section" style="margin-bottom:14px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <button onclick="changerMois(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--texte2)">◀</button>
-      <div id="cal-titre" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--texte)"></div>
-      <button onclick="changerMois(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--texte2)">▶</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px">
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Lun</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mar</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mer</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Jeu</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Ven</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Sam</div>
-      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Dim</div>
-    </div>
-    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
-  </div>
-
-  <!-- Liste événements du mois -->
-  <div class="section">
-    <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Événements du mois</div>
-    <div id="agenda-liste"></div>
-  </div>
-  </div><!-- end sous-tab-clients-avis -->
-</div><!-- end tab-clients -->
 
 <!-- MODAL EVENEMENT -->
 <div class="modal-overlay" id="modal-evenement">
