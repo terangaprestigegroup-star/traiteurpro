@@ -267,7 +267,6 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <button class="nav-tab" onclick="afficherTab('clients',this)"><span>👥</span>Clients</button>
     <button class="nav-tab" onclick="afficherTab('livreurs',this)"><span>🚚</span>Livreurs</button>
     <button class="nav-tab" onclick="afficherTab('finance',this)"><span>💰</span>Finance</button>
-    <button class="nav-tab" onclick="afficherTab('avis',this)"><span>⭐</span>Avis</button>
     <button class="nav-tab" onclick="afficherTab('agenda',this)"><span>📅</span>Agenda</button>
     <button class="nav-tab" onclick="afficherTab('parametres',this)"><span>⚙️</span>Paramètres</button>
   </div>
@@ -287,6 +286,7 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <p id="last-update">Synchronisation en cours…</p>
     <div class="header-actions">
     <button class="btn-header" onclick="voirMenuPublic()">🌐 Mon menu</button>
+    <button class="btn-header" onclick="window.open('/carte','_blank')">🗺️ Carte</button>
     <button class="btn-header" onclick="voirQRCode()">📱 QR Code</button>
     <button class="btn-header" id="btn-push" onclick="activerPush()">🔔 Notifs</button>
       <button class="btn-header" onclick="chargerDashboard();this.textContent='⏳';setTimeout(()=>this.textContent='🔄 Actualiser',2000)">🔄 Actualiser</button>
@@ -371,12 +371,10 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
   <!-- Sous-onglets -->
   <div style="display:flex;gap:6px;margin:0 0 14px;background:#fff;padding:6px;border-radius:12px;border:1px solid var(--border)">
     <button class="nav-tab-sm active" onclick="afficherSousTabLivreur('liste',this)">👥 Équipe</button>
-    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('stats',this)">📊 Performances</button>
     <button class="nav-tab-sm" onclick="afficherSousTabLivreur('planning',this)">🗓️ Planning</button>
     <button class="nav-tab-sm" onclick="afficherSousTabLivreur('chat',this)">💬 Chat <span id="badge-chat-dash" style="display:none;background:#c0392b;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span></button>
   </div>
   <div id="sous-tab-liste"><div class="section" style="padding-top:4px"><div id="livreurs-liste"></div></div></div>
-  <div id="sous-tab-stats" style="display:none"><div id="livreurs-stats"></div></div>
   <div id="sous-tab-planning" style="display:none"><div id="livreurs-planning"></div></div>
   <div id="sous-tab-chat" style="display:none">
     <div id="chat-livreur-select" style="margin-bottom:12px"></div>
@@ -431,7 +429,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
 </div>
 
 <!-- AVIS -->
-<div id="tab-avis" class="tab-content">
+  </div><!-- end sous-tab-clients-liste -->
+  <div id="sous-tab-clients-avis" style="display:none">
   <div class="page-header"><h1>⭐ Avis Clients</h1><p>Ce que disent vos clients</p>
     <div class="header-actions">
       <button class="btn-header" onclick="demanderAvis()">📲 Demander avis</button>
@@ -473,7 +472,8 @@ body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--texte);min-h
     <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Événements du mois</div>
     <div id="agenda-liste"></div>
   </div>
-</div>
+  </div><!-- end sous-tab-clients-avis -->
+</div><!-- end tab-clients -->
 
 <!-- MODAL EVENEMENT -->
 <div class="modal-overlay" id="modal-evenement">
@@ -793,8 +793,8 @@ function afficherTab(tab,btn){
   if(btn)btn.classList.add('active');
   if(tab==='commandes')chargerCommandes('tous');
   if(tab==='menus')chargerMenus();
-  if(tab==='clients')chargerClients();
-  if(tab==='livreurs')chargerLivreurs();
+  if(tab==='clients'){chargerClients();}
+  if(tab==='livreurs'){chargerLivreurs();}
   if(tab==='finance')chargerBilan();
   if(tab==='avis')chargerAvis();
 }
@@ -876,18 +876,25 @@ async function supprimerMenu(id){if(!confirm('Supprimer ce plat définitivement 
 async function afficherModalCommande(){const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');document.getElementById('modal-commande').classList.add('open')}
 async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes:document.getElementById('cmd-notes').value+(document.getElementById('cmd-evenement-id').value?' [EV#'+document.getElementById('cmd-evenement-id').value+']':'')})});const d=await r.json();if(d.ok){document.getElementById('cmd-evenement-id').value='';document.querySelector('#modal-commande .modal-title').textContent='📋 Nouvelle commande';fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard();if(window._afterCmdSave){window._afterCmdSave();window._afterCmdSave=null;}}}catch(e){alert('Erreur')}}
 
+function afficherSousTabClients(id, btn){
+  document.querySelectorAll('#tab-clients .nav-tab-sm').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sous-tab-clients-liste').style.display = id==='liste' ? 'block' : 'none';
+  document.getElementById('sous-tab-clients-avis').style.display = id==='avis' ? 'block' : 'none';
+  if(id==='avis') chargerAvis();
+}
+
 async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
 
 // ── LIVREURS (DB) ──
 function afficherSousTabLivreur(id, btn){
-  document.querySelectorAll('.nav-tab-sm').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#tab-livreurs .nav-tab-sm').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['liste','stats','planning','chat'].forEach(t=>{
+  ['liste','planning','chat'].forEach(t=>{
     const el = document.getElementById('sous-tab-'+t);
     if(el) el.style.display = t===id ? 'block' : 'none';
   });
-  if(id==='stats') chargerStatsLivreurs();
   if(id==='planning') chargerPlanningLivreurs();
   if(id==='chat') chargerSelectLivreurChat();
 }
@@ -1060,7 +1067,7 @@ async function chargerLivreurs(){
         <div>
           <span class="${l.disponible?'dispo-oui':'dispo-non'}">${l.disponible?'✅ Dispo':'🔴 Occupé'}</span>
           <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
-            <button class="menu-btn" onclick="toggleLivreurDispo(${l.id},${l.disponible})">${l.disponible?'Occuper':'Libérer'}</button>
+            <button class="menu-btn" onclick="toggleLivreurDispo(${l.id},${l.disponible})">${l.disponible?'🟢 Dispo':'🔴 Occupé'}</button>
             <button class="menu-btn" onclick="voirHistorique(${l.id},'${l.nom}')">📊 Stats</button>
             <button class="menu-btn" style="color:#2D6A4F;font-weight:700" onclick="envoyerLienLivreur(${l.id},'${l.nom.trim()}',${l.telephone?`'`+l.telephone+`'`:'null'})">📲 Lien</button>
             <button class="menu-btn" style="color:#c0392b" onclick="supprimerLivreur(${l.id})">🗑️</button>
