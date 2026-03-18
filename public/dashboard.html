@@ -1094,7 +1094,7 @@ async function toggleLivreurDispo(id,actuel){
 }
 
 function envoyerLienLivreur(id, nom, telephone){
-  const lien = `https://traiteurpro-production.up.railway.app/livreur?id=${id}`;
+  const lien = `https://traiteurpro-production.up.railway.app/livreur?id=${id}&traiteur=${TRAITEUR_ID}`;
   const msg = `Bonjour ${nom} 👋\n\nVoici votre espace livreur TraiteurPro :\n${lien}\n\nPIN par défaut : 1234\n\nVous y trouverez vos livraisons en temps réel 🛵`;
   if(telephone){
     const phone = String(telephone).replace(/\D/g,'');
