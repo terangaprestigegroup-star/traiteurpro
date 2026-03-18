@@ -1681,10 +1681,11 @@ function demarrer(){
   try{
     const lastTab = localStorage.getItem('tp_tab_'+TRAITEUR_ID);
     if(lastTab && lastTab !== 'dashboard'){
-      const allBtns = document.querySelectorAll('.nav-tab');
-      let foundBtn = null;
-      allBtns.forEach(b=>{ if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+lastTab+"'")) foundBtn=b; });
-      setTimeout(()=>afficherTab(lastTab, foundBtn), 300);
+      setTimeout(()=>{
+        const allBtns = Array.from(document.querySelectorAll('.nav-tab'));
+        const foundBtn = allBtns.find(b => (b.getAttribute('onclick')||'').indexOf("'" + lastTab + "'") > -1);
+        if(foundBtn){ foundBtn.click(); }
+      }, 700);
     }
   }catch(e){}
 }
