@@ -611,6 +611,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
       <textarea class="form-input" id="p-desc" rows="3" placeholder="Décrivez votre cuisine, vos spécialités…" style="resize:none"></textarea>
     </div>
     <div class="form-group">
+      <label class="form-label">Type de cuisine</label>
+      <select class="form-select" id="p-cuisine">
+        <option value="sénégalaise">🍚 Sénégalaise</option>
+        <option value="grillade">🥩 Grillades</option>
+        <option value="cantine">🍱 Cantine</option>
+        <option value="patisserie">🎂 Pâtisserie</option>
+        <option value="boulangerie">🍞 Boulangerie</option>
+        <option value="africaine">🌍 Africaine</option>
+        <option value="internationale">🌐 Internationale</option>
+        <option value="evenement">🎊 Événements</option>
+        <option value="mixte">🍽️ Mixte</option>
+      </select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Zone de livraison</label>
       <input class="form-input" id="p-zone" placeholder="Ex : Dakar, Plateau, Médina, Almadies">
     </div>
@@ -735,6 +749,36 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
     <div class="form-group"><label class="form-label">Adresse livraison</label><input class="form-input" id="cmd-adresse" placeholder="Quartier, rue, point de repère"></div>
     <div class="form-group"><label class="form-label">Date livraison</label><input class="form-input" id="cmd-date" type="date"></div>
     <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="cmd-notes" placeholder="Instructions spéciales (ex : sans piment)"></div>
+    <!-- MODULE PÂTISSERIE -->
+    <div id="patisserie-fields" style="display:none;background:var(--or3);border:1px solid rgba(196,151,58,0.2);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--b);margin-bottom:12px">🎂 Options pâtisserie</div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Prénom sur le gâteau</label>
+        <input class="form-input" id="cmd-prenom-gateau" placeholder="Ex : Fatou, Joyeux anniversaire…">
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Saveur / parfum</label>
+        <select class="form-select" id="cmd-saveur">
+          <option value="">Choisir une saveur</option>
+          <option value="chocolat">🍫 Chocolat</option>
+          <option value="vanille">🍦 Vanille</option>
+          <option value="fraise">🍓 Fraise</option>
+          <option value="citron">🍋 Citron</option>
+          <option value="caramel">🍮 Caramel</option>
+          <option value="mangue">🥭 Mangue</option>
+          <option value="coco">🥥 Coco</option>
+          <option value="autre">Autre (préciser dans notes)</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Nombre de personnes</label>
+        <input class="form-input" id="cmd-nb-pers" type="number" min="1" placeholder="Ex : 20">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Acompte reçu (FCFA)</label>
+        <input class="form-input" id="cmd-acompte" type="number" min="0" placeholder="Ex : 10 000">
+      </div>
+    </div>
     <input type="hidden" id="cmd-evenement-id" value="">
     <button class="btn-submit" onclick="sauvegarderCommande()">✅ Créer commande</button>
     <button class="btn-cancel" onclick="fermerModal('modal-commande')">Annuler</button>
@@ -1069,8 +1113,31 @@ async function sauvegarderMenu(){const nom=document.getElementById('menu-nom').v
 async function toggleDispo(id,dispo){await fetch(`${API}/api/menus/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({disponible:dispo})});chargerMenus()}
 async function supprimerMenu(id){if(!confirm('Supprimer ce plat définitivement ?'))return;await fetch(`${API}/api/menus/${id}`,{method:'DELETE'});chargerMenus()}
 
-async function afficherModalCommande(){const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');document.getElementById('modal-commande').classList.add('open')}
-async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes:document.getElementById('cmd-notes').value+(document.getElementById('cmd-evenement-id').value?' [EV#'+document.getElementById('cmd-evenement-id').value+']':'')})});const d=await r.json();if(d.ok){document.getElementById('cmd-evenement-id').value='';document.querySelector('#modal-commande .modal-title').textContent='📋 Nouvelle commande';fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard();if(window._afterCmdSave){window._afterCmdSave();window._afterCmdSave=null;}}}catch(e){alert('Erreur')}}
+async function afficherModalCommande(){
+  try{
+    const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
+    const menus=await r.json();
+    document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');
+  }catch(e){}
+  // Afficher champs pâtisserie si type pâtisserie
+  const pFields = document.getElementById('patisserie-fields');
+  if(pFields) pFields.style.display = window.IS_PATISSERIE ? 'block' : 'none';
+  document.getElementById('modal-commande').classList.add('open');
+}
+async function sauvegarderCommande(){const phone=document.getElementById('cmd-phone').value;const sel=document.getElementById('cmd-plat');const opt=sel.options[sel.selectedIndex];const prix=parseInt(opt?.dataset?.prix||0);const qte=parseInt(document.getElementById('cmd-qte').value)||1;if(!phone){alert('Téléphone obligatoire');return}try{// Construire notes avec infos pâtisserie
+    let notes = document.getElementById('cmd-notes').value;
+    if(window.IS_PATISSERIE){
+      const prenom = document.getElementById('cmd-prenom-gateau')?.value;
+      const saveur = document.getElementById('cmd-saveur')?.value;
+      const nbPers = document.getElementById('cmd-nb-pers')?.value;
+      const acompte = document.getElementById('cmd-acompte')?.value;
+      if(prenom) notes += (notes?' · ':'') + '🎂 Prénom: '+prenom;
+      if(saveur) notes += (notes?' · ':'') + '🍫 Saveur: '+saveur;
+      if(nbPers) notes += (notes?' · ':'') + '👥 '+nbPers+' pers.';
+      if(acompte) notes += (notes?' · ':'') + '💰 Acompte: '+Number(acompte).toLocaleString('fr-FR')+' FCFA';
+    }
+    if(document.getElementById('cmd-evenement-id').value) notes += ' [EV#'+document.getElementById('cmd-evenement-id').value+']';
+    const r=await fetch(`${API}/api/commandes`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,client_phone:phone,client_nom:document.getElementById('cmd-nom').value,items:[{nom:opt?.text?.split('—')[0].trim(),quantite:qte,prix}],total:prix*qte,adresse_livraison:document.getElementById('cmd-adresse').value,date_livraison:document.getElementById('cmd-date').value||null,notes})});const d=await r.json();if(d.ok){document.getElementById('cmd-evenement-id').value='';document.querySelector('#modal-commande .modal-title').textContent='📋 Nouvelle commande';fermerModal('modal-commande');chargerCommandes('tous');chargerDashboard();if(window._afterCmdSave){window._afterCmdSave();window._afterCmdSave=null;}}}catch(e){alert('Erreur')}}
 
 function afficherSousTabClients(id, btn){
   document.querySelectorAll('#tab-clients .nav-tab-sm').forEach(b=>b.classList.remove('active'));
@@ -2062,6 +2129,18 @@ async function chargerProfil(){
     const planDisplay = document.getElementById('profil-plan-display');
     if(nomDisplay) nomDisplay.textContent = d.nom_boutique||'Ma boutique';
     if(planDisplay) planDisplay.textContent = (d.plan||'gratuit').toUpperCase() + ' · ' + (d.ville||'Dakar');
+    // Activer module pâtisserie si type_cuisine contient pâtisserie/boulangerie
+    const typeCuisine = (d.type_cuisine||'').toLowerCase();
+    const isPatisserie = typeCuisine.includes('pâtisserie') || typeCuisine.includes('patisserie') || typeCuisine.includes('boulangerie') || typeCuisine.includes('dessert');
+    window.IS_PATISSERIE = isPatisserie;
+    // Ajouter option dans select type_cuisine si pas déjà là
+    const cuiSelect = document.getElementById('p-cuisine');
+    if(cuiSelect && !cuiSelect.querySelector('[value="patisserie"]')){
+      const opt = document.createElement('option');
+      opt.value = 'patisserie';
+      opt.textContent = '🎂 Pâtisserie';
+      cuiSelect.appendChild(opt);
+    }
     document.getElementById('p-desc').value=d.description||'';
     document.getElementById('p-zone').value=d.zone_livraison||'';
     document.getElementById('p-site').value=d.site_web||'';
@@ -2122,6 +2201,7 @@ async function sauvegarderProfil(){
       body:JSON.stringify({
         nom_boutique:document.getElementById('p-nom').value,
         description:document.getElementById('p-desc').value,
+        type_cuisine:document.getElementById('p-cuisine')?.value||'',
         zone_livraison:document.getElementById('p-zone').value,
         site_web:document.getElementById('p-site').value,
         facebook:document.getElementById('p-facebook').value,
