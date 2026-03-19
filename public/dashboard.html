@@ -2139,6 +2139,10 @@ async function chargerProfil(){
     const r=await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
     const d=await r.json();
     document.getElementById('p-nom').value=d.nom_boutique||'';
+    if(document.getElementById('p-cuisine')) document.getElementById('p-cuisine').value=d.type_cuisine||'sénégalaise';
+    // Set global patisserie flag
+    const tc=(d.type_cuisine||'').toLowerCase();
+    window.IS_PATISSERIE=tc.includes('patisserie')||tc.includes('p\u00e2tisserie')||tc.includes('boulangerie');
     // Update display card
     const nomDisplay = document.getElementById('profil-nom-display');
     const planDisplay = document.getElementById('profil-plan-display');
