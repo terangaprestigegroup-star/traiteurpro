@@ -924,20 +924,21 @@ app.get('/api/livreurs/:id/historique', async (req, res) => {
 // ============================================
 app.put('/api/traiteur/profil/:id', async (req, res) => {
   try {
-    const { nom_boutique, description, zone_livraison, facebook, instagram, tiktok, youtube, site_web } = req.body;
+    const { nom_boutique, description, zone_livraison, type_cuisine, facebook, instagram, tiktok, youtube, site_web } = req.body;
     await pool.query(
       `UPDATE traiteurs SET
         nom_boutique=COALESCE($1,nom_boutique),
         description=COALESCE($2,description),
         zone_livraison=COALESCE($3,zone_livraison),
-        facebook=COALESCE($4,facebook),
-        instagram=COALESCE($5,instagram),
-        tiktok=COALESCE($6,tiktok),
-        youtube=COALESCE($7,youtube),
-        site_web=COALESCE($8,site_web)
-      WHERE id=$9`,
+        type_cuisine=COALESCE($4,type_cuisine),
+        facebook=COALESCE($5,facebook),
+        instagram=COALESCE($6,instagram),
+        tiktok=COALESCE($7,tiktok),
+        youtube=COALESCE($8,youtube),
+        site_web=COALESCE($9,site_web)
+      WHERE id=$10`,
       [nom_boutique||null, description||null, zone_livraison||null,
-       facebook||null, instagram||null, tiktok||null, youtube||null, site_web||null,
+       type_cuisine||null, facebook||null, instagram||null, tiktok||null, youtube||null, site_web||null,
        req.params.id]
     );
     res.json({ ok: true });
