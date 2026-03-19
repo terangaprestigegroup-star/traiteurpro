@@ -13,7 +13,7 @@
   /* LOGIN */
   #login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--b) 0%,#5a0f0f 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
   .login-box{background:#fff;border-radius:20px;padding:32px 24px;max-width:340px;width:100%;text-align:center;}
-  .login-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--b);margin-bottom:4px;}
+  .login-logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--b);margin-bottom:4px;}
   .login-sub{font-size:12px;color:var(--texte3);margin-bottom:24px;}
   .login-title{font-size:15px;font-weight:700;color:var(--texte);margin-bottom:16px;}
   .pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:20px;}
@@ -27,7 +27,7 @@
   /* HEADER */
   .header{background:linear-gradient(135deg,var(--b) 0%,#5a0f0f 100%);padding:16px 20px;color:#fff;}
   .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .header-logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;opacity:.9;}
+  .header-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;opacity:.9;}
   .livreur-name{font-size:20px;font-weight:900;letter-spacing:-.5px;}
   .livreur-info{font-size:12px;opacity:.8;margin-top:2px;}
   .dispo-toggle{display:flex;align-items:center;gap:8px;}
@@ -59,7 +59,7 @@
   .s-livree{background:rgba(45,106,79,.1);color:var(--vert);}
   .card-client{font-size:16px;font-weight:700;color:var(--texte);margin-bottom:4px;}
   .card-adresse{font-size:12px;color:var(--texte2);margin-bottom:8px;line-height:1.5;}
-  .card-montant{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--b);margin-bottom:12px;}
+  .card-montant{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--b);margin-bottom:12px;}
   .card-heure{font-size:11px;color:var(--texte3);}
   .card-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .btn-action{flex:1;min-width:100px;padding:11px 8px;border-radius:10px;border:none;font-family:'Jost',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;}
@@ -72,7 +72,7 @@
   /* EMPTY */
   .empty-state{text-align:center;padding:40px 20px;}
   .empty-emoji{font-size:48px;margin-bottom:12px;}
-  .empty-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px;}
+  .empty-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px;}
   .empty-sub{font-size:13px;color:var(--texte3);}
 
   /* HISTORIQUE */
@@ -85,7 +85,7 @@
   .tab{flex:1;padding:8px 4px;border:none;background:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;color:var(--texte3);cursor:pointer;transition:.2s;}
   .tab.active{background:var(--b);color:#fff;}
 
-  :root{--serif:'Cormorant Garamond',serif}
+  :root{--serif:'Playfair Display',serif}
   .refresh-btn{width:100%;padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:12px;font-weight:700;color:var(--texte2);cursor:pointer;margin-bottom:16px;}
   .msg-livreur{background:var(--b);color:#fff;border-radius:12px 12px 4px 12px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;margin-left:auto;text-align:right}
   .msg-traiteur{background:var(--creme2);color:var(--texte);border-radius:12px 12px 12px 4px;padding:8px 12px;margin-bottom:8px;font-size:13px;max-width:80%;border:1px solid var(--border)}
@@ -130,10 +130,10 @@
 <div id="modal-code-conf" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center">
     <div style="font-size:36px;margin-bottom:8px">🔐</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
     <div style="font-size:13px;color:var(--texte2);margin-bottom:20px">Demandez le code 4 chiffres au client</div>
     <input type="number" id="code-conf-input" placeholder="Code à 4 chiffres" maxlength="4"
-      style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:28px;text-align:center;letter-spacing:8px;font-family:'Cormorant Garamond',serif;outline:none;margin-bottom:12px">
+      style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:28px;text-align:center;letter-spacing:8px;font-family:'Playfair Display',serif;outline:none;margin-bottom:12px">
     <div id="code-conf-error" style="color:var(--rouge);font-size:12px;min-height:18px;margin-bottom:8px"></div>
     <button onclick="validerCodeConfirmation()" style="width:100%;padding:14px;background:var(--vert);color:#fff;border:none;border-radius:12px;font-family:'Jost',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">✅ Valider et confirmer livraison</button>
     <button onclick="document.getElementById('modal-code-conf').style.display='none'" style="width:100%;padding:12px;background:var(--creme2);color:var(--texte2);border:1px solid var(--border);border-radius:12px;font-family:'Jost',sans-serif;font-size:13px;cursor:pointer">Annuler</button>
@@ -144,9 +144,9 @@
 <div id="modal-code" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:20px;padding:28px;width:100%;max-width:340px;text-align:center">
     <div style="font-size:40px;margin-bottom:12px">🔐</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--texte);margin-bottom:8px">Code de confirmation</div>
     <div style="font-size:13px;color:var(--texte2);margin-bottom:20px">Demandez le code reçu par WhatsApp au client</div>
-    <input id="code-input" type="number" maxlength="4" placeholder="0000" style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:32px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:8px;outline:none;margin-bottom:12px;color:var(--texte)">
+    <input id="code-input" type="number" maxlength="4" placeholder="0000" style="width:100%;padding:16px;border:2px solid var(--border);border-radius:12px;font-size:32px;text-align:center;font-family:'Playfair Display',serif;font-weight:700;letter-spacing:8px;outline:none;margin-bottom:12px;color:var(--texte)">
     <div id="code-error" style="color:var(--rouge);font-size:12px;margin-bottom:12px;min-height:18px"></div>
     <div style="display:flex;gap:8px">
       <button onclick="validerCode()" style="flex:1;background:var(--vert);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Jost',sans-serif;font-size:14px;font-weight:700;cursor:pointer">✅ Valider</button>
@@ -159,7 +159,7 @@
 <!-- MODAL PROBLEME -->
 <div id="modal-probleme" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin-bottom:16px">⚠️ Signaler un problème</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:16px">⚠️ Signaler un problème</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
       <button onclick="envoyerProbleme('Client absent')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">👤 Client absent</button>
       <button onclick="envoyerProbleme('Mauvaise adresse')" style="padding:12px;background:var(--creme2);border:1px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:left">📍 Mauvaise adresse</button>
@@ -173,7 +173,7 @@
 <!-- MODAL PHOTO PREUVE -->
 <div id="modal-photo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:340px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:16px">📸 Photo preuve</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:16px">📸 Photo preuve</div>
     <div style="font-size:12px;color:var(--texte2);margin-bottom:12px">Prenez une photo de la livraison pour confirmer</div>
     <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="previewPhoto()" style="margin-bottom:12px;font-size:12px">
     <img id="photo-preview-img" style="display:none;width:100%;border-radius:10px;margin-bottom:12px;max-height:200px;object-fit:cover">
@@ -188,7 +188,10 @@
   <!-- HEADER -->
   <div class="header">
     <div class="header-top">
-      <div class="header-logo">🛵 TraiteurPro</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div class="header-logo">🛵 TraiteurPro</div>
+        <a id="lien-dashboard" href="#" style="font-size:10px;color:rgba(255,255,255,.5);text-decoration:none;font-family:'Inter',sans-serif">← Dashboard traiteur</a>
+      </div>
       <div class="dispo-toggle">
         <span class="dispo-label" id="dispo-label">Disponible</span>
         <button class="toggle-sw on" id="dispo-toggle" onclick="toggleDispo()"></button>
@@ -286,6 +289,9 @@ async function validerPin(){
 
 async function initialiserApp(){
   document.getElementById('livreur-name').textContent = livreurData.nom;
+  // Lien retour dashboard
+  const lienDash = document.getElementById('lien-dashboard');
+  if(lienDash) lienDash.href = `/app?id=${traiteurId}`;
   document.getElementById('livreur-info').textContent = (livreurData.transport||'Moto') + ' · ' + (livreurData.zone||'Dakar');
   const toggle = document.getElementById('dispo-toggle');
   toggle.classList.toggle('on', livreurData.disponible);
