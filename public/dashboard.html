@@ -357,6 +357,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
     <div class="section-header"><div class="section-title">🕐 Nouvelles commandes</div></div>
     <div id="nouvelles-commandes"><div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div></div>
   </div>
+  <!-- GRAPHIQUE REVENUS 7 JOURS -->
+  <div class="section" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="section-title">📈 Revenus 7 derniers jours</div>
+      <div id="chart-total" style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--b)"></div>
+    </div>
+    <div id="revenue-chart" style="height:80px;display:flex;align-items:flex-end;gap:4px;padding:0 2px"></div>
+    <div id="revenue-chart-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
+  </div>
+
   <div class="section">
     <div class="section-header"><div class="section-title">🔥 Plats populaires</div></div>
     <div id="plats-top" style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">
@@ -920,6 +930,42 @@ function afficherSousTab(id,btn){
   if(id==='agenda')chargerAgenda();
 }
 
+function renderRevenueChart(commandes){
+  const chart = document.getElementById('revenue-chart');
+  const labels = document.getElementById('revenue-chart-labels');
+  if(!chart||!labels) return;
+  // Build last 7 days data
+  const days = [];
+  const now = new Date();
+  for(let i=6;i>=0;i--){
+    const d = new Date(now);
+    d.setDate(d.getDate()-i);
+    days.push({
+      label: d.toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,3),
+      date: d.toISOString().split('T')[0],
+      total: 0
+    });
+  }
+  commandes.forEach(c=>{
+    const date = c.created_at?.split('T')[0];
+    const day = days.find(d=>d.date===date);
+    if(day) day.total += Number(c.total||0);
+  });
+  const max = Math.max(...days.map(d=>d.total), 1);
+  const weekTotal = days.reduce((s,d)=>s+d.total,0);
+  const chartTotal = document.getElementById('chart-total');
+  if(chartTotal) chartTotal.textContent = weekTotal.toLocaleString('fr-FR')+' FCFA';
+  chart.innerHTML = days.map(day=>{
+    const pct = Math.max(4, Math.round((day.total/max)*100));
+    const isToday = day.date === new Date().toISOString().split('T')[0];
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="font-size:9px;color:var(--texte3);font-weight:600">${day.total>0?Math.round(day.total/1000)+'k':''}</div>
+      <div style="width:100%;height:${pct}%;background:${isToday?'linear-gradient(180deg,var(--b),var(--b2))':'linear-gradient(180deg,var(--or),var(--or2))'};border-radius:4px 4px 0 0;min-height:4px;transition:height .5s"></div>
+    </div>`;
+  }).join('');
+  labels.innerHTML = days.map(day=>`<div style="font-size:9px;color:var(--texte3);font-weight:600;text-align:center;flex:1">${day.label}</div>`).join('');
+}
+
 async function chargerDashboard(){
   try{
     const r=await fetch(`${API}/api/dashboard/${TRAITEUR_ID}`);
@@ -1023,25 +1069,96 @@ function afficherSousTabClients(id, btn){
   if(id==='avis') chargerAvis();
 }
 
-async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map((cl,i)=>{
-  const initiale=(cl.nom||cl.phone||'?')[0].toUpperCase();
-  const colors=['#6B2737','#2A6B4F','#C4973A','#3B5998','#8B2252'];
-  const bg=colors[i%colors.length];
-  return`<div class="client-card">
-    <div style="width:46px;height:46px;border-radius:14px;background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;flex-shrink:0">${initiale}</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">${cl.nom||cl.phone}</div>
-      <div style="font-size:11px;color:var(--texte3);margin-top:2px">📱 ${cl.phone} · ${cl.nb_commandes} commande(s)</div>
-      <div style="height:3px;background:var(--bg2);border-radius:3px;margin-top:6px"><div style="height:3px;background:linear-gradient(90deg,${bg},var(--or));border-radius:3px;width:${Math.min(100,cl.nb_commandes*20)}%"></div></div>
-    </div>
-    <div style="text-align:right;flex-shrink:0">
-      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--b)">${Number(cl.total_depense).toLocaleString('fr-FR')}</div>
-      <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">FCFA</div>
-      <a href="https://wa.me/${cl.phone}" target="_blank" style="font-size:10px;color:#25D366;font-weight:700;text-decoration:none;margin-top:4px;display:block">📲 WhatsApp</a>
-    </div>
-  </div>`;
-}).join('')}catch(e){console.error(e)}}
-async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
+async function chargerClients(){
+  try{
+    const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);
+    const clients=await r.json();
+    const el=document.getElementById('clients-liste');
+    if(!clients.length){
+      el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients apparaîtront ici après leur première commande WhatsApp.</div></div>`;
+      return;
+    }
+    // Sort by last order
+    clients.sort((a,b)=>new Date(b.derniere_commande||0)-new Date(a.derniere_commande||0));
+    const now = Date.now();
+    const colors=['#6B2737','#2A6B4F','#C4973A','#3B5998','#8B2252'];
+    el.innerHTML = clients.map((cl,i)=>{
+      const initiale=(cl.nom||cl.phone||'?')[0].toUpperCase();
+      const bg=colors[i%colors.length];
+      const joursInactif = cl.derniere_commande ? Math.floor((now-new Date(cl.derniere_commande))/86400000) : 999;
+      const isInactif = joursInactif > 7;
+      const lastDate = cl.derniere_commande ? new Date(cl.derniere_commande).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : 'jamais';
+      const tel = (cl.phone||'').replace(/\D/g,'');
+      const msgRelance = encodeURIComponent(`Bonjour ! 🍽️ Cela fait quelques jours qu'on ne vous a pas vu. Revenez commander chez nous — nous avons de nouveaux plats ! Répondez simplement "Menu" pour voir notre carte. 🇸🇳`);
+      return `<div class="client-card" style="flex-direction:column;align-items:stretch;gap:0">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <div style="width:46px;height:46px;border-radius:14px;background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;flex-shrink:0">${initiale}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">${cl.nom||cl.phone}</div>
+              ${isInactif?`<span style="background:rgba(192,57,43,0.1);color:var(--rouge);padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700">⚠️ Inactif ${joursInactif}j</span>`:`<span style="background:rgba(42,107,79,0.1);color:var(--vert);padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700">✅ Actif</span>`}
+            </div>
+            <div style="font-size:11px;color:var(--texte3);margin-top:2px">📱 ${cl.phone} · Dernière cmd : ${lastDate}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--b)">${Number(cl.total_depense).toLocaleString('fr-FR')}</div>
+            <div style="font-size:9px;color:var(--texte3);text-transform:uppercase">FCFA</div>
+          </div>
+        </div>
+        <div style="height:3px;background:var(--bg2);border-radius:3px;margin-bottom:10px"><div style="height:3px;background:linear-gradient(90deg,${bg},var(--or));border-radius:3px;width:${Math.min(100,cl.nb_commandes*20)}%"></div></div>
+        <div style="display:flex;gap:6px">
+          <a href="https://wa.me/${tel}" target="_blank" style="flex:1;padding:8px;border-radius:8px;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);color:#25D366;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📲 WhatsApp</a>
+          ${isInactif?`<a href="https://wa.me/${tel}?text=${msgRelance}" target="_blank" style="flex:2;padding:8px;border-radius:8px;background:rgba(107,39,55,0.08);border:1px solid var(--border2);color:var(--b);font-size:11px;font-weight:700;text-decoration:none;text-align:center">📣 Relancer</a>`:''}
+          <button onclick="voirHistoriqueClient('${cl.phone}','${(cl.nom||cl.phone).replace(/'/g,'')}')" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;cursor:pointer;color:var(--texte2);font-family:'Inter',sans-serif">📋 Historique</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){console.error(e)}
+}
+async function envoyerRelances(){
+  if(!confirm('Envoyer un message de relance aux clients inactifs depuis 7j ?')) return;
+  try{
+    const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent('Teranga2026!')}`);
+    const d=await r.json();
+    showToast('✅ '+( d.envoyes||0)+' relance(s) envoyée(s) !');
+  }catch(e){ showToast('❌ Erreur relances'); }
+}
+
+async function voirHistoriqueClient(phone, nom){
+  try{
+    const r = await fetch(`${API}/api/commandes/${TRAITEUR_ID}?phone=${encodeURIComponent(phone)}`);
+    const cmds = await r.json();
+    const filtered = cmds.filter(c=>c.client_phone===phone);
+    const total = filtered.reduce((s,c)=>s+Number(c.total),0);
+    // Show in modal
+    const modal = document.getElementById('modal-historique-livreur');
+    const title = document.getElementById('hist-livreur-nom');
+    const stats = document.getElementById('hist-stats');
+    const liste = document.getElementById('hist-liste');
+    if(title) title.textContent = nom;
+    if(stats) stats.innerHTML = `
+      <div style="background:var(--bg2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--texte)">${filtered.length}</div>
+        <div style="font-size:9px;color:var(--texte3);text-transform:uppercase">Commandes</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--b)">${total.toLocaleString('fr-FR')}</div>
+        <div style="font-size:9px;color:var(--texte3);text-transform:uppercase">FCFA total</div>
+      </div>`;
+    if(liste) liste.innerHTML = filtered.length ? filtered.slice(0,10).map(c=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--texte)">${c.reference||'#'+c.id}</div>
+          <div style="font-size:11px;color:var(--texte3)">${new Date(c.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:700;color:var(--b)">${Number(c.total).toLocaleString('fr-FR')} F</div>
+          <div style="font-size:10px;color:var(--texte3)">${c.statut}</div>
+        </div>
+      </div>`).join('') : '<div style="text-align:center;color:var(--texte3);padding:20px">Aucune commande trouvée</div>';
+    if(modal) modal.classList.add('open');
+  }catch(e){ console.error(e); }
+}
 
 // ── LIVREURS (DB) ──
 function afficherSousTabLivreur(id, btn){
@@ -1425,7 +1542,40 @@ async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TR
         <div style="height:6px;background:linear-gradient(90deg,var(--b),var(--or));border-radius:6px;width:${taux}%;transition:width .8s"></div>
       </div>
     </div>
-    <button class="btn-pdf" onclick="imprimerBilan()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte2);margin-top:4px">📄 Imprimer le bilan</button>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="imprimerBilan()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte2)">🖨️ Imprimer</button>
+      <button onclick="exporterBilanPDF()" style="flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--b),var(--b2));font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:#fff">📄 Export PDF</button>
+    </div>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
+function exporterBilanPDF(){
+  const content = document.getElementById('bilan-content');
+  if(!content){ alert('Chargez le bilan d'abord'); return; }
+  const mois = new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Bilan TraiteurPro — ${mois}</title>
+  <style>
+    body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:20px;color:#1C1208}
+    h1{font-size:24px;color:#6B2737;border-bottom:2px solid #C4973A;padding-bottom:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+    .kpi{background:#F7F3EE;border-radius:8px;padding:16px;text-align:center}
+    .kpi-val{font-size:28px;font-weight:700;color:#6B2737}
+    .kpi-lbl{font-size:11px;color:#9C8A75;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+    .total{background:#6B2737;color:#fff;border-radius:8px;padding:16px;text-align:center;margin-top:12px}
+    .footer{margin-top:30px;font-size:11px;color:#9C8A75;text-align:center;border-top:1px solid #DDD5C8;padding-top:12px}
+  </style></head><body>
+  <h1>📊 Bilan mensuel — ${mois}</h1>
+  ${content.innerHTML}
+  <div class="footer">TraiteurPro · Terangaprestige Group 🇸🇳 · Généré le ${new Date().toLocaleDateString('fr-FR')}</div>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bilan-traiteurpro-'+mois.replace(' ','-')+'.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📄 Bilan téléchargé !');
+}
+
 function imprimerBilan(){window.print()}
 
 async function chargerEchelonnes(){
