@@ -2119,6 +2119,15 @@ function previewPhoto(url){
   else{prev.style.display='none';}
 }
 
+async function chargerProfilSilencieux(){
+  try{
+    const r = await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
+    const d = await r.json();
+    const typeCuisine = (d.type_cuisine||'').toLowerCase();
+    window.IS_PATISSERIE = typeCuisine.includes('pâtisserie') || typeCuisine.includes('patisserie') || typeCuisine.includes('boulangerie') || typeCuisine.includes('dessert');
+  }catch(e){}
+}
+
 async function chargerProfil(){
   try{
     const r=await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
@@ -2223,6 +2232,8 @@ function demarrer(){
   setInterval(chargerDashboard,30000);
   setTimeout(chargerAgenda,500);
   setInterval(verifierMsgNonLus,30000);
+  // Charger profil au démarrage pour détecter type pâtisserie
+  setTimeout(chargerProfilSilencieux, 500);
   // Restaurer le dernier onglet actif
   try{
     const lastTab = localStorage.getItem('tp_tab_'+TRAITEUR_ID);
