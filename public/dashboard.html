@@ -1119,7 +1119,13 @@ async function afficherModalCommande(){
     const menus=await r.json();
     document.getElementById('cmd-plat').innerHTML=menus.map(m=>`<option value="${m.id}" data-prix="${m.prix}">${m.emoji} ${m.nom} — ${Number(m.prix).toLocaleString('fr-FR')} F</option>`).join('');
   }catch(e){}
-  // Afficher champs pâtisserie si type pâtisserie
+  // Vérifier type cuisine directement depuis API
+  try{
+    const rp = await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
+    const profil = await rp.json();
+    const type = (profil.type_cuisine||'').toLowerCase();
+    window.IS_PATISSERIE = type.includes('patisserie') || type.includes('p\u00e2tisserie') || type.includes('boulangerie') || type.includes('dessert');
+  }catch(e){}
   const pFields = document.getElementById('patisserie-fields');
   if(pFields) pFields.style.display = window.IS_PATISSERIE ? 'block' : 'none';
   document.getElementById('modal-commande').classList.add('open');
