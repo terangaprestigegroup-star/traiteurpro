@@ -422,6 +422,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
     <button class="nav-tab-sm active" onclick="afficherSousTabLivreur('liste',this)">👥 Équipe</button>
     <button class="nav-tab-sm" onclick="afficherSousTabLivreur('planning',this)">🗓️ Planning</button>
     <button class="nav-tab-sm" onclick="afficherSousTabLivreur('chat',this)">💬 Chat <span id="badge-chat-dash" style="display:none;background:#c0392b;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span></button>
+    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('carte',this)">🗺️ Carte</button>
+    <button class="nav-tab-sm" onclick="afficherSousTabLivreur('paie',this)">💰 Paie</button>
   </div>
   <div id="sous-tab-liste"><div class="section" style="padding-top:4px"><div id="livreurs-liste"></div></div></div>
   <div id="sous-tab-planning" style="display:none"><div id="livreurs-planning"></div></div>
@@ -432,6 +434,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
       <input id="chat-dash-input" class="form-input" placeholder="Message au livreur…" style="flex:1;min-height:48px;font-size:14px;padding:12px 16px;-webkit-appearance:none">
       <button onclick="envoyerMessageDash()" class="btn-submit" style="padding:12px 20px;font-size:18px;min-width:52px">➤</button>
     </div>
+  </div>
+</div>
+
+<!-- CARTE GPS LIVREURS -->
+<div id="sous-tab-carte" style="display:none">
+  <div class="section" style="padding:0;overflow:hidden">
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">📍 Livreurs en temps réel</div>
+      <button onclick="chargerCarteGPS()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;cursor:pointer;color:var(--texte2);font-family:'Inter',sans-serif">🔄 Actualiser</button>
+    </div>
+    <div id="carte-livreurs-list" style="padding:12px"></div>
+  </div>
+</div>
+
+<!-- COMMISSIONS / PAIE -->
+<div id="sous-tab-paie" style="display:none">
+  <div class="section">
+    <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--texte);margin-bottom:4px">💰 Calcul de paie</div>
+    <div style="font-size:11px;color:var(--texte3);margin-bottom:14px">Montant par livraison effectuée</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+      <div style="flex:1">
+        <label class="form-label">Tarif par livraison (FCFA)</label>
+        <input id="tarif-livraison" class="form-input" type="number" value="1000" placeholder="Ex: 1000">
+      </div>
+      <button onclick="calculerCommissions()" style="padding:12px 16px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:18px">Calculer</button>
+    </div>
+    <div id="commissions-liste"></div>
   </div>
 </div>
 
@@ -1024,6 +1053,8 @@ function afficherSousTabLivreur(id, btn){
   });
   if(id==='planning') chargerPlanningLivreurs();
   if(id==='chat') chargerSelectLivreurChat();
+  if(id==='carte') chargerCarteGPS();
+  if(id==='paie') calculerCommissions();
 }
 
 async function chargerStatsLivreurs(){
@@ -1077,6 +1108,60 @@ async function chargerStatsLivreurs(){
       }).join('')}
     `;
   }catch(e){ el.innerHTML='<div style="text-align:center;color:var(--rouge);padding:20px">Erreur</div>'; }
+}
+
+async function chargerCarteGPS(){
+  try{
+    const r = await fetch(`${API}/api/carte/livreurs`);
+    const livs = await r.json();
+    const el = document.getElementById('carte-livreurs-list');
+    if(!livs.length){
+      el.innerHTML='<div style="text-align:center;padding:30px;color:var(--texte3);font-size:13px">Aucun livreur avec GPS actif</div>';
+      return;
+    }
+    el.innerHTML = livs.map(l=>{
+      const ago = l.position_at ? Math.round((Date.now()-new Date(l.position_at))/60000) : null;
+      const actif = ago !== null && ago < 10;
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:${actif?'rgba(42,107,79,0.1)':'var(--bg2)'};display:flex;align-items:center;justify-content:center;font-size:20px">${l.transport==='Voiture'?'🚗':'🏍️'}</div>
+        <div style="flex:1">
+          <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">${l.nom}</div>
+          <div style="font-size:11px;color:${actif?'var(--vert)':'var(--texte3)'};margin-top:2px">${actif?'🟢 Actif il y a '+ago+' min':'⚫ Hors ligne'}</div>
+          ${l.latitude&&l.longitude?`<div style="font-size:10px;color:var(--texte3);margin-top:2px">📍 ${Number(l.latitude).toFixed(4)}, ${Number(l.longitude).toFixed(4)}</div>`:'<div style="font-size:10px;color:var(--texte3)">GPS non disponible</div>'}
+        </div>
+        ${l.latitude&&l.longitude?`<a href="https://www.google.com/maps/search/?api=1&query=${l.latitude},${l.longitude}" target="_blank" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(42,107,79,0.2);background:rgba(42,107,79,0.06);font-size:11px;font-weight:700;color:var(--vert);text-decoration:none">📍 Voir</a>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){ console.error('CarteGPS:', e); }
+}
+
+async function calculerCommissions(){
+  try{
+    const tarif = parseInt(document.getElementById('tarif-livraison')?.value)||1000;
+    const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
+    const livs = await r.json();
+    const el = document.getElementById('commissions-liste');
+    if(!livs.length){ el.innerHTML='<div style="text-align:center;color:var(--texte3);padding:20px">Aucun livreur</div>'; return; }
+    let totalPaie = 0;
+    el.innerHTML = livs.map(l=>{
+      const nb = l.nb_livrees||0;
+      const montant = nb * tarif;
+      totalPaie += montant;
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">${l.nom}</div>
+          <div style="font-size:11px;color:var(--texte3);margin-top:2px">${nb} livraison(s) × ${tarif.toLocaleString('fr-FR')} FCFA</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--b)">${montant.toLocaleString('fr-FR')}</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase">FCFA</div>
+        </div>
+      </div>`;
+    }).join('') + `<div style="background:linear-gradient(135deg,var(--b),var(--b2));border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:#fff">Total à payer</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--or2)">${totalPaie.toLocaleString('fr-FR')} FCFA</div>
+    </div>`;
+  }catch(e){ console.error('Commissions:', e); }
 }
 
 async function chargerPlanningLivreurs(){
