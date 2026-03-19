@@ -328,6 +328,7 @@ async function chargerLivraisons(){
       el.innerHTML = `<div class="empty-state">
         <div class="empty-emoji">✅</div>
         <div class="empty-title">Aucune livraison en attente</div>
+        <div class="empty-sub" style="font-size:12px;color:var(--texte3);margin-top:8px">Vous serez notifié dès qu'une livraison vous est assignée</div>
         <div class="empty-sub">Le traiteur vous assignera une livraison bientôt.</div>
       </div>`;
       return;
@@ -360,11 +361,14 @@ function renderLivraisonCard(l){
       </div>
     </div>
     <div class="card-actions">
-      ${!isEnRoute ? `<button class="btn-action btn-partir" onclick="partirEnLivraison(${l.id}, ${l.commande_id||0})">🛵 Je pars !</button>` : ''}
-      <button class="btn-action btn-livrer" onclick="saisirCodeConfirmation(${l.id})">🔐 Code client</button>
-      ${l.client_phone ? `<button class="btn-action btn-appel" onclick="appelerClient('${l.client_phone}')">📞 Client</button>` : ''}
-      <button class="btn-action btn-maps" onclick="ouvrirMaps('${adresseMaps}')">🗺️ Maps</button>
-      <button class="btn-action" style="background:var(--creme2);color:var(--texte);border:1px solid var(--border)" onclick="appelerTraiteur()">📞 Traiteur</button>
+      ${!isEnRoute ? `
+      <button class="btn-action btn-partir" onclick="partirEnLivraison(${l.id}, ${l.commande_id||0})" style="width:100%;font-size:15px;padding:14px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none">🛵 Je pars en livraison !</button>
+      ` : `
+      <button class="btn-action" onclick="saisirCodeConfirmation(${l.id})" style="flex:2;background:linear-gradient(135deg,var(--vert),#1a5c3a);color:#fff;border:none;font-size:13px;font-weight:700">✅ Confirmer livraison</button>
+      `}
+      <button class="btn-action btn-maps" onclick="ouvrirNavigation('${adresseMaps}')" style="flex:1;font-size:13px">🧭 GPS</button>
+      ${l.client_phone ? `<button class="btn-action btn-appel" onclick="appelerClient('${l.client_phone}')" style="flex:1;font-size:13px">📞</button>` : ''}
+      <button class="btn-action" onclick="signalerProbleme(${l.id})" style="flex:1;background:rgba(255,193,7,0.15);color:#856404;border:1px solid rgba(255,193,7,0.3);font-size:13px">⚠️</button>
     </div>
   </div>`;
 }
