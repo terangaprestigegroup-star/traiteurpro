@@ -481,6 +481,38 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 
 
 <!-- MODAL EVENEMENT -->
+<div id="tab-agenda" class="tab-content">
+  <div class="page-header"><h1>📅 Agenda</h1><p>Planifiez mariages, baptêmes, livraisons</p>
+    <div class="header-actions"><button class="btn-header" onclick="afficherModalEvenement()">+ Nouvel événement</button></div>
+  </div>
+
+  <!-- Mini calendrier -->
+  <div class="section" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button onclick="changerMois(-1)" style="width:36px;height:36px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:16px;color:var(--texte2);display:flex;align-items:center;justify-content:center">◀</button>
+      <div id="cal-titre" style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte)">Chargement…</div>
+      <button onclick="changerMois(1)" style="width:36px;height:36px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:16px;color:var(--texte2);display:flex;align-items:center;justify-content:center">▶</button>
+    </div>
+    <!-- Jours semaine -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Lun</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mar</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Mer</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Jeu</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Ven</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Sam</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texte3);padding:4px">Dim</div>
+    </div>
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+  </div>
+
+  <!-- Liste événements -->
+  <div class="section">
+    <div class="section-title">Événements du mois</div>
+    <div id="agenda-liste"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-evenement">
   <div class="modal">
     <div class="modal-title">📅 Nouvel événement</div>
