@@ -57,7 +57,7 @@ nav{background:rgba(247,243,238,0.95);backdrop-filter:blur(20px);border-bottom:1
 .feat-icon{width:48px;height:48px;border-radius:14px;background:var(--or3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid rgba(196,151,58,0.15)}
 .feat-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--texte);margin-bottom:6px}
 .feat-desc{font-size:12px;color:var(--texte3);line-height:1.6}
-.feat-new{display:inline-block;background:rgba(107,39,55,0.08);color:var(--b);padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-left:6px;text-transform:uppercase}
+.feat-new{display:inline-block;background:rgba(107,39,55,0.08);color:var(--b);padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:.5px;margin-left:4px;text-transform:uppercase;vertical-align:middle}
 
 /* POUR QUI */
 .qui-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -149,7 +149,7 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
     <div class="nav-logo">TP</div>
     <div class="nav-name">Traiteur<span>Pro</span></div>
   </div>
-  <button class="nav-cta" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Démarrer gratuit</button>
+  <button class="nav-cta" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Essai gratuit →</button>
 </nav>
 
 <!-- HERO -->
@@ -176,7 +176,7 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
   <div class="feat-grid">
     <div class="feat-card">
       <div class="feat-icon">🤖</div>
-      <div><div class="feat-title">Bot WhatsApp IA <span class="feat-new">IA</span></div><div class="feat-desc">Vos clients commandent sur WhatsApp. L'IA comprend, traite et confirme automatiquement 24h/24.</div></div>
+      <div><div class="feat-title">Bot WhatsApp IA &nbsp;<span class="feat-new">IA Groq</span></div><div class="feat-desc">Vos clients commandent sur WhatsApp. L'IA comprend, traite et confirme automatiquement 24h/24.</div></div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">📊</div>
@@ -184,11 +184,11 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
     </div>
     <div class="feat-card">
       <div class="feat-icon">🚚</div>
-      <div><div class="feat-title">Livreurs GPS <span class="feat-new">Nouveau</span></div><div class="feat-desc">Page dédiée pour vos livreurs. GPS temps réel, chat, confirmation par code client.</div></div>
+      <div><div class="feat-title">Livreurs GPS temps réel &nbsp;<span class="feat-new">Nouveau</span></div><div class="feat-desc">Page dédiée pour vos livreurs. GPS temps réel, chat, confirmation par code client.</div></div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">📅</div>
-      <div><div class="feat-title">Agenda événements <span class="feat-new">Nouveau</span></div><div class="feat-desc">Planifiez mariages, baptêmes et cérémonies. Liez chaque événement à une commande.</div></div>
+      <div><div class="feat-title">Agenda & Événements &nbsp;<span class="feat-new">Nouveau</span></div><div class="feat-desc">Planifiez mariages, baptêmes et cérémonies. Liez chaque événement à une commande.</div></div>
     </div>
     <div class="feat-card">
       <div class="feat-icon">📣</div>
@@ -237,12 +237,12 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
       <div class="price-val">0 <span style="font-size:14px;color:var(--texte3);font-family:'Inter',sans-serif;font-weight:400">FCFA</span></div>
       <div class="price-period">Pour toujours · 30 commandes/mois</div>
       <ul class="price-feats">
-        <li class="yes">30 commandes/mois</li>
-        <li class="yes">Bot WhatsApp IA</li>
+        <li class="yes">Dashboard complet</li>
+        <li class="yes">Gestion commandes</li>
         <li class="yes">Menu digital</li>
-        <li class="yes">Dashboard basique</li>
+        <li class="yes">Factures PDF</li>
+        <li class="no">Bot WhatsApp IA</li>
         <li class="no">Promotions flash</li>
-        <li class="no">Relances auto</li>
       </ul>
       <button class="price-btn price-btn-outline" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Démarrer gratuitement</button>
     </div>
@@ -250,13 +250,13 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
       <div class="price-featured-badge">⭐ RECOMMANDÉ</div>
       <div class="price-plan">🚀 Starter</div>
       <div class="price-val">15 000 <span style="font-size:14px;color:var(--texte3);font-family:'Inter',sans-serif;font-weight:400">FCFA</span></div>
-      <div class="price-period">Par mois · 500 commandes</div>
+      <div class="price-period">Par mois · <strong style="color:var(--vert)">Essai 14j gratuit</strong></div>
       <ul class="price-feats">
         <li class="yes">500 commandes/mois</li>
         <li class="yes">Bot WhatsApp IA</li>
-        <li class="yes">Menu complet + photos</li>
+        <li class="yes">Menu + photos + carte</li>
         <li class="yes">Promotions flash</li>
-        <li class="yes">Relances automatiques</li>
+        <li class="yes">Gestion livreurs</li>
         <li class="yes">Support WhatsApp</li>
       </ul>
       <button class="price-btn price-btn-primary" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Choisir Starter</button>
@@ -267,11 +267,11 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
       <div class="price-period">Par mois · Illimité</div>
       <ul class="price-feats">
         <li class="yes">Commandes illimitées</li>
-        <li class="yes">Multi-livreurs GPS</li>
-        <li class="yes">Agenda événements</li>
-        <li class="yes">Statistiques avancées</li>
-        <li class="yes">Paiement échelonné</li>
-        <li class="yes">Support 24h/24</li>
+        <li class="yes">Multi-livreurs GPS temps réel</li>
+        <li class="yes">Agenda mariages & événements</li>
+        <li class="yes">Chat livreur ↔ traiteur</li>
+        <li class="yes">Paiements échelonnés</li>
+        <li class="yes">Support prioritaire</li>
       </ul>
       <button class="price-btn price-btn-outline" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">Choisir Pro</button>
     </div>
@@ -304,7 +304,7 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
   <div style="margin-top:8px">
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Est-ce vraiment gratuit ? <span class="faq-arrow">▾</span></div>
-      <div class="faq-a">Oui, le plan gratuit est sans limite de durée. Vous payez seulement si vous dépassez 30 commandes/mois ou souhaitez des fonctionnalités avancées.</div>
+      <div class="faq-a">Oui ! L'inscription vous donne un essai Starter gratuit de 14 jours avec toutes les fonctionnalités. Après l'essai, vous pouvez continuer gratuitement avec le dashboard de base ou souscrire au plan Starter (15 000 FCFA/mois).</div>
     </div>
     <div class="faq-item" onclick="this.classList.toggle('open')">
       <div class="faq-q">Mes clients doivent télécharger une app ? <span class="faq-arrow">▾</span></div>
@@ -328,8 +328,8 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
 <!-- INSCRIPTION -->
 <section class="inscription" id="inscription">
   <div class="section-badge" style="background:rgba(196,151,58,0.1);color:var(--or2);border-color:rgba(196,151,58,0.2)">Inscription</div>
-  <h2 class="inscription-title">Créez votre espace<br>TraiteurPro</h2>
-  <p class="inscription-sub">Essai gratuit 14 jours · Sans carte bancaire · Actif en 5 min</p>
+  <h2 class="inscription-title">Démarrez en<br>5 minutes</h2>
+  <p class="inscription-sub">Essai Starter gratuit 14 jours · Sans carte bancaire · Actif en 5 min</p>
   <div id="insc-success" class="insc-success">
     <div style="font-size:40px;margin-bottom:10px">🎉</div>
     <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--or2);margin-bottom:6px">Bienvenue sur TraiteurPro !</div>
@@ -351,7 +351,7 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
     </select>
     <input class="insc-input" id="i-zone" placeholder="Zone de livraison (ex: Dakar, Plateau, Médina…)" type="text">
     <button class="insc-btn" onclick="sInscrire()">🍽️ Créer mon espace traiteur →</button>
-    <p style="font-size:11px;color:rgba(245,237,216,0.3);text-align:center;margin-top:12px">🔒 Sécurisé · ✅ Gratuit 14 jours · ⚡ Actif en 5 min</p>
+    <p style="font-size:11px;color:rgba(245,237,216,0.3);text-align:center;margin-top:12px">🔒 Sécurisé · ✅ Essai Starter 14 jours · ⚡ Actif en 5 min</p>
   </div>
 </section>
 
