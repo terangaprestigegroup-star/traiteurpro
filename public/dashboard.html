@@ -135,8 +135,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 .cat-badge{font-size:9px;background:rgba(139,26,26,0.07);color:var(--bordeaux);border:1px solid rgba(139,26,26,0.12);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px;font-weight:700;letter-spacing:0.3px}
 
 /* ── CLIENTS ── */
-.client-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:all 0.2s}
-.client-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:all 0.2s;box-shadow:0 1px 4px rgba(107,39,55,0.05)}
+.client-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(107,39,55,0.1);transform:translateY(-1px)}
 .client-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--b2));color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;font-family:'Playfair Display',serif;box-shadow:0 2px 8px rgba(139,26,26,0.2)}
 .client-info{flex:1}
 .client-phone{font-size:13px;font-weight:700;color:var(--texte)}
@@ -174,8 +174,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 .echelon-progress{background:var(--bg3);border-radius:10px;height:6px;margin-bottom:8px;overflow:hidden}
 .echelon-bar{background:linear-gradient(90deg,var(--bordeaux),var(--or));height:100%;border-radius:10px}
 .echelon-detail{font-size:11px;color:var(--texte2)}
-.bilan-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;transition:all 0.2s}
-.bilan-card:hover{box-shadow:var(--shadow)}
+.bilan-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(107,39,55,0.06);overflow:hidden;position:relative}
+.bilan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--b),var(--or))}
 .bilan-titre{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:14px;color:var(--bordeaux);letter-spacing:0.3px}
 .bilan-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--texte2)}
 .bilan-row.total{border-bottom:none;font-weight:700;font-size:15px;color:var(--texte);font-family:'Playfair Display',serif}
@@ -962,7 +962,24 @@ function afficherSousTabClients(id, btn){
   if(id==='avis') chargerAvis();
 }
 
-async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map(c=>`<div class="client-card"><div class="client-avatar">${(c.nom||c.phone)[0].toUpperCase()}</div><div class="client-info"><div class="client-phone">${c.nom||c.phone}</div><div class="client-stats">📱 ${c.phone} · ${c.nb_commandes} commande(s)</div></div><div class="client-total">${Number(c.total_depense).toLocaleString('fr-FR')} F</div></div>`).join('')}catch(e){console.error(e)}}
+async function chargerClients(){try{const r=await fetch(`${API}/api/clients/${TRAITEUR_ID}`);const clients=await r.json();const el=document.getElementById('clients-liste');if(!clients.length){el.innerHTML=`<div class="empty-state"><div class="empty-emoji">👥</div><div class="empty-title">Aucun client enregistré</div><div class="empty-sub">Vos clients s'afficheront ici dès leur première commande passée via WhatsApp.</div></div>`;return}el.innerHTML=clients.map((cl,i)=>{
+  const initiale=(cl.nom||cl.phone||'?')[0].toUpperCase();
+  const colors=['#6B2737','#2A6B4F','#C4973A','#3B5998','#8B2252'];
+  const bg=colors[i%colors.length];
+  return`<div class="client-card">
+    <div style="width:46px;height:46px;border-radius:14px;background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#fff;flex-shrink:0">${initiale}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)">${cl.nom||cl.phone}</div>
+      <div style="font-size:11px;color:var(--texte3);margin-top:2px">📱 ${cl.phone} · ${cl.nb_commandes} commande(s)</div>
+      <div style="height:3px;background:var(--bg2);border-radius:3px;margin-top:6px"><div style="height:3px;background:linear-gradient(90deg,${bg},var(--or));border-radius:3px;width:${Math.min(100,cl.nb_commandes*20)}%"></div></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--b)">${Number(cl.total_depense).toLocaleString('fr-FR')}</div>
+      <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">FCFA</div>
+      <a href="https://wa.me/${cl.phone}" target="_blank" style="font-size:10px;color:#25D366;font-weight:700;text-decoration:none;margin-top:4px;display:block">📲 WhatsApp</a>
+    </div>
+  </div>`;
+}).join('')}catch(e){console.error(e)}}
 async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?'))return;const secret=prompt('Secret admin :');try{const r=await fetch(`${API}/api/relances/${TRAITEUR_ID}?secret=${encodeURIComponent(secret)}`);const d=await r.json();alert(`✅ ${d.envoyes} relance(s) envoyée(s) !`)}catch(e){alert('Erreur')}}
 
 // ── LIVREURS (DB) ──
@@ -1255,7 +1272,43 @@ async function voirHistorique(id,nom){
   }catch(e){document.getElementById('hist-stats').innerHTML='<div style="color:#c0392b;padding:10px">Erreur de chargement</div>';}
 }
 
-async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TRAITEUR_ID}`);const cmds=await r.json();const now=new Date();const mc=cmds.filter(c=>{const d=new Date(c.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});const total=mc.reduce((s,c)=>s+Number(c.total),0);const livrees=mc.filter(c=>c.statut==='livré').length;const annulees=mc.filter(c=>c.statut==='annulé').length;const mois=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});document.getElementById('bilan-content').innerHTML=`<div class="bilan-card"><div class="bilan-titre">📊 Bilan — ${mois}</div><div class="bilan-row"><span>📋 Commandes totales</span><span>${mc.length}</span></div><div class="bilan-row"><span>✅ Commandes livrées</span><span>${livrees}</span></div><div class="bilan-row"><span>❌ Commandes annulées</span><span>${annulees}</span></div><div class="bilan-row"><span>👥 Clients uniques</span><span>${new Set(mc.map(c=>c.client_phone)).size}</span></div><div class="bilan-row total"><span>💰 Revenus du mois</span><span>${total.toLocaleString('fr-FR')} FCFA</span></div></div><button class="btn-pdf" onclick="imprimerBilan()">📄 Imprimer le bilan</button>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
+async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TRAITEUR_ID}`);const cmds=await r.json();const now=new Date();const mc=cmds.filter(c=>{const d=new Date(c.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});const total=mc.reduce((s,c)=>s+Number(c.total),0);const livrees=mc.filter(c=>c.statut==='livré').length;const annulees=mc.filter(c=>c.statut==='annulé').length;const mois=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});const uniq=new Set(mc.map(c=>c.client_phone)).size;
+    const taux=mc.length>0?Math.round((livrees/mc.length)*100):0;
+    document.getElementById('bilan-content').innerHTML=`
+    <div class="bilan-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px">Bilan mensuel</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-top:2px">${mois}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--b)">${total.toLocaleString('fr-FR')}</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px">FCFA revenus</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:var(--bg2);border-radius:12px;padding:12px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--texte)">${mc.length}</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Commandes</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:12px;padding:12px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--vert)">${livrees}</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Livrées</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:12px;padding:12px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--or)">${uniq}</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Clients uniques</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:12px;padding:12px">
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--b)">${taux}%</div>
+          <div style="font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Taux livraison</div>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--bg2);border-radius:6px">
+        <div style="height:6px;background:linear-gradient(90deg,var(--b),var(--or));border-radius:6px;width:${taux}%;transition:width .8s"></div>
+      </div>
+    </div>
+    <button class="btn-pdf" onclick="imprimerBilan()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--texte2);margin-top:4px">📄 Imprimer le bilan</button>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
 function imprimerBilan(){window.print()}
 
 async function chargerEchelonnes(){
