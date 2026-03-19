@@ -977,18 +977,29 @@ async function chargerDashboard(){
     document.getElementById('kpi-nouvelles').textContent=(nouvelles??0)+' nouvelles';
     document.getElementById('kpi-revenus').textContent=(revenus??0)>=1000000?((revenus/1000000).toFixed(1)+'M'):(revenus??0)>=1000?((revenus/1000).toFixed(0)+'k'):(revenus??0);
     document.getElementById('kpi-clients').textContent=clients??0;
+    // Fetch commandes pour graphique
+    try{
+      const rChart=await fetch(`${API}/api/commandes/${TRAITEUR_ID}`);
+      const allCmds=await rChart.json();
+      renderRevenueChart(Array.isArray(allCmds)?allCmds:[]);
+    }catch(e){renderRevenueChart([]);}
     const plat=d.plats_top?.[0];
     document.getElementById('kpi-plat').textContent=plat?(plat.nom||'—').replace(/^[^\w\s]+\s*/u,'').split(' ')[0]:'—';
     document.getElementById('last-update').textContent='Mis à jour à '+new Date().toLocaleTimeString('fr-FR');
-    const rM=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
-    const menus=await rM.json();
-    const bv=document.getElementById('bienvenue-block');
-    bv.style.display=menus.length===0?'block':'none';
-    if(menus.length>0){const s1=document.getElementById('step-1');s1.style.opacity='0.6';s1.querySelector('.bv-step-num').textContent='✅'}
-    if(commandes>0){const s3=document.getElementById('step-3');s3.style.opacity='0.6';s3.querySelector('.bv-step-num').textContent='✅'}
-    const r2=await fetch(`${API}/api/commandes/${TRAITEUR_ID}?statut=nouveau&limit=5`);
-    const cmds=await r2.json();
-    document.getElementById('nouvelles-commandes').innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div>';
+    try{
+      const rM=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);
+      const menus=await rM.json();
+      const bv=document.getElementById('bienvenue-block');
+      if(bv) bv.style.display=menus.length===0?'block':'none';
+      if(menus.length>0){const s1=document.getElementById('step-1');if(s1){s1.style.opacity='0.6';s1.querySelector('.bv-step-num').textContent='✅'}}
+      if(commandes>0){const s3=document.getElementById('step-3');if(s3){s3.style.opacity='0.6';s3.querySelector('.bv-step-num').textContent='✅'}}
+    }catch(e){ console.warn('Menus fetch:', e); }
+    try{
+      const r2=await fetch(`${API}/api/commandes/${TRAITEUR_ID}?statut=nouveau&limit=5`);
+      const cmds=await r2.json();
+      const nc=document.getElementById('nouvelles-commandes');
+      if(nc) nc.innerHTML=cmds.length?cmds.map(c=>renderCmd(c,true)).join(''):'<div style="text-align:center;color:#888;font-size:13px;padding:20px">✅ Aucune commande trouvée en attente</div>';
+    }catch(e){ console.warn('Nouvelles cmds:', e); }
     const pe=document.getElementById('plats-top');
     pe.innerHTML=d.plats_top?.length?d.plats_top.map(p=>{const n=(p.nom||'').replace(/^[^\w\s]+\s*/u,'').trim();return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;font-weight:600;color:var(--texte)">${n||p.nom}</span><span style="font-size:12px;font-weight:700;color:var(--b);background:rgba(107,39,55,0.08);padding:3px 10px;border-radius:20px">${p.total} cmd</span></div>`}).join(''):'<div style="text-align:center;color:var(--texte3);font-size:13px;padding:16px">Pas encore de données</div>';
   }catch(e){document.getElementById('last-update').textContent='Erreur: '+e.message;console.error(e);}
@@ -1548,7 +1559,7 @@ async function chargerBilan(){try{const r=await fetch(`${API}/api/commandes/${TR
     </div>`}catch(e){document.getElementById('bilan-content').innerHTML='<div style="text-align:center;color:#888;padding:20px">Erreur bilan</div>'}}
 function exporterBilanPDF(){
   const content = document.getElementById('bilan-content');
-  if(!content){ alert('Chargez le bilan d'abord'); return; }
+  if(!content){ alert('Chargez le bilan dabord'); return; }
   const mois = new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Bilan TraiteurPro — ${mois}</title>
