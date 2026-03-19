@@ -415,11 +415,19 @@ async function pasDeCode(){
 }
 
 function ouvrirNavigation(adresse){
-  // Essaie Waze d'abord, sinon Google Maps
-  const wazeUrl = `https://waze.com/ul?q=${adresse}&navigate=yes`;
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${adresse}`;
-  // Ouvre Waze si disponible, sinon Maps
-  window.open(wazeUrl, '_blank');
+  if(!adresse) { alert('Adresse non disponible'); return; }
+  // Affiche choix navigation
+  const sheet = document.getElementById('nav-sheet');
+  document.getElementById('nav-adresse-txt').textContent = adresse;
+  document.getElementById('nav-waze-btn').onclick = () => {
+    window.open(`https://waze.com/ul?q=${encodeURIComponent(adresse)}&navigate=yes`, '_blank');
+    sheet.style.display = 'none';
+  };
+  document.getElementById('nav-maps-btn').onclick = () => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(adresse)}`, '_blank');
+    sheet.style.display = 'none';
+  };
+  sheet.style.display = 'flex';
 }
 
 // appelerTraiteur défini plus bas
@@ -689,6 +697,28 @@ function appelerTraiteur(){
   }
 }
 
+// ── NOTIFICATIONS PUSH ──
+function demanderNotifications(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+}
+
+function notifierNouvellelivraison(livraison){
+  if(Notification.permission !== 'granted') return;
+  const notif = new Notification('🚚 Nouvelle livraison !', {
+    body: `📍 ${livraison.adresse_livraison||'Adresse à confirmer'} · 💰 ${Number(livraison.montant||0).toLocaleString('fr-FR')} FCFA`,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    vibrate: [200, 100, 200],
+    requireInteraction: true
+  });
+  notif.onclick = () => { window.focus(); notif.close(); };
+  // Vibration sur mobile
+  if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
+}
+
 // ── GPS TEMPS RÉEL ──
 let gpsActif = false;
 let gpsInterval = null;
@@ -728,5 +758,22 @@ function envoyerPosition(){
   );
 }
 </script>
+<!-- NAVIGATION SHEET -->
+<div id="nav-sheet" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:998;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:400px">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#1C1208;margin-bottom:6px">🧭 Choisir la navigation</div>
+    <div id="nav-adresse-txt" style="font-size:12px;color:#9C8A75;margin-bottom:20px;padding:8px 12px;background:#F7F3EE;border-radius:8px"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button id="nav-waze-btn" style="padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#00C4FF,#00E5E5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+        🗺️ Ouvrir dans Waze
+      </button>
+      <button id="nav-maps-btn" style="padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#4285F4,#34A853);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+        📍 Ouvrir dans Google Maps
+      </button>
+      <button onclick="document.getElementById('nav-sheet').style.display='none'" style="padding:12px;border-radius:12px;border:1.5px solid #DDD5C8;background:transparent;font-size:13px;color:#9C8A75;cursor:pointer;font-family:'Inter',sans-serif">Annuler</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
