@@ -843,6 +843,7 @@ function afficherTab(tab,btn){
   if(tab==='livreurs'){chargerLivreurs();}
   if(tab==='finance')chargerBilan();
   if(tab==='avis')chargerAvis();
+  if(tab==='parametres')chargerProfil();
 }
 function afficherSousTab(id,btn){
   document.querySelectorAll('.sous-tab').forEach(b=>b.classList.remove('active'));
@@ -855,7 +856,6 @@ function afficherSousTab(id,btn){
   if(id==='echelonne')chargerEchelonnes();
   if(id==='abonnement')chargerAbonnement();
   if(id==='parrainage')chargerParrainage();
-  if(id==='parametres')chargerProfil();
   if(id==='agenda')chargerAgenda();
 }
 
