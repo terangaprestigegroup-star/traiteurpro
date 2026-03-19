@@ -1047,7 +1047,7 @@ async function envoyerRelances(){if(!confirm('Relancer les clients inactifs 7j ?
 function afficherSousTabLivreur(id, btn){
   document.querySelectorAll('#tab-livreurs .nav-tab-sm').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['liste','planning','chat'].forEach(t=>{
+  ['liste','planning','chat','carte','paie'].forEach(t=>{
     const el = document.getElementById('sous-tab-'+t);
     if(el) el.style.display = t===id ? 'block' : 'none';
   });
