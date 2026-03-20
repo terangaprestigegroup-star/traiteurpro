@@ -15,6 +15,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Route menu public — DOIT être après static pour éviter conflit
+app.get('/demo', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'demo.html'));
+});
+
 app.get('/menu/:traiteur_id', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'menu-public.html'));
 });
