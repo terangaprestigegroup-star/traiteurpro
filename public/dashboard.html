@@ -1080,7 +1080,7 @@ function renderCmd(c, mini=false){
   const sf = sfMap[_s] || {bg:'rgba(196,151,58,0.12)',cl:'#B8860B',lb:c.statut};
   const btns = (nextBtns[c.statut]||[]).join('');
   const addrClean = (c.adresse_livraison||'').replace(/'/g,'');
-  return '<div class="cmd-card">'
+  return '<div class="cmd-card" data-cmd-id="'+c.id+'" data-statut="'+(_s||'nouveau')+'">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
     + '<div><div style="font-family:\'Playfair Display\',serif;font-size:14px;font-weight:700;color:var(--b)">'+(c.reference||'#'+c.id)+'</div>'
     + '<div style="font-size:11px;color:var(--texte3);margin-top:2px">'+(c.client_nom||c.client_phone)+' · '+date+'</div></div>'
@@ -1089,12 +1089,13 @@ function renderCmd(c, mini=false){
     + '<div style="background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:10px">'
     + '<div style="font-size:12px;font-weight:600;color:var(--texte)">'+(prod||'Commande')+'</div>'
     + (c.adresse_livraison ? '<div style="font-size:11px;color:var(--texte3);margin-top:4px">&#x1F4CD; '+c.adresse_livraison+'</div>' : '')
+    + (c.livreur_nom ? '<div style="font-size:11px;color:var(--vert);margin-top:4px;font-weight:600">🏍️ Livreur : '+c.livreur_nom+'</div>' : '')
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+((!mini&&btns)?'10':'0')+'px">'
     + '<div style="font-family:\'Playfair Display\',serif;font-size:18px;font-weight:700;color:var(--texte)">'+Number(c.total).toLocaleString('fr-FR')+' <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>'
     + '<div style="display:flex;gap:6px">'
     + '<a href="'+API+'/api/facture/'+(c.reference||c.id)+'" target="_blank" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;font-weight:600;color:var(--texte2);text-decoration:none">&#x1F9FE;</a>'
-    + '<button onclick="ouvrirAssignerLivreur('+c.id+',\''+addrClean+'\','+c.total+')" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(42,107,79,0.2);background:rgba(42,107,79,0.06);font-size:11px;font-weight:600;color:var(--vert);cursor:pointer;font-family:\'Inter\',sans-serif">&#x1F6B4;</button>'
+    + '<button onclick="ouvrirAssignerLivreur('+c.id+',\''+addrClean+'\','+c.total+')" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(42,107,79,0.25);background:rgba(42,107,79,0.08);font-size:11px;font-weight:700;color:var(--vert);cursor:pointer;font-family:\'Inter\',sans-serif">🚴 Livreur</button>'
     + '</div></div>'
     + (!mini && btns ? '<div style="display:flex;gap:6px;flex-wrap:wrap">'+btns+'</div>' : '')
     + '</div>';
@@ -1103,7 +1104,28 @@ function renderCmd(c, mini=false){
 async function chargerCommandes(statut='tous'){
   try{const url=statut==='tous'?`${API}/api/commandes/${TRAITEUR_ID}`:`${API}/api/commandes/${TRAITEUR_ID}?statut=${statut}`;const r=await fetch(url);const cmds=await r.json();const el=document.getElementById('commandes-liste');el.innerHTML=cmds.length?cmds.map(c=>renderCmd(c,false)).join(''):'<div style="text-align:center;color:#888;padding:20px">Aucune commande trouvée</div>'}catch(e){console.error(e)}
 }
-async function changerStatut(id,statut){try{await fetch(`${API}/api/commandes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({statut})});chargerCommandes('tous');chargerDashboard()}catch(e){alert('Erreur')}}
+async function changerStatut(id, statut){
+  // Protection annulation si déjà livré
+  if(statut === 'annulé'){
+    const cmdEl = document.querySelector(`[data-cmd-id="${id}"]`);
+    const statutActuel = cmdEl?.dataset?.statut || '';
+    if(statutActuel === 'livré'){
+      showToast('❌ Impossible — commande déjà livrée');
+      return;
+    }
+    if(statutActuel === 'en route'){
+      if(!confirm('⚠️ Le livreur est déjà en route ! Confirmer l\'annulation ?')) return;
+    }
+  }
+  try{
+    await fetch(`${API}/api/commandes/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({statut})});
+    chargerCommandes('tous');
+    chargerDashboard();
+    if(statut === 'annulé') showToast('❌ Commande annulée');
+    if(statut === 'confirmé') showToast('✅ Commande confirmée');
+    if(statut === 'livré') showToast('🎉 Livraison confirmée !');
+  }catch(e){ showToast('❌ Erreur'); }
+}
 
 async function chargerMenus(){
   try{const r=await fetch(`${API}/api/menus/${TRAITEUR_ID}`);const menus=await r.json();const el=document.getElementById('menus-liste');
