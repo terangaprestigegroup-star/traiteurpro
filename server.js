@@ -557,8 +557,7 @@ Envoyez *menu* pour voir nos plats !`
         [traiteur_id, phone, cmd.client_nom, JSON.stringify(items), cmd.total, cmd.adresse_livraison, 'Recommande habituel', ref]
       );
       delete pendingReorder[phone];
-      const resume = items.map(i => `• ${i.quantite}x ${i.nom}`).join('
-');
+      const resume = items.map(i => `• ${i.quantite}x ${i.nom}`).join('\n');
       await envoyerWhatsApp(phone_id, phone,
         `✅ *Commande confirmée !*
 
