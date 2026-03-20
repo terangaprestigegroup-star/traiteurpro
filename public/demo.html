@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — Démo Interactive 🍽️</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --b:#6B2737;--b2:#8B3A4A;--or:#C4973A;--or2:#E8C97E;--or3:#F5E6C8;
+  --bg:#F7F3EE;--bg2:#EFE9E0;--card:#FFFFFF;
+  --texte:#1C1208;--texte2:#5C4A35;--texte3:#9C8A75;
+  --border:#DDD5C8;--vert:#2A6B4F;--rouge:#C0392B;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-height:100vh;overflow-x:hidden}
+
+/* BANNIÈRE */
+.demo-banner{background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;text-align:center;padding:10px 16px;font-size:12px;font-weight:600;position:sticky;top:0;z-index:200}
+.demo-banner a{color:var(--or2);text-decoration:none;font-weight:700}
+
+/* NAV */
+.nav{background:var(--card);border-bottom:1.5px solid var(--border);padding:0 8px;display:flex;align-items:center;height:56px;position:sticky;top:38px;z-index:100;overflow-x:auto;scrollbar-width:none;gap:2px;box-shadow:0 2px 12px rgba(107,39,55,0.06)}
+.nav::-webkit-scrollbar{display:none}
+.nav-logo{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-right:8px}
+.nav-logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--b),var(--b2));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--or2);flex-shrink:0}
+.nav-logo-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--texte)}
+.nav-tab{background:none;border:none;padding:7px 10px;font-size:9px;font-weight:600;cursor:pointer;border-radius:10px;color:var(--texte3);font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;flex-shrink:0;transition:all .2s;letter-spacing:.5px;text-transform:uppercase;position:relative}
+.nav-tab.active{color:var(--b);background:rgba(107,39,55,.06)}
+.nav-tab.active::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:16px;height:2px;background:linear-gradient(90deg,var(--or),var(--b));border-radius:2px}
+.nav-tab span{font-size:16px}
+
+/* CONTENU */
+.tab-content{display:none;padding:0 0 80px}
+.tab-content.active{display:block}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(107,39,55,.05)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--or),var(--b))}
+.kpi-icon{font-size:20px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--texte);line-height:1;letter-spacing:-.5px}
+.kpi-lbl{font-size:9px;color:var(--texte3);margin-top:4px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.kpi-badge{font-size:10px;color:var(--or);margin-top:4px;font-weight:600}
+
+/* CHART */
+.chart-section{margin:0 14px 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:0 2px 8px rgba(107,39,55,.05)}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.chart-title{font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px}
+.chart-total{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--b)}
+.chart-bars{height:70px;display:flex;align-items:flex-end;gap:6px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height .8s ease;min-height:4px}
+.chart-label{font-size:9px;color:var(--texte3);font-weight:600}
+
+/* COMMANDES */
+.section-header{padding:14px 14px 8px;display:flex;justify-content:space-between;align-items:center}
+.section-title{font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px}
+.cmd-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin:0 14px 10px;box-shadow:0 1px 4px rgba(107,39,55,.05);position:relative;overflow:hidden}
+.cmd-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--or),var(--b))}
+.cmd-ref{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--b)}
+.cmd-client{font-size:11px;color:var(--texte3);margin-top:2px}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.b-nouveau{background:rgba(196,151,58,.12);color:#B8860B}
+.b-confirme{background:rgba(42,107,79,.1);color:var(--vert)}
+.b-prep{background:rgba(107,39,55,.1);color:var(--b)}
+.b-route{background:rgba(196,151,58,.12);color:var(--or)}
+.b-livre{background:rgba(42,107,79,.1);color:var(--vert)}
+.cmd-body{background:var(--bg2);border-radius:10px;padding:10px;margin:10px 0}
+.cmd-total{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte)}
+.cmd-actions{display:flex;gap:6px;margin-top:10px}
+.cmd-btn{padding:8px 14px;border-radius:8px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.cmd-btn-primary{background:linear-gradient(135deg,var(--vert),#1a5c3a);color:#fff}
+.cmd-btn-outline{background:var(--bg2);color:var(--texte2);border:1px solid var(--border)!important;border:none}
+
+/* LIVREURS */
+.livreur-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin:0 14px 12px;box-shadow:0 2px 8px rgba(107,39,55,.05)}
+.livreur-avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.livreur-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.livreur-stat{background:var(--bg2);border-radius:10px;padding:8px;text-align:center}
+.livreur-stat-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.livreur-stat-lbl{font-size:9px;color:var(--texte3);text-transform:uppercase;letter-spacing:.5px}
+.progress-bar{height:4px;background:var(--bg2);border-radius:4px;margin-bottom:12px}
+.progress-fill{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--b),var(--or))}
+
+/* BOT WHATSAPP */
+.wa-chat{background:#0a0a0a;border-radius:20px;overflow:hidden;margin:0 14px;max-height:500px;overflow-y:auto}
+.wa-header{background:#1f2c34;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.wa-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--b2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.wa-name{font-size:14px;font-weight:600;color:#fff}
+.wa-status{font-size:11px;color:#25D366}
+.wa-messages{padding:16px;display:flex;flex-direction:column;gap:10px}
+.wa-msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.wa-msg-bot{background:#1f2c34;color:#e0e0e0;align-self:flex-start;border-radius:0 14px 14px 14px}
+.wa-msg-client{background:#005c4b;color:#fff;align-self:flex-end;border-radius:14px 14px 0 14px}
+.wa-msg-time{font-size:10px;opacity:.5;margin-top:4px;text-align:right}
+.wa-typing{display:flex;gap:4px;align-items:center;padding:10px 14px;background:#1f2c34;border-radius:0 14px 14px 14px;width:fit-content}
+.wa-typing span{width:7px;height:7px;background:#888;border-radius:50%;animation:bounce .8s infinite}
+.wa-typing span:nth-child(2){animation-delay:.15s}
+.wa-typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* MENU PUBLIC */
+.menu-preview{margin:0 14px}
+.plat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(107,39,55,.04)}
+.plat-emoji-wrap{width:54px;height:54px;border-radius:14px;background:var(--or3);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.plat-nom{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--texte)}
+.plat-prix{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--b);margin-top:4px}
+.plat-add{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(107,39,55,.25)}
+
+/* CTA DEMO */
+.demo-cta{background:linear-gradient(160deg,var(--b),var(--b2));margin:20px 14px;border-radius:20px;padding:24px;text-align:center;position:relative;overflow:hidden}
+.demo-cta::before{content:'🍽️';position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.08}
+.demo-cta-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#F5EDD8;margin-bottom:8px}
+.demo-cta-sub{font-size:12px;color:rgba(245,237,216,.6);margin-bottom:16px;line-height:1.6}
+.demo-cta-btn{background:linear-gradient(135deg,var(--or),var(--or2));color:var(--texte);border:none;border-radius:12px;padding:14px 24px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:.3px}
+
+/* ANIMATION NOTIFICATION */
+.notif{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;box-shadow:0 8px 32px rgba(107,39,55,.15);z-index:300;display:flex;align-items:center;gap:10px;max-width:320px;width:90%;animation:slideDown .4s ease;display:none}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.notif-icon{font-size:22px;flex-shrink:0}
+.notif-title{font-size:12px;font-weight:700;color:var(--texte)}
+.notif-sub{font-size:11px;color:var(--texte3)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px}
+.empty-emoji{font-size:40px;margin-bottom:12px}
+.empty-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:6px}
+.empty-sub{font-size:12px;color:var(--texte3)}
+</style>
+</head>
+<body>
+
+<!-- Bannière démo -->
+<div class="demo-banner">
+  🎯 Ceci est une démo — Créez votre vrai espace sur <a href="https://traiteurpro-production.up.railway.app" target="_blank">traiteurpro.sn</a>
+</div>
+
+<!-- Notification simulée -->
+<div class="notif" id="notif">
+  <div class="notif-icon" id="notif-icon">🍽️</div>
+  <div>
+    <div class="notif-title" id="notif-title">Nouvelle commande !</div>
+    <div class="notif-sub" id="notif-sub">Fatou Diallo — 2x Thiéboudienne</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-mark">TP</div>
+    <div class="nav-logo-name">TraiteurPro</div>
+  </div>
+  <div style="display:flex;gap:2px">
+    <button class="nav-tab active" onclick="showTab('accueil',this)"><span>📊</span>Accueil</button>
+    <button class="nav-tab" onclick="showTab('commandes',this)"><span>📋</span>Commandes</button>
+    <button class="nav-tab" onclick="showTab('bot',this)"><span>🤖</span>Bot IA</button>
+    <button class="nav-tab" onclick="showTab('livreurs',this)"><span>🚚</span>Livreurs</button>
+    <button class="nav-tab" onclick="showTab('menu',this)"><span>🍽️</span>Menu</button>
+  </div>
+</nav>
+
+<!-- TAB ACCUEIL -->
+<div id="tab-accueil" class="tab-content active">
+  <div style="padding:14px 14px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte)">Chez Fatou Traiteur</div>
+        <div style="font-size:11px;color:var(--texte3)">Mis à jour à <span id="heure-maj">—</span></div>
+      </div>
+      <div style="background:rgba(42,107,79,.1);color:var(--vert);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700">🟢 Bot actif</div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-val" id="k-commandes">47</div>
+      <div class="kpi-lbl">Commandes</div>
+      <div class="kpi-badge" id="k-nouvelles">3 nouvelles</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-val" id="k-revenus">235k</div>
+      <div class="kpi-lbl">Revenus FCFA</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-val">12</div>
+      <div class="kpi-lbl">Clients</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">⭐</div>
+      <div class="kpi-val" style="font-size:16px">Thiébou</div>
+      <div class="kpi-lbl">Plat star</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-section">
+    <div class="chart-header">
+      <div class="chart-title">📈 Revenus 7 jours</div>
+      <div class="chart-total">235 000 FCFA</div>
+    </div>
+    <div class="chart-bars" id="chart-bars"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px" id="chart-labels"></div>
+  </div>
+
+  <!-- Nouvelles commandes -->
+  <div class="section-header">
+    <div class="section-title">🕐 Nouvelles commandes</div>
+  </div>
+  <div class="cmd-card" id="cmd-live">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+      <div>
+        <div class="cmd-ref">TR-DEMO001</div>
+        <div class="cmd-client">Fatou Diallo · il y a 2 min</div>
+      </div>
+      <span class="badge b-nouveau">🕐 Nouveau</span>
+    </div>
+    <div class="cmd-body">
+      <div style="font-size:12px;font-weight:600;color:var(--texte)">2x Thiéboudienne · 1x Yassa</div>
+      <div style="font-size:11px;color:var(--texte3);margin-top:4px">📍 Médina, Rue 18</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="cmd-total">35 000 <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>
+      <div style="display:flex;gap:6px">
+        <span style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;color:var(--texte2)">🧾</span>
+        <span style="padding:6px 10px;border-radius:8px;border:1px solid rgba(42,107,79,.2);background:rgba(42,107,79,.06);font-size:11px;color:var(--vert)">🚴 Livreur</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="cmd-btn cmd-btn-primary" onclick="confirmerCmd(this)" style="flex:2">✅ Confirmer</button>
+      <button class="cmd-btn cmd-btn-outline" style="flex:1;background:var(--bg2);color:var(--texte2);border:1px solid var(--border)">❌</button>
+    </div>
+  </div>
+
+  <!-- Plats populaires -->
+  <div class="section-header"><div class="section-title">🔥 Plats populaires</div></div>
+  <div style="margin:0 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px">
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:600">Thiéboudienne</span>
+      <span style="font-size:12px;font-weight:700;color:var(--b);background:rgba(107,39,55,.08);padding:3px 10px;border-radius:20px">18 cmd</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:600">Yassa Poulet</span>
+      <span style="font-size:12px;font-weight:700;color:var(--b);background:rgba(107,39,55,.08);padding:3px 10px;border-radius:20px">12 cmd</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0">
+      <span style="font-size:13px;font-weight:600">Mafé</span>
+      <span style="font-size:12px;font-weight:700;color:var(--b);background:rgba(107,39,55,.08);padding:3px 10px;border-radius:20px">9 cmd</span>
+    </div>
+  </div>
+
+  <div class="demo-cta" style="margin-top:20px">
+    <div class="demo-cta-title">Créez votre espace gratuitement</div>
+    <div class="demo-cta-sub">Essai Starter 14 jours · Sans carte bancaire · Actif en 5 min</div>
+    <button class="demo-cta-btn" onclick="window.open('https://traiteurpro-production.up.railway.app','_blank')">🍽️ Démarrer gratuitement →</button>
+  </div>
+</div>
+
+<!-- TAB COMMANDES -->
+<div id="tab-commandes" class="tab-content">
+  <div style="padding:14px 14px 0">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:12px">📋 Commandes</div>
+    <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px">
+      <button style="padding:6px 14px;border-radius:20px;border:none;background:var(--b);color:#fff;font-size:11px;font-weight:700;white-space:nowrap">Toutes</button>
+      <button style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--texte3);font-size:11px;white-space:nowrap">🕐 Nouvelles</button>
+      <button style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--texte3);font-size:11px;white-space:nowrap">✅ Confirmées</button>
+      <button style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--texte3);font-size:11px;white-space:nowrap">🚚 En route</button>
+    </div>
+  </div>
+
+  <div style="padding:8px 0">
+    <div class="cmd-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="cmd-ref">TR-DEMO001</div><div class="cmd-client">Fatou Diallo · 14:32</div></div>
+        <span class="badge b-nouveau">🕐 Nouveau</span>
+      </div>
+      <div class="cmd-body"><div style="font-size:12px;font-weight:600">2x Thiéboudienne · 1x Yassa</div><div style="font-size:11px;color:var(--texte3);margin-top:4px">📍 Médina, Rue 18 · 🏍️ Non assigné</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="cmd-total">35 000 <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>
+        <div style="display:flex;gap:6px"><span style="padding:6px 10px;border-radius:8px;background:var(--bg2);font-size:11px;color:var(--texte2)">🧾</span><span style="padding:6px 10px;border-radius:8px;background:rgba(42,107,79,.06);font-size:11px;color:var(--vert)">🚴</span></div>
+      </div>
+      <div style="display:flex;gap:6px"><button class="cmd-btn cmd-btn-primary" style="flex:2" onclick="showNotif('✅','Commande confirmée !','TR-DEMO001 — Fatou Diallo')">✅ Confirmer</button><button class="cmd-btn" style="flex:1;background:var(--bg2);color:var(--texte2);border:1px solid var(--border)">❌</button></div>
+    </div>
+
+    <div class="cmd-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="cmd-ref">TR-DEMO002</div><div class="cmd-client">Mamadou Sarr · 13:15</div></div>
+        <span class="badge b-route">🚚 En route</span>
+      </div>
+      <div class="cmd-body"><div style="font-size:12px;font-weight:600">3x Mafé · 2x Riz</div><div style="font-size:11px;color:var(--texte3);margin-top:4px">📍 Plateau · 🏍️ Livreur : Ibou</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cmd-total">45 000 <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>
+        <button class="cmd-btn cmd-btn-primary" onclick="showNotif('🎉','Livraison confirmée !','Mamadou Sarr — 45 000 FCFA encaissés')">🎉 Livré</button>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div class="cmd-ref">TR-DEMO003</div><div class="cmd-client">Aïssatou Ndiaye · 11:48</div></div>
+        <span class="badge b-livre">✅ Livré</span>
+      </div>
+      <div class="cmd-body"><div style="font-size:12px;font-weight:600">1x Thiéboudienne famille</div><div style="font-size:11px;color:var(--texte3);margin-top:4px">📍 Parcelles · 🏍️ Livreur : Ibou</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cmd-total">25 000 <span style="font-size:12px;font-weight:400;color:var(--texte3)">FCFA</span></div>
+        <span style="font-size:11px;color:var(--texte3)">⭐⭐⭐⭐⭐</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB BOT IA -->
+<div id="tab-bot" class="tab-content">
+  <div style="padding:14px 14px 10px">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:4px">🤖 Bot WhatsApp IA</div>
+    <div style="font-size:12px;color:var(--texte3)">Simulation d'une vraie conversation</div>
+  </div>
+  <div class="wa-chat" id="wa-chat">
+    <div class="wa-header">
+      <div class="wa-avatar">🍽️</div>
+      <div><div class="wa-name">Chez Fatou Traiteur</div><div class="wa-status">🟢 Bot actif 24h/24</div></div>
+    </div>
+    <div class="wa-messages" id="wa-messages"></div>
+  </div>
+  <div style="padding:14px">
+    <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Testez le bot :</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button onclick="testBot('bonjour')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">👋 Bonjour</button>
+      <button onclick="testBot('menu')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">📋 Menu</button>
+      <button onclick="testBot('je veux 2 thiéboudienne')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">🍽️ Commander</button>
+      <button onclick="testBot('bëgg naa ceeb')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">🇸🇳 En Wolof</button>
+      <button onclick="testBot('pareil')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">🔄 Habituel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB LIVREURS -->
+<div id="tab-livreurs" class="tab-content">
+  <div style="padding:14px 14px 10px">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte)">🚚 Mes Livreurs</div>
+  </div>
+
+  <div class="livreur-card">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div class="livreur-avatar" style="background:linear-gradient(135deg,var(--b),var(--b2))">🏍️</div>
+      <div style="flex:1">
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700">Ibou Diallo</div>
+        <div style="font-size:11px;color:var(--texte3)">📱 77 123 45 67 · Médina</div>
+      </div>
+      <span style="background:rgba(42,107,79,.1);color:var(--vert);padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700">🟢 Dispo</span>
+    </div>
+    <div class="livreur-stats">
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--texte)">12</div><div class="livreur-stat-lbl">Total</div></div>
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--vert)">11</div><div class="livreur-stat-lbl">Livrées</div></div>
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--or)">92%</div><div class="livreur-stat-lbl">Taux</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:92%"></div></div>
+    <div style="display:flex;gap:6px">
+      <button style="flex:2;padding:8px;border-radius:8px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer" onclick="showNotif('👁️','Page livreur ouverte','Ibou Diallo — PIN: 1234')">👁️ Voir espace livreur</button>
+      <button style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer">📊</button>
+      <button style="padding:8px 12px;border-radius:8px;border:1px solid rgba(42,107,79,.2);background:rgba(42,107,79,.06);font-size:11px;cursor:pointer;color:var(--vert)">📲</button>
+    </div>
+  </div>
+
+  <div class="livreur-card">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div class="livreur-avatar" style="background:linear-gradient(135deg,#2A6B4F,#1a5c3a)">🚗</div>
+      <div style="flex:1">
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700">Moussa Ba</div>
+        <div style="font-size:11px;color:var(--texte3)">📱 76 987 65 43 · Parcelles</div>
+      </div>
+      <span style="background:rgba(192,57,43,.1);color:var(--rouge);padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700">🔴 Occupé</span>
+    </div>
+    <div class="livreur-stats">
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--texte)">8</div><div class="livreur-stat-lbl">Total</div></div>
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--vert)">7</div><div class="livreur-stat-lbl">Livrées</div></div>
+      <div class="livreur-stat"><div class="livreur-stat-val" style="color:var(--or)">87%</div><div class="livreur-stat-lbl">Taux</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:87%"></div></div>
+    <div style="display:flex;gap:6px">
+      <button style="flex:2;padding:8px;border-radius:8px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer" onclick="showNotif('👁️','Page livreur ouverte','Moussa Ba — PIN: 5678')">👁️ Voir espace livreur</button>
+      <button style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px;cursor:pointer">📊</button>
+      <button style="padding:8px 12px;border-radius:8px;border:1px solid rgba(42,107,79,.2);background:rgba(42,107,79,.06);font-size:11px;cursor:pointer;color:var(--vert)">📲</button>
+    </div>
+  </div>
+
+  <!-- Calcul paie -->
+  <div style="margin:0 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px">
+    <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:14px">💰 Calcul de paie</div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:600">Ibou Diallo</div><div style="font-size:11px;color:var(--texte3)">11 livraisons × 1 000 FCFA</div></div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--b)">11 000</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;margin-bottom:10px">
+      <div><div style="font-size:13px;font-weight:600">Moussa Ba</div><div style="font-size:11px;color:var(--texte3)">7 livraisons × 1 000 FCFA</div></div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--b)">7 000</div>
+    </div>
+    <div style="background:linear-gradient(135deg,var(--b),var(--b2));border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:700;color:#fff;font-size:13px">Total à payer</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--or2)">18 000 FCFA</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB MENU -->
+<div id="tab-menu" class="tab-content">
+  <div style="padding:14px 14px 10px">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:4px">🍽️ Menu digital</div>
+    <div style="font-size:12px;color:var(--texte3)">Partagez ce lien à vos clients</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:11px;color:var(--texte3)">traiteurpro.sn/menu/votre-id</div>
+      <button onclick="showNotif('📋','Lien copié !','Envoyez-le à vos clients WhatsApp')" style="padding:6px 12px;border-radius:8px;background:var(--b);color:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer">Copier</button>
+    </div>
+  </div>
+
+  <div class="menu-preview">
+    <div class="plat-card">
+      <div class="plat-emoji-wrap">🍚</div>
+      <div style="flex:1"><div class="plat-nom">Thiéboudienne</div><div style="font-size:11px;color:var(--texte3)">Riz au poisson · 4 pers.</div><div class="plat-prix">15 000 FCFA</div></div>
+      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Thiéboudienne × 1')">+</button>
+    </div>
+    <div class="plat-card">
+      <div class="plat-emoji-wrap">🍗</div>
+      <div style="flex:1"><div class="plat-nom">Yassa Poulet</div><div style="font-size:11px;color:var(--texte3)">Poulet mariné · 2 pers.</div><div class="plat-prix">12 000 FCFA</div></div>
+      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Yassa Poulet × 1')">+</button>
+    </div>
+    <div class="plat-card">
+      <div class="plat-emoji-wrap">🥘</div>
+      <div style="flex:1"><div class="plat-nom">Mafé</div><div style="font-size:11px;color:var(--texte3)">Sauce arachide · 2 pers.</div><div class="plat-prix">10 000 FCFA</div></div>
+      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Mafé × 1')">+</button>
+    </div>
+    <div class="plat-card">
+      <div class="plat-emoji-wrap">🐟</div>
+      <div style="flex:1"><div class="plat-nom">Caldou</div><div style="font-size:11px;color:var(--texte3)">Poisson braisé · 2 pers.</div><div class="plat-prix">8 000 FCFA</div></div>
+      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Caldou × 1')">+</button>
+    </div>
+  </div>
+
+  <div class="demo-cta" style="margin:20px 14px">
+    <div class="demo-cta-title">Créez votre menu en 5 min</div>
+    <div class="demo-cta-sub">Ajoutez vos plats, vos prix et partagez le lien à vos clients</div>
+    <button class="demo-cta-btn" onclick="window.open('https://traiteurpro-production.up.railway.app','_blank')">🍽️ Créer mon espace gratuit →</button>
+  </div>
+</div>
+
+<script>
+// ── TABS ──
+function showTab(id, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='bot' && waMessages.length===0) startBotDemo();
+}
+
+// ── HEURE ──
+function updateHeure(){
+  document.getElementById('heure-maj').textContent = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+updateHeure();
+setInterval(updateHeure, 60000);
+
+// ── CHART ──
+const chartData = [45000, 32000, 68000, 55000, 40000, 72000, 35000];
+const chartDays = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+const max = Math.max(...chartData);
+setTimeout(()=>{
+  const barsEl = document.getElementById('chart-bars');
+  const labelsEl = document.getElementById('chart-labels');
+  const today = 6;
+  barsEl.innerHTML = chartData.map((v,i)=>{
+    const pct = Math.max(4, Math.round((v/max)*100));
+    return `<div class="chart-bar-wrap">
+      <div style="font-size:9px;color:var(--texte3);margin-bottom:3px">${v>=1000?Math.round(v/1000)+'k':v}</div>
+      <div class="chart-bar" style="height:${pct}%;background:${i===today?'linear-gradient(180deg,var(--b),var(--b2))':'linear-gradient(180deg,var(--or),var(--or2))'}"></div>
+    </div>`;
+  }).join('');
+  labelsEl.innerHTML = chartDays.map((d,i)=>`<div style="font-size:9px;color:${i===today?'var(--b)':'var(--texte3)'};font-weight:${i===today?'700':'400'};flex:1;text-align:center">${d}</div>`).join('');
+}, 300);
+
+// ── NOTIFICATION ──
+function showNotif(icon, title, sub){
+  const n = document.getElementById('notif');
+  document.getElementById('notif-icon').textContent = icon;
+  document.getElementById('notif-title').textContent = title;
+  document.getElementById('notif-sub').textContent = sub;
+  n.style.display = 'flex';
+  setTimeout(()=>n.style.display='none', 3000);
+}
+
+// ── CONFIRMER COMMANDE ──
+function confirmerCmd(btn){
+  btn.textContent = '⏳ Confirmation...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    const badge = btn.closest('.cmd-card').querySelector('.badge');
+    badge.className = 'badge b-confirme';
+    badge.textContent = '✅ Confirmé';
+    btn.closest('.cmd-actions, div').innerHTML = '<span style="font-size:12px;color:var(--vert);font-weight:600">✅ Commande confirmée — notification envoyée au client</span>';
+    showNotif('📲','WhatsApp envoyé !','Fatou Diallo — Commande confirmée');
+  }, 1000);
+}
+
+// ── BOT WHATSAPP SIMULATION ──
+let waMessages = [];
+let botTyping = false;
+
+const botResponses = {
+  'bonjour': `👋 *Bonjour ! / Jaama ngeen def !* 🇸🇳\n\nBienvenue chez *Chez Fatou Traiteur* 🍽️\n\nQue puis-je faire pour vous ?\n\n📋 *menu* — Voir nos plats\n📦 *commande* — Passer une commande\n📍 *livraison* — Infos livraison`,
+  'menu': `📋 *Notre menu du jour :*\n\n🍚 Thiéboudienne — 15 000 FCFA\n🍗 Yassa Poulet — 12 000 FCFA\n🥘 Mafé — 10 000 FCFA\n🐟 Caldou — 8 000 FCFA\n\nPour commander, dites-moi ce que vous souhaitez ! 😊`,
+  'je veux 2 thiéboudienne': `✅ *Commande enregistrée !*\n\n• 2x Thiéboudienne — 30 000 FCFA\n\n💰 *Total : 30 000 FCFA*\n\n📍 Quelle est votre adresse de livraison ?`,
+  'bëgg naa ceeb': `✅ *Commande enregistrée !* 🇸🇳\n\n_(Wolof compris automatiquement)_\n\n• 1x Thiéboudienne — 15 000 FCFA\n\n💰 *Total : 15 000 FCFA*\n\n📍 Lan la ci dëkk bi ? (Votre adresse ?)`,
+  'pareil': `🔄 *Votre dernière commande :*\n\n• 2x Thiéboudienne — 30 000 FCFA\n\nConfirmez-vous cette commande ?\nRépondez *OUI* pour confirmer 👍`,
+};
+
+function addWaMessage(text, type, delay=0){
+  return new Promise(resolve=>{
+    setTimeout(()=>{
+      waMessages.push({text, type});
+      renderWaMessages();
+      resolve();
+    }, delay);
+  });
+}
+
+function renderWaMessages(){
+  const el = document.getElementById('wa-messages');
+  el.innerHTML = waMessages.map(m=>`
+    <div class="wa-msg wa-msg-${m.type}" style="white-space:pre-wrap">
+      ${m.text}
+      <div class="wa-msg-time">${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+  `).join('') + (botTyping ? '<div class="wa-typing"><span></span><span></span><span></span></div>' : '');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function testBot(msg){
+  if(botTyping) return;
+  await addWaMessage(msg, 'client');
+  botTyping = true;
+  renderWaMessages();
+  await new Promise(r=>setTimeout(r, 1200));
+  botTyping = false;
+  const response = botResponses[msg.toLowerCase()] || `Je n'ai pas compris. Envoyez *menu* pour voir nos plats ou décrivez votre commande 😊`;
+  await addWaMessage(response, 'bot');
+}
+
+function startBotDemo(){
+  setTimeout(async()=>{
+    await addWaMessage('Bonjour, je veux commander 🍽️', 'client');
+    botTyping = true;
+    renderWaMessages();
+    await new Promise(r=>setTimeout(r,1500));
+    botTyping = false;
+    await addWaMessage(botResponses['bonjour'], 'bot');
+  }, 500);
+}
+
+// ── AUTO-NOTIFICATION DE DEMO ──
+setTimeout(()=>showNotif('🍽️','Nouvelle commande reçue !','Mamadou — 2x Yassa · 24 000 FCFA'), 3000);
+setTimeout(()=>showNotif('📲','Client notifié automatiquement','Commande confirmée — WhatsApp envoyé'), 8000);
+setTimeout(()=>showNotif('🚚','Livreur en route','Ibou Diallo → Médina, Rue 18'), 13000);
+</script>
+</body>
+</html>
