@@ -133,7 +133,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 
 <!-- Bannière démo -->
 <div class="demo-banner">
-  🎯 Ceci est une démo — Créez votre vrai espace sur <a href="https://traiteurpro-production.up.railway.app" target="_blank">traiteurpro.sn</a>
+  🎯 Démo interactive · <span id="live-count">3</span> traiteurs actifs en ce moment · <a href="https://traiteurpro-production.up.railway.app" target="_blank">Créer mon espace gratuit →</a>
 </div>
 
 <!-- Notification simulée -->
@@ -256,6 +256,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
     <div class="demo-cta-title">Créez votre espace gratuitement</div>
     <div class="demo-cta-sub">Essai Starter 14 jours · Sans carte bancaire · Actif en 5 min</div>
     <button class="demo-cta-btn" onclick="window.open('https://traiteurpro-production.up.railway.app','_blank')">🍽️ Démarrer gratuitement →</button>
+    <button onclick="partagerDemo()" style="width:100%;margin-top:10px;padding:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;color:rgba(245,237,216,.8);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer">📲 Partager cette démo</button>
   </div>
 </div>
 
@@ -493,14 +494,41 @@ function showNotif(icon, title, sub){
 // ── CONFIRMER COMMANDE ──
 function confirmerCmd(btn){
   btn.textContent = '⏳ Confirmation...';
+  btn.style.opacity = '.7';
   btn.disabled = true;
   setTimeout(()=>{
-    const badge = btn.closest('.cmd-card').querySelector('.badge');
+    const card = btn.closest('.cmd-card');
+    const badge = card.querySelector('.badge');
     badge.className = 'badge b-confirme';
     badge.textContent = '✅ Confirmé';
-    btn.closest('.cmd-actions, div').innerHTML = '<span style="font-size:12px;color:var(--vert);font-weight:600">✅ Commande confirmée — notification envoyée au client</span>';
-    showNotif('📲','WhatsApp envoyé !','Fatou Diallo — Commande confirmée');
-  }, 1000);
+    // Animate card
+    card.style.borderColor = 'rgba(42,107,79,.3)';
+    card.style.background = 'rgba(42,107,79,.03)';
+    // Replace buttons
+    const actionsDiv = btn.parentElement;
+    actionsDiv.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(42,107,79,.08);border-radius:8px">
+      <span style="font-size:16px">📲</span>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--vert)">Commande confirmée !</div>
+        <div style="font-size:10px;color:var(--texte3)">WhatsApp envoyé automatiquement à Fatou Diallo</div>
+      </div>
+    </div>
+    <button onclick="preparerCmd(this)" style="margin-top:8px;width:100%;padding:8px;border-radius:8px;background:rgba(107,39,55,.08);color:var(--b);border:1px solid var(--border2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">👨‍🍳 Marquer en préparation</button>`;
+    showNotif('📲','WhatsApp envoyé !','Fatou Diallo — Commande confirmée ✅');
+    // Update KPI
+    document.getElementById('k-nouvelles').textContent = '2 nouvelles';
+  }, 800);
+}
+
+function preparerCmd(btn){
+  const card = btn.closest('.cmd-card');
+  card.querySelector('.badge').className = 'badge b-prep';
+  card.querySelector('.badge').textContent = '👨‍🍳 En cuisine';
+  btn.parentElement.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(107,39,55,.06);border-radius:8px">
+    <span style="font-size:16px">👨‍🍳</span>
+    <div style="font-size:11px;font-weight:700;color:var(--b)">En préparation — livreur à assigner</div>
+  </div>`;
+  showNotif('👨‍🍳','En préparation !','Fatou Diallo — 2x Thiéboudienne · 1x Yassa');
 }
 
 // ── BOT WHATSAPP SIMULATION ──
@@ -510,7 +538,7 @@ let botTyping = false;
 const botResponses = {
   'bonjour': `👋 *Bonjour ! / Jaama ngeen def !* 🇸🇳\n\nBienvenue chez *Chez Fatou Traiteur* 🍽️\n\nQue puis-je faire pour vous ?\n\n📋 *menu* — Voir nos plats\n📦 *commande* — Passer une commande\n📍 *livraison* — Infos livraison`,
   'menu': `📋 *Notre menu du jour :*\n\n🍚 Thiéboudienne — 15 000 FCFA\n🍗 Yassa Poulet — 12 000 FCFA\n🥘 Mafé — 10 000 FCFA\n🐟 Caldou — 8 000 FCFA\n\nPour commander, dites-moi ce que vous souhaitez ! 😊`,
-  'je veux 2 thiéboudienne': `✅ *Commande enregistrée !*\n\n• 2x Thiéboudienne — 30 000 FCFA\n\n💰 *Total : 30 000 FCFA*\n\n📍 Quelle est votre adresse de livraison ?`,
+  'je veux 2 thiéboudienne': `✅ *Commande enregistrée !*\n\n• 2x Thiéboudienne — 30 000 FCFA\n\n💰 *Total : 30 000 FCFA*\n\n📍 Quelle est votre adresse de livraison ?\n\n_Le traiteur est notifié automatiquement_ 🔔`,
   'bëgg naa ceeb': `✅ *Commande enregistrée !* 🇸🇳\n\n_(Wolof compris automatiquement)_\n\n• 1x Thiéboudienne — 15 000 FCFA\n\n💰 *Total : 15 000 FCFA*\n\n📍 Lan la ci dëkk bi ? (Votre adresse ?)`,
   'pareil': `🔄 *Votre dernière commande :*\n\n• 2x Thiéboudienne — 30 000 FCFA\n\nConfirmez-vous cette commande ?\nRépondez *OUI* pour confirmer 👍`,
 };
@@ -525,11 +553,18 @@ function addWaMessage(text, type, delay=0){
   });
 }
 
+function formatWA(txt){
+  return txt
+    .replace(/\*(.*?)\*/g,'<strong>$1</strong>')
+    .replace(/_(.*?)_/g,'<em style="color:rgba(255,255,255,.7)">$1</em>')
+    .replace(/\n/g,'<br>');
+}
+
 function renderWaMessages(){
   const el = document.getElementById('wa-messages');
   el.innerHTML = waMessages.map(m=>`
-    <div class="wa-msg wa-msg-${m.type}" style="white-space:pre-wrap">
-      ${m.text}
+    <div class="wa-msg wa-msg-${m.type}">
+      ${formatWA(m.text)}
       <div class="wa-msg-time">${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
     </div>
   `).join('') + (botTyping ? '<div class="wa-typing"><span></span><span></span><span></span></div>' : '');
@@ -545,6 +580,20 @@ async function testBot(msg){
   botTyping = false;
   const response = botResponses[msg.toLowerCase()] || `Je n'ai pas compris. Envoyez *menu* pour voir nos plats ou décrivez votre commande 😊`;
   await addWaMessage(response, 'bot');
+  // Si commande → flasher les KPIs
+  if(msg.includes('veux') || msg.includes('commander') || msg.includes('ceeb') || msg.includes('bëgg')){
+    setTimeout(()=>{
+      const kCmd = document.getElementById('k-commandes');
+      const kNouv = document.getElementById('k-nouvelles');
+      if(kCmd){ 
+        kCmd.textContent = '48';
+        kCmd.style.color = 'var(--vert)';
+        setTimeout(()=>kCmd.style.color='', 2000);
+      }
+      if(kNouv) kNouv.textContent = '4 nouvelles';
+      showNotif('🔔','Nouvelle commande reçue !','Via Bot WhatsApp — 30 000 FCFA');
+    }, 500);
+  }
 }
 
 function startBotDemo(){
@@ -557,6 +606,29 @@ function startBotDemo(){
     await addWaMessage(botResponses['bonjour'], 'bot');
   }, 500);
 }
+
+// ── PARTAGER DÉMO ──
+function partagerDemo(){
+  const url = window.location.href;
+  if(navigator.share){
+    navigator.share({ title:'TraiteurPro — Démo', text:'Découvrez TraiteurPro — gestion commandes WhatsApp pour traiteurs sénégalais 🍽️', url });
+  } else {
+    navigator.clipboard.writeText(url).then(()=>showNotif('📋','Lien copié !','Partagez sur WhatsApp ou Instagram'));
+  }
+}
+
+// ── COMPTEUR LIVE ANIMÉ ──
+function animerCompteur(){
+  const el = document.getElementById('live-count');
+  if(!el) return;
+  const base = 47;
+  setInterval(()=>{
+    const variation = Math.floor(Math.random()*5) - 1;
+    const val = Math.max(1, base + variation);
+    el.textContent = val;
+  }, 8000);
+}
+animerCompteur();
 
 // ── AUTO-NOTIFICATION DE DEMO ──
 setTimeout(()=>showNotif('🍽️','Nouvelle commande reçue !','Mamadou — 2x Yassa · 24 000 FCFA'), 3000);
