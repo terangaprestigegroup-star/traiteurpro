@@ -715,9 +715,12 @@ app.delete('/api/menus/:id', async (req, res) => {
 app.get('/api/commandes/:traiteur_id', async (req, res) => {
   try {
     const { statut, limit } = req.query;
-    let q = `SELECT c.*, l.nom as livreur_nom FROM commandes_traiteur c
-      LEFT JOIN livraisons lv ON lv.commande_id=c.id AND lv.statut != 'annulée'
-      LEFT JOIN livreurs l ON l.id=lv.livreur_id
+    let q = `SELECT c.*, 
+      (SELECT l.nom FROM livraisons lv 
+       JOIN livreurs l ON l.id=lv.livreur_id 
+       WHERE lv.commande_id=c.id AND lv.statut != 'annulée' 
+       ORDER BY lv.created_at DESC LIMIT 1) as livreur_nom
+      FROM commandes_traiteur c
       WHERE c.traiteur_id=$1`;
     const params = [req.params.traiteur_id];
     if (statut) { q += ` AND c.statut=$${params.length+1}`; params.push(statut); }
