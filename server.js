@@ -19,6 +19,10 @@ app.get('/demo', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'demo.html'));
 });
 
+app.get('/gif-maker', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'gif-maker.html'));
+});
+
 app.get('/menu/:traiteur_id', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'menu-public.html'));
 });
@@ -2665,3 +2669,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 
 // redeploy 20260320-204822
 // force-redeploy-214359
+// redeploy-215807
