@@ -2662,3 +2662,5 @@ async function relancerAbonnements() {
   } catch(e) { console.error('Relance abonnements:', e.message); }
 }
 setInterval(relancerAbonnements, 24*60*60*1000);
+
+// redeploy 20260320-204822
