@@ -906,6 +906,14 @@ function setSession(d){
   document.cookie='tp_last_id='+TRAITEUR_ID+';expires='+exp.toUTCString()+';path=/;SameSite=Lax';
 }
 function checkLogin(){
+  // Si &reset dans URL → forcer logout
+  if(window.location.search.includes('reset')){
+    try{ localStorage.removeItem('tp_session_'+TRAITEUR_ID); }catch(e){}
+    document.cookie='tp_'+TRAITEUR_ID+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    history.replaceState(null,'','/app?id='+TRAITEUR_ID);
+    document.getElementById('login-overlay').style.display='flex';
+    return false;
+  }
   const sess = getSession();
   if(sess){
     try{
@@ -1024,7 +1032,7 @@ async function validerOTP(){
 function seDeconnecter(){
   try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}
   document.cookie='tp_'+TRAITEUR_ID+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-  location.href='/app?id='+TRAITEUR_ID+'&reset';
+  location.href='/app?id='+TRAITEUR_ID;
 }
 
 
