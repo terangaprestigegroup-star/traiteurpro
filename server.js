@@ -288,6 +288,90 @@ function genRef() {
 }
 
 // Parser commande IA
+// ============================================
+// MODULE WOLOF — Dictionnaire + Pré-traitement
+// ============================================
+const WOLOF_DICT = {
+  // Salutations
+  'jaama': 'bonjour', 'jaama ngeen def': 'bonjour', 'salaam': 'bonjour',
+  'nanga def': 'comment allez vous', 'mangi fi': 'je vais bien',
+  
+  // Verbes de commande
+  'bëgg naa': 'je veux', 'bëggna': 'je veux', 'bëgg': 'je veux',
+  'dafa bëgg': 'il veut', 'dañu bëgg': 'nous voulons',
+  'jox ma': 'donnez moi', 'waaw': 'oui', 'déedéet': 'non',
+  
+  // Chiffres
+  'benn': '1', 'ñaar': '2', 'ñett': '3', 'ñeent': '4',
+  'juróom': '5', 'juróom benn': '6', 'juróom ñaar': '7',
+  'juróom ñett': '8', 'juróom ñeent': '9', 'fukk': '10',
+  
+  // Plats sénégalais
+  'ceebu jen': 'thiéboudienne', 'ceeb u jen': 'thiéboudienne',
+  'thiébou dieune': 'thiéboudienne', 'thiep bou dieune': 'thiéboudienne',
+  'tiep': 'thiéboudienne', 'ceebu yapp': 'thiébou viande',
+  'thiep bou yapp': 'thiébou viande', 'ceeb u yapp': 'thiébou viande',
+  'yassa': 'yassa', 'yassa jen': 'yassa poisson', 'yassa yapp': 'yassa poulet',
+  'mafé': 'mafé', 'mafe': 'mafé', 'domoda': 'mafé arachide',
+  'bassi': 'bassi salté', 'caldou': 'caldou', 'dibi': 'dibi',
+  'benachin': 'benachin', 'thiou': 'thiou',
+  
+  // Viandes et poissons  
+  'yapp': 'viande', 'jen': 'poisson', 'ginaar': 'poulet',
+  'mbam': 'agneau', 'ngor': 'capitaine', 'thiouf': 'mérou',
+  
+  // Quantités et portions
+  'assiette': 'assiette', 'plat': 'plat', 'bol': 'bol',
+  'bu ndaw': 'petit', 'bu mag': 'grand', 'ndaw': 'petit', 'mag': 'grand',
+  
+  // Livraison
+  'dëkk': 'domicile', 'ker': 'maison', 'kër': 'maison',
+  'am livraison': 'livraison', 'porter': 'livrer', 'apporter': 'livrer',
+  'fii': 'ici', 'fa': 'là bas',
+  
+  // Annulation
+  'bañ': 'annuler', 'dafa bañ': 'annuler', 'wuute': 'annuler',
+  
+  // Statut commande
+  'am commande': 'statut commande', 'commande bi': 'ma commande',
+  'fan la': 'où est', 'dem': 'parti',
+  
+  // Politesse
+  'jërëjëf': 'merci', 'jerejef': 'merci', 'baraka': 'merci',
+  'jëf rek': 'sil vous plait', 'yàgg': 'en retard',
+  
+  // Franwolof commun
+  'sama commande': 'ma commande', 'sama livreur': 'mon livreur',
+  'leko': 'repas', 'lekkal': 'manger', 'lekk': 'manger',
+  'dëkk bi': 'chez moi', 'soxor': 'rapide',
+};
+
+function preTraiterWolof(texte) {
+  if (!texte) return texte;
+  let t = texte.toLowerCase().trim();
+  
+  // Remplacer les expressions wolof par leur équivalent français
+  // Trier par longueur décroissante pour éviter les remplacements partiels
+  const entries = Object.entries(WOLOF_DICT).sort((a,b) => b[0].length - a[0].length);
+  for (const [wolof, francais] of entries) {
+    const regex = new RegExp('\\b' + wolof.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+    t = t.replace(regex, francais);
+  }
+  
+  return t;
+}
+
+function detecterLangue(texte) {
+  const wolofMots = ['bëgg', 'naa', 'ceebu', 'yapp', 'jen', 'dëkk', 'kër', 
+                      'waaw', 'jërëjëf', 'jaama', 'ginaar', 'mafe', 'yassa',
+                      'sama', 'benn', 'ñaar', 'juróom', 'leko'];
+  const texteL = texte.toLowerCase();
+  const wolofCount = wolofMots.filter(m => texteL.includes(m)).length;
+  if (wolofCount >= 2) return 'wolof';
+  if (wolofCount === 1) return 'franwolof';
+  return 'francais';
+}
+
 async function parserCommandeIA(texte, menus) {
   try {
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -297,13 +381,14 @@ async function parserCommandeIA(texte, menus) {
         model: 'llama-3.3-70b-versatile',
         messages: [{
           role: 'system',
-          content: `Tu es un assistant pour un traiteur sénégalais. 
-          Extrait les informations de commande du message.
-          Menus disponibles: ${JSON.stringify(menus.map(m => ({ nom: m.nom.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1FFFF}]\s*/u,'').trim(), prix: m.prix, emoji: m.emoji, nb_personnes: m.nb_personnes })))}
+          content: `Tu es un assistant WhatsApp pour un traiteur sénégalais. Tu comprends le français, le wolof et le franwolof (mélange).
+          Vocabulaire wolof utile: bëgg=vouloir, ceebu jen=thiéboudienne, yapp=viande, jen=poisson, ginaar=poulet, dëkk/kër=domicile, ñaar=2, ñett=3, benn=1, jërëjëf=merci, waaw=oui.
+          Extrait les informations de commande du message client.
+          Menus disponibles: \${JSON.stringify(menus.map(m => ({ nom: m.nom.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1FFFF}]\s*/u,'').trim(), prix: m.prix, emoji: m.emoji, nb_personnes: m.nb_personnes })))}
           Réponds UNIQUEMENT en JSON:
           {"items": [{"nom": "...", "quantite": 1, "prix": 0}], "nb_personnes": 1, "date_livraison": null, "notes": ""}
-          Si ce n'est pas une commande, réponds: {"intent": "autre", "message": "ta réponse en français"}`
-        }, { role: 'user', content: texte }],
+          Si ce n'est pas une commande, réponds: {"intent": "autre", "message": "ta réponse en français ou wolof selon la langue du client"}`
+        }, { role: 'user', content: preTraiterWolof(texte) + ' [original: ' + texte + ']' }],
         max_tokens: 300,
         temperature: 0.1
       })
@@ -320,6 +405,7 @@ async function parserCommandeIA(texte, menus) {
 const pendingAddress = {};   // phone → { items, total, traiteur_id, nb_personnes }
 const pendingDate = {};      // phone → { items, total, adresse, traiteur_id }
 const clientTraiteurMap = {}; // phone client → traiteur_id
+const pendingReorder = {};   // phone → { cmd, traiteur_id } — commande rapide en attente
 
 // ============================================
 // WEBHOOK WHATSAPP
@@ -342,7 +428,9 @@ app.post('/webhook', async (req, res) => {
 
     const phone = msg.from;
     const phone_id = change.metadata.phone_number_id;
-    const texte = msg.text?.body?.trim() || '';
+    const texte_original = msg.text?.body?.trim() || '';
+    const langue = detecterLangue(texte_original);
+    const texte = langue !== 'francais' ? preTraiterWolof(texte_original) : texte_original;
 
     // Identifier le traiteur par le numéro WhatsApp du bot (phone_number_id → traiteur)
     let traiteur_id = clientTraiteurMap[phone];
@@ -423,6 +511,65 @@ app.post('/webhook', async (req, res) => {
       return res.sendStatus(200);
     }
 
+    // ---- COMMANDE RAPIDE — "pareil / habituel / comme d'habitude"
+    if (/pareil|habituel|comme d.habitude|même chose|rekk|daal|dëkk|toujours pareil/i.test(texte)) {
+      // Retrouver la dernière commande du client
+      const derniere = await pool.query(
+        `SELECT * FROM commandes_traiteur WHERE client_phone=$1 AND traiteur_id=$2 AND statut != 'annulé' ORDER BY created_at DESC LIMIT 1`,
+        [phone, traiteur_id]
+      );
+      if (derniere.rows[0]) {
+        const cmd = derniere.rows[0];
+        const items = Array.isArray(cmd.items) ? cmd.items : JSON.parse(cmd.items || '[]');
+        const resume = items.map(i => `${i.quantite}x ${i.nom}`).join(', ');
+        await envoyerWhatsApp(phone_id, phone,
+          `🔄 *Votre dernière commande :*
+
+${resume}
+💰 ${Number(cmd.total).toLocaleString('fr-FR')} FCFA
+
+Confirmez-vous cette commande ? Répondez *OUI* pour confirmer ou *NON* pour choisir autre chose.`
+        );
+        // Stocker en attente de confirmation
+        pendingReorder[phone] = { cmd, traiteur_id };
+      } else {
+        await envoyerWhatsApp(phone_id, phone,
+          `😊 Vous n'avez pas encore de commande précédente chez nous.
+
+Envoyez *menu* pour voir nos plats !`
+        );
+      }
+      return res.sendStatus(200);
+    }
+
+    // ---- CONFIRMATION REORDER
+    if (pendingReorder[phone] && /^(oui|yes|ok|waaw|ndax|confirm)/i.test(texte.trim())) {
+      const { cmd } = pendingReorder[phone];
+      const items = Array.isArray(cmd.items) ? cmd.items : JSON.parse(cmd.items || '[]');
+      const ref = genRef();
+      const newCmd = await pool.query(
+        `INSERT INTO commandes_traiteur (traiteur_id, client_phone, client_nom, items, total, adresse_livraison, notes, reference)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+        [traiteur_id, phone, cmd.client_nom, JSON.stringify(items), cmd.total, cmd.adresse_livraison, 'Recommande habituel', ref]
+      );
+      delete pendingReorder[phone];
+      const resume = items.map(i => `• ${i.quantite}x ${i.nom}`).join('
+');
+      await envoyerWhatsApp(phone_id, phone,
+        `✅ *Commande confirmée !*
+
+${resume}
+
+💰 *Total : ${Number(cmd.total).toLocaleString('fr-FR')} FCFA*
+📋 Réf : *${ref}*
+
+_Merci ! Votre commande est en préparation 👨‍🍳_
+
+_TraiteurPro 🇸🇳_`
+      );
+      return res.sendStatus(200);
+    }
+
     // ---- ANNULATION PAR CLIENT
     const annulMatch = texte.match(/annuler?\s+(TR-[A-Z0-9]+)/i);
     if (annulMatch || /^annuler?$/i.test(texte.trim())) {
@@ -487,9 +634,9 @@ Remplacez TR-XXXXXX par votre numéro de commande.`
     // ---- BONJOUR / BIENVENUE
     if (/^(bonjour|bonsoir|salut|salam|hello|hi|bjr|bsr)$/i.test(texte.trim())) {
       await envoyerWhatsApp(phone_id, phone,
-        `👋 *Bonjour !*\n\nBienvenue chez *${traiteur.nom_boutique}* 🍽️\n\n` +
-        `Que puis-je faire pour vous ?\n\n` +
-        `📋 *menu* — Voir nos plats\n` +
+        `👋 *Bonjour ! / Jaama ngeen def !* 🇸🇳\n\nBienvenue chez *${traiteur.nom_boutique}* 🍽️\n\n` +
+        `Que puis-je faire pour vous ? / Lan la bëgg ?\n\n` +
+        `📋 *menu* — Voir nos plats / Plats yi\n` +
         `📦 *commande* — Passer une commande\n` +
         `📍 *livraison* — Infos livraison\n` +
         `📞 *contact* — Nous contacter\n\n` +
@@ -1659,7 +1806,35 @@ app.post('/api/livraisons/:id/confirmer-code', async (req, res) => {
     // Terminer livraison automatiquement
     await pool.query(`UPDATE livraisons SET statut='livrée', livree_at=NOW(), duree_minutes=EXTRACT(EPOCH FROM (NOW()-created_at))/60 WHERE id=$1`, [req.params.id]);
     await pool.query('UPDATE livreurs SET disponible=true WHERE id=$1', [lv.rows[0].livreur_id]);
-    if (lv.rows[0].commande_id) await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
+    if (lv.rows[0].commande_id) {
+      await pool.query("UPDATE commandes_traiteur SET statut='livré' WHERE id=$1", [lv.rows[0].commande_id]);
+      // Demande d'avis automatique 1 heure après livraison
+      const cmdAvis = await pool.query('SELECT * FROM commandes_traiteur WHERE id=$1', [lv.rows[0].commande_id]);
+      const cmd = cmdAvis.rows[0];
+      if (cmd?.client_phone) {
+        setTimeout(async () => {
+          try {
+            const items = Array.isArray(cmd.items) ? cmd.items : JSON.parse(cmd.items || '[]');
+            const resume = items.map(i => i.quantite+'x '+i.nom).join(', ');
+            await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, cmd.client_phone,
+              `⭐ *Comment était votre commande ?*
+
+📦 ${resume}
+
+Donnez votre avis en envoyant un chiffre :
+
+⭐ *1* — Très déçu
+⭐⭐ *2* — Pas satisfait
+⭐⭐⭐ *3* — Bien
+⭐⭐⭐⭐ *4* — Très bien
+⭐⭐⭐⭐⭐ *5* — Excellent !
+
+_Votre avis nous aide à nous améliorer 🙏_`
+            );
+          } catch(e) {}
+        }, 60 * 60 * 1000); // 1 heure après livraison
+      }
+    }
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
