@@ -251,8 +251,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
       style="width:100%;padding:14px;background:var(--b);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block">
       Accéder au tableau de bord
     </button>
-    <div style="font-size:11px;color:#A89880">PIN par defaut : 1234</div>
+    <div style="font-size:11px;color:#A89880">PIN par défaut : 1234</div>
     <div id="login-error" style="color:var(--b);font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
+    <button onclick="afficherResetPin()" style="margin-top:12px;background:none;border:none;color:var(--texte3);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline">🔑 PIN oublié ?</button>
   </div>
 </div>
 
@@ -626,6 +627,36 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
       <label class="form-label">Zone de livraison</label>
       <input class="form-input" id="p-zone" placeholder="Ex : Dakar, Plateau, Médina, Almadies">
     </div>
+    <div class="form-group">
+      <label class="form-label">📱 Numéro WhatsApp</label>
+      <div style="display:flex;gap:8px">
+        <input class="form-input" id="p-whatsapp" placeholder="Ex : 221 77 123 45 67" type="tel" style="flex:1">
+        <button onclick="mettreAJourWhatsApp()" style="padding:12px 16px;background:rgba(37,211,102,0.1);border:1.5px solid rgba(37,211,102,0.3);border-radius:12px;color:#25D366;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">✅ Vérifier</button>
+      </div>
+      <div style="font-size:10px;color:var(--texte3);margin-top:4px">⚠️ Mettez à jour avant de changer votre PIN</div>
+    </div>
+  </div>
+
+  <!-- CHANGER PIN -->
+  <div class="section" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <div style="width:32px;height:32px;border-radius:8px;background:rgba(107,39,55,0.08);display:flex;align-items:center;justify-content:center;font-size:16px">🔐</div>
+      <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--texte)">Sécurité & PIN</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN actuel</label>
+      <input class="form-input" id="pin-actuel" type="password" maxlength="4" placeholder="••••" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nouveau PIN</label>
+      <input class="form-input" id="pin-nouveau" type="password" maxlength="4" placeholder="••••" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmer nouveau PIN</label>
+      <input class="form-input" id="pin-confirm" type="password" maxlength="4" placeholder="••••" inputmode="numeric">
+    </div>
+    <div id="pin-change-msg" style="font-size:12px;margin-bottom:10px;min-height:18px;font-weight:600"></div>
+    <button onclick="changerPin()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">🔐 Changer le PIN</button>
   </div>
 
   <!-- Réseaux sociaux -->
@@ -927,6 +958,59 @@ async function validerPinInput(pin){
   }
 }
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
+function afficherResetPin(){
+  document.getElementById('modal-reset-pin').style.display='flex';
+  document.getElementById('reset-step-1').style.display='block';
+  document.getElementById('reset-step-2').style.display='none';
+  document.getElementById('reset-msg').textContent='';
+}
+
+let resetOTPCode = null;
+
+async function envoyerOTP(){
+  const phone = document.getElementById('reset-phone').value.replace(/[^0-9]/g,'');
+  if(phone.length < 9){ document.getElementById('reset-msg').style.color='var(--rouge)'; document.getElementById('reset-msg').textContent='❌ Numéro invalide'; return; }
+  const wa = phone.startsWith('221')?phone:'221'+phone;
+  try{
+    const r = await fetch(`${API}/api/traiteur/reset-pin-otp`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ whatsapp: wa, traiteur_id: TRAITEUR_ID })
+    });
+    const res = await r.json();
+    if(res.ok){
+      document.getElementById('reset-step-1').style.display='none';
+      document.getElementById('reset-step-2').style.display='block';
+      document.getElementById('reset-msg').style.color='var(--vert)';
+      document.getElementById('reset-msg').textContent='✅ Code envoyé sur WhatsApp !';
+    } else {
+      document.getElementById('reset-msg').style.color='var(--rouge)';
+      document.getElementById('reset-msg').textContent='❌ '+(res.error||'Numéro non trouvé');
+    }
+  }catch(e){ document.getElementById('reset-msg').style.color='var(--rouge)'; document.getElementById('reset-msg').textContent='❌ Erreur réseau'; }
+}
+
+async function validerOTP(){
+  const otp = document.getElementById('reset-otp').value.trim();
+  const newPin = document.getElementById('reset-nouveau-pin').value.trim();
+  if(!otp||otp.length<4){ document.getElementById('reset-msg').textContent='❌ Entrez le code reçu'; return; }
+  if(!newPin||newPin.length!==4){ document.getElementById('reset-msg').textContent='❌ PIN doit être 4 chiffres'; return; }
+  try{
+    const r = await fetch(`${API}/api/traiteur/reset-pin-confirm`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ traiteur_id: TRAITEUR_ID, otp, nouveau_pin: newPin })
+    });
+    const res = await r.json();
+    if(res.ok){
+      document.getElementById('reset-msg').style.color='var(--vert)';
+      document.getElementById('reset-msg').textContent='✅ PIN changé ! Reconnectez-vous.';
+      setTimeout(()=>{ document.getElementById('modal-reset-pin').style.display='none'; seDeconnecter(); }, 2000);
+    } else {
+      document.getElementById('reset-msg').style.color='var(--rouge)';
+      document.getElementById('reset-msg').textContent='❌ '+(res.error||'Code incorrect');
+    }
+  }catch(e){ document.getElementById('reset-msg').style.color='var(--rouge)'; document.getElementById('reset-msg').textContent='❌ Erreur réseau'; }
+}
+
 function seDeconnecter(){
   try{localStorage.removeItem('tp_session_'+TRAITEUR_ID)}catch(e){}
   document.cookie='tp_'+TRAITEUR_ID+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
@@ -1699,7 +1783,28 @@ function exporterBilanPDF(){
   <h1>📊 Bilan mensuel — ${mois}</h1>
   ${content.innerHTML}
   <div class="footer">TraiteurPro · Terangaprestige Group 🇸🇳 · Généré le ${new Date().toLocaleDateString('fr-FR')}</div>
-  </body></html>`;
+  <!-- MODAL RESET PIN -->
+<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9998;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#FFFDF9;border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔑</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:6px">PIN oublié</div>
+    <div id="reset-step-1">
+      <div style="font-size:13px;color:var(--texte3);margin-bottom:16px">Entrez votre numéro WhatsApp pour recevoir un code</div>
+      <input id="reset-phone" class="form-input" type="tel" placeholder="Ex : 221 77 123 45 67" style="margin-bottom:12px">
+      <button onclick="envoyerOTP()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">📲 Envoyer le code WhatsApp</button>
+    </div>
+    <div id="reset-step-2" style="display:none">
+      <div style="font-size:13px;color:var(--texte3);margin-bottom:16px">Entrez le code reçu sur WhatsApp</div>
+      <input id="reset-otp" class="form-input" type="number" maxlength="6" placeholder="Code à 6 chiffres" style="font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:12px">
+      <input id="reset-nouveau-pin" class="form-input" type="password" maxlength="4" placeholder="Nouveau PIN (4 chiffres)" inputmode="numeric" style="margin-bottom:12px">
+      <button onclick="validerOTP()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--vert),#1a5c3a);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">✅ Valider et changer le PIN</button>
+    </div>
+    <div id="reset-msg" style="font-size:12px;margin-top:10px;min-height:18px;font-weight:600"></div>
+    <button onclick="document.getElementById('modal-reset-pin').style.display='none'" style="margin-top:10px;background:none;border:none;color:var(--texte3);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif">Annuler</button>
+  </div>
+</div>
+
+</body></html>`;
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2189,6 +2294,7 @@ async function chargerProfil(){
     const r=await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`);
     const d=await r.json();
     document.getElementById('p-nom').value=d.nom_boutique||'';
+    if(document.getElementById('p-whatsapp')) document.getElementById('p-whatsapp').value=d.whatsapp||'';
     if(document.getElementById('p-cuisine')) document.getElementById('p-cuisine').value=d.type_cuisine||'sénégalaise';
     // Set global patisserie flag
     const tc=(d.type_cuisine||'').toLowerCase();
@@ -2249,6 +2355,51 @@ async function geocoderAdresse(){
     msg.style.color='var(--b)';
     msg.textContent='❌ Erreur réseau. Vérifiez votre connexion.';
   }
+}
+
+async function mettreAJourWhatsApp(){
+  const wa = document.getElementById('p-whatsapp')?.value?.trim();
+  if(!wa){ showToast('❌ Entrez un numéro WhatsApp'); return; }
+  const phone = wa.replace(/[^0-9]/g,'');
+  if(phone.length < 9){ showToast('❌ Numéro invalide'); return; }
+  try{
+    const r = await fetch(`${API}/api/traiteur/profil/${TRAITEUR_ID}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ whatsapp: phone.startsWith('221')?phone:'221'+phone })
+    });
+    const res = await r.json();
+    if(res.ok){ showToast('✅ Numéro WhatsApp mis à jour !'); }
+    else { showToast('❌ Erreur: '+res.error); }
+  }catch(e){ showToast('❌ Erreur réseau'); }
+}
+
+async function changerPin(){
+  const actuel = document.getElementById('pin-actuel')?.value?.trim();
+  const nouveau = document.getElementById('pin-nouveau')?.value?.trim();
+  const confirm = document.getElementById('pin-confirm')?.value?.trim();
+  const msg = document.getElementById('pin-change-msg');
+  if(!actuel||actuel.length!==4){ msg.style.color='var(--rouge)'; msg.textContent='❌ Entrez votre PIN actuel (4 chiffres)'; return; }
+  if(!nouveau||nouveau.length!==4){ msg.style.color='var(--rouge)'; msg.textContent='❌ Nouveau PIN doit être 4 chiffres'; return; }
+  if(nouveau!==confirm){ msg.style.color='var(--rouge)'; msg.textContent='❌ Les PINs ne correspondent pas'; return; }
+  if(nouveau===actuel){ msg.style.color='var(--rouge)'; msg.textContent='❌ Nouveau PIN identique à l\'ancien'; return; }
+  try{
+    const r = await fetch(`${API}/api/traiteur/set-pin`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ traiteur_id: TRAITEUR_ID, ancien_pin: actuel, nouveau_pin: nouveau })
+    });
+    const res = await r.json();
+    if(res.ok){
+      msg.style.color='var(--vert)'; msg.textContent='✅ PIN changé avec succès !';
+      document.getElementById('pin-actuel').value='';
+      document.getElementById('pin-nouveau').value='';
+      document.getElementById('pin-confirm').value='';
+      // Mettre à jour la session
+      const sess = getSession();
+      if(sess){ try{ const sd=JSON.parse(sess); sd.pin=nouveau; setSession(sd); }catch(e){} }
+    } else {
+      msg.style.color='var(--rouge)'; msg.textContent='❌ '+(res.error||'PIN actuel incorrect');
+    }
+  }catch(e){ msg.style.color='var(--rouge)'; msg.textContent='❌ Erreur réseau'; }
 }
 
 async function sauvegarderProfil(){
@@ -2363,5 +2514,26 @@ window.addEventListener('beforeinstallprompt', e => {
   if(btn){ btn.style.display='block'; btn.onclick=()=>{ deferredPrompt.prompt(); deferredPrompt=null; btn.style.display='none'; }; }
 });
 </script>
+<!-- MODAL RESET PIN -->
+<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9998;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#FFFDF9;border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔑</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:6px">PIN oublié</div>
+    <div id="reset-step-1">
+      <div style="font-size:13px;color:var(--texte3);margin-bottom:16px">Entrez votre numéro WhatsApp pour recevoir un code</div>
+      <input id="reset-phone" class="form-input" type="tel" placeholder="Ex : 221 77 123 45 67" style="margin-bottom:12px">
+      <button onclick="envoyerOTP()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">📲 Envoyer le code WhatsApp</button>
+    </div>
+    <div id="reset-step-2" style="display:none">
+      <div style="font-size:13px;color:var(--texte3);margin-bottom:16px">Entrez le code reçu sur WhatsApp</div>
+      <input id="reset-otp" class="form-input" type="number" maxlength="6" placeholder="Code à 6 chiffres" style="font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:12px">
+      <input id="reset-nouveau-pin" class="form-input" type="password" maxlength="4" placeholder="Nouveau PIN (4 chiffres)" inputmode="numeric" style="margin-bottom:12px">
+      <button onclick="validerOTP()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--vert),#1a5c3a);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer">✅ Valider et changer le PIN</button>
+    </div>
+    <div id="reset-msg" style="font-size:12px;margin-top:10px;min-height:18px;font-weight:600"></div>
+    <button onclick="document.getElementById('modal-reset-pin').style.display='none'" style="margin-top:10px;background:none;border:none;color:var(--texte3);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif">Annuler</button>
+  </div>
+</div>
+
 </body>
 </html>
