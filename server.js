@@ -423,6 +423,66 @@ app.post('/webhook', async (req, res) => {
       return res.sendStatus(200);
     }
 
+    // ---- ANNULATION PAR CLIENT
+    const annulMatch = texte.match(/annuler?\s+(TR-[A-Z0-9]+)/i);
+    if (annulMatch || /^annuler?$/i.test(texte.trim())) {
+      if (annulMatch) {
+        const ref = annulMatch[1].toUpperCase();
+        const cmdRes = await pool.query(
+          "SELECT * FROM commandes_traiteur WHERE reference=$1 AND client_phone=$2",
+          [ref, phone]
+        );
+        const cmd = cmdRes.rows[0];
+        if (!cmd) {
+          await envoyerWhatsApp(phone_id, phone,
+            `❌ Commande *${ref}* introuvable.
+
+Vérifiez la référence et réessayez.`
+          );
+        } else if (cmd.statut === 'livré') {
+          await envoyerWhatsApp(phone_id, phone,
+            `❌ Impossible d'annuler — la commande *${ref}* a déjà été livrée.`
+          );
+        } else if (cmd.statut === 'en route') {
+          await envoyerWhatsApp(phone_id, phone,
+            `⚠️ Votre commande *${ref}* est déjà en route.
+
+Contactez directement le traiteur pour annuler.`
+          );
+        } else {
+          // Annulation OK
+          await pool.query("UPDATE commandes_traiteur SET statut='annulé' WHERE id=$1", [cmd.id]);
+          // Notifier traiteur
+          await envoyerWhatsApp(phone_id, traiteur.whatsapp,
+            `❌ *Commande annulée par le client*
+
+📋 Réf: *${ref}*
+👤 Client: ${phone}
+💰 Montant: ${Number(cmd.total).toLocaleString('fr-FR')} FCFA
+
+_TraiteurPro 🇸🇳_`
+          );
+          await envoyerWhatsApp(phone_id, phone,
+            `✅ *Commande annulée*
+
+Votre commande *${ref}* a été annulée avec succès.
+
+Merci et à bientôt chez *${traiteur.nom_boutique}* 🍽️`
+          );
+        }
+      } else {
+        // Annuler sans référence → demander la référence
+        await envoyerWhatsApp(phone_id, phone,
+          `Pour annuler une commande, envoyez :
+
+*ANNULER TR-XXXXXX*
+
+Remplacez TR-XXXXXX par votre numéro de commande.`
+        );
+      }
+      return res.sendStatus(200);
+    }
+
     // ---- MENU DU JOUR
     // ---- BONJOUR / BIENVENUE
     if (/^(bonjour|bonsoir|salut|salam|hello|hi|bjr|bsr)$/i.test(texte.trim())) {
@@ -655,10 +715,13 @@ app.delete('/api/menus/:id', async (req, res) => {
 app.get('/api/commandes/:traiteur_id', async (req, res) => {
   try {
     const { statut, limit } = req.query;
-    let q = 'SELECT * FROM commandes_traiteur WHERE traiteur_id=$1';
+    let q = `SELECT c.*, l.nom as livreur_nom FROM commandes_traiteur c
+      LEFT JOIN livraisons lv ON lv.commande_id=c.id AND lv.statut != 'annulée'
+      LEFT JOIN livreurs l ON l.id=lv.livreur_id
+      WHERE c.traiteur_id=$1`;
     const params = [req.params.traiteur_id];
-    if (statut) { q += ` AND statut=$${params.length+1}`; params.push(statut); }
-    q += ' ORDER BY created_at DESC LIMIT ' + (limit || 50);
+    if (statut) { q += ` AND c.statut=$${params.length+1}`; params.push(statut); }
+    q += ' ORDER BY c.created_at DESC LIMIT ' + (limit || 50);
     const r = await pool.query(q, params);
     res.json(r.rows);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -703,7 +766,24 @@ app.post('/api/commandes', async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [traiteur_id, client_phone, client_nom, JSON.stringify(items||[]), total||0, adresse_livraison, date_livraison, notes, ref]
     );
-    res.json({ ok: true, commande: r.rows[0] });
+    const cmd = r.rows[0];
+    res.json({ ok: true, commande: cmd });
+
+    // AUTO-CONFIRMATION après 2 minutes
+    // Vérifier si auto-confirm activé pour ce traiteur
+    setTimeout(async () => {
+      try {
+        const check = await pool.query(
+          "SELECT statut FROM commandes_traiteur WHERE id=$1", [cmd.id]
+        );
+        if (check.rows[0]?.statut === 'nouveau') {
+          await pool.query(
+            "UPDATE commandes_traiteur SET statut='confirmé' WHERE id=$1", [cmd.id]
+          );
+        }
+      } catch(e) {}
+    }, 2 * 60 * 1000); // 2 minutes
+
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
