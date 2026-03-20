@@ -959,10 +959,20 @@ async function validerPinInput(pin){
 }
 async function confirmerNouveauPin(){const np=document.getElementById('new-pin').value,cp=document.getElementById('confirm-pin').value;if(np.length!==4||isNaN(np)){document.getElementById('setpin-error').textContent='PIN doit être 4 chiffres';document.getElementById('setpin-error').style.display='block';return}if(np!==cp){document.getElementById('setpin-error').textContent='PINs différents';document.getElementById('setpin-error').style.display='block';return}try{const r=await fetch(`${API}/api/traiteur/set-pin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({traiteur_id:TRAITEUR_ID,ancien_pin:'1234',nouveau_pin:np})});const d=await r.json();if(d.ok){document.getElementById('setpin-overlay').style.display='none';demarrer()}}catch(e){}}
 function afficherResetPin(){
-  document.getElementById('modal-reset-pin').style.display='flex';
+  // Fermer le login overlay temporairement
+  const loginOv = document.getElementById('login-overlay');
+  if(loginOv) loginOv.style.display='none';
+  // Ouvrir le modal reset
+  const modal = document.getElementById('modal-reset-pin');
+  modal.style.display='flex';
   document.getElementById('reset-step-1').style.display='block';
   document.getElementById('reset-step-2').style.display='none';
   document.getElementById('reset-msg').textContent='';
+  // Bouton annuler → revenir au login
+  modal.querySelector('button:last-child').onclick = function(){
+    modal.style.display='none';
+    if(loginOv) loginOv.style.display='flex';
+  };
 }
 
 let resetOTPCode = null;
@@ -1784,7 +1794,7 @@ function exporterBilanPDF(){
   ${content.innerHTML}
   <div class="footer">TraiteurPro · Terangaprestige Group 🇸🇳 · Généré le ${new Date().toLocaleDateString('fr-FR')}</div>
   <!-- MODAL RESET PIN -->
-<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9998;align-items:center;justify-content:center;padding:20px">
+<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:center;justify-content:center;padding:20px">
   <div style="background:#FFFDF9;border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center">
     <div style="font-size:32px;margin-bottom:8px">🔑</div>
     <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:6px">PIN oublié</div>
@@ -2515,7 +2525,7 @@ window.addEventListener('beforeinstallprompt', e => {
 });
 </script>
 <!-- MODAL RESET PIN -->
-<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9998;align-items:center;justify-content:center;padding:20px">
+<div id="modal-reset-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:center;justify-content:center;padding:20px">
   <div style="background:#FFFDF9;border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center">
     <div style="font-size:32px;margin-bottom:8px">🔑</div>
     <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--texte);margin-bottom:6px">PIN oublié</div>
