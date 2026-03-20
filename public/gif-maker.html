@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro — GIF Maker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#1C0A0A;color:#F5EDD8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+h1{font-size:24px;margin-bottom:8px;color:#E8C97E}
+.sub{font-size:13px;color:#9C8A75;margin-bottom:32px;text-align:center}
+.canvas-wrap{border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);margin-bottom:24px}
+canvas{display:block}
+.btn{padding:14px 32px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;width:280px}
+.btn-primary{background:linear-gradient(135deg,#C4973A,#E8C97E);color:#1C0A0A;margin-bottom:12px}
+.btn-dl{background:linear-gradient(135deg,#6B2737,#8B3A4A);color:#fff;display:none}
+.progress{width:280px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin:16px 0;display:none}
+.progress-fill{height:6px;background:linear-gradient(90deg,#C4973A,#E8C97E);border-radius:3px;width:0%;transition:width .1s}
+.status{font-size:12px;color:#9C8A75;text-align:center;margin-bottom:8px;min-height:20px}
+</style>
+</head>
+<body>
+
+<h1>🍽️ TraiteurPro GIF Maker</h1>
+<p class="sub">Génère un GIF animé de 8 secondes à partager sur WhatsApp & Instagram</p>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="360" height="640"></canvas>
+</div>
+
+<div class="status" id="status">Appuyez sur Générer pour créer le GIF</div>
+<div class="progress" id="progress"><div class="progress-fill" id="progress-fill"></div></div>
+
+<button class="btn btn-primary" id="btn-gen" onclick="genererGIF()">🎬 Générer le GIF</button>
+<button class="btn btn-dl" id="btn-dl">⬇️ Télécharger le GIF</button>
+
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const W = 360, H = 640;
+
+// ── COULEURS TRAITEURPRO ──
+const BORDEAUX = '#6B2737';
+const BORDEAUX2 = '#8B3A4A';
+const OR = '#C4973A';
+const OR2 = '#E8C97E';
+const CREME = '#F7F3EE';
+const TEXTE = '#1C1208';
+const TEXTE2 = '#5C4A35';
+const TEXTE3 = '#9C8A75';
+const VERT = '#2A6B4F';
+
+// ── FRAMES ──
+// 8 secondes à 10fps = 80 frames
+const TOTAL_FRAMES = 80;
+const FPS = 10;
+
+function drawRoundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+}
+
+function drawText(text, x, y, size, color, align='left', weight='400', font='DM Sans') {
+  ctx.font = `${weight} ${size}px ${font}, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(text, x, y);
+}
+
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+function easeInOut(t) { return t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function drawFrame(frame) {
+  const t = frame / TOTAL_FRAMES; // 0 → 1
+  
+  // ── BACKGROUND ──
+  ctx.fillStyle = CREME;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Subtle pattern
+  ctx.fillStyle = 'rgba(196,151,58,0.03)';
+  for(let i = 0; i < W; i += 40) {
+    for(let j = 0; j < H; j += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i+20, j); ctx.lineTo(i+40, j+20);
+      ctx.lineTo(i+20, j+40); ctx.lineTo(i, j+20);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // ── PHASE 1 (0-12): NOTIFICATION ──
+  if (frame < 25) {
+    const p = frame < 5 ? frame/5 : frame < 20 ? 1 : 1-(frame-20)/5;
+    const slideY = lerp(-80, 60, easeOut(Math.min(1, frame/5)));
+    const alpha = p;
+    
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    drawRoundRect(20, slideY, W-40, 70, 16, '#fff', 'rgba(107,39,55,.1)');
+    
+    // Icon
+    drawRoundRect(32, slideY+12, 46, 46, 12, BORDEAUX, null);
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText('🍽️', 55, slideY+42);
+    
+    // Text
+    drawText('TraiteurPro', 90, slideY+28, 13, TEXTE, 'left', '700');
+    drawText('🔔 Nouvelle commande reçue !', 90, slideY+44, 11, TEXTE2, 'left', '400');
+    drawText('Fatou Diallo — 35 000 FCFA', 90, slideY+58, 10, TEXTE3, 'left', '400');
+    
+    // Time
+    drawText('maintenant', W-30, slideY+28, 10, TEXTE3, 'right');
+    ctx.restore();
+  }
+  
+  // ── HEADER ──
+  const headerH = 110;
+  const grad = ctx.createLinearGradient(0, 0, 0, headerH);
+  grad.addColorStop(0, BORDEAUX);
+  grad.addColorStop(1, BORDEAUX2);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, headerH);
+  
+  // Header pattern
+  ctx.fillStyle = 'rgba(196,151,58,0.06)';
+  ctx.beginPath();
+  ctx.arc(W, 0, 120, 0, Math.PI*2);
+  ctx.fill();
+  
+  // Logo
+  drawRoundRect(16, 16, 40, 40, 10, 'rgba(255,255,255,.15)', null);
+  ctx.font = 'bold 18px Georgia, serif';
+  ctx.fillStyle = OR2;
+  ctx.textAlign = 'center';
+  ctx.fillText('TP', 36, 42);
+  
+  drawText('TraiteurPro', 66, 30, 16, '#F5EDD8', 'left', '700', 'Georgia');
+  drawText('Chez Fatou Traiteur', 66, 46, 11, 'rgba(245,237,216,.6)', 'left');
+  
+  // Bot status badge
+  drawRoundRect(W-90, 20, 74, 22, 11, 'rgba(42,107,79,.3)', null);
+  drawText('🟢 Bot actif', W-53, 35, 10, '#6DEBB0', 'center', '700');
+  
+  // PHASE 2 (0-40): KPI CARDS ──
+  const kpiY = 126;
+  const kpiAnim = frame < 10 ? 0 : Math.min(1, (frame-10)/15);
+  
+  // KPI row 1
+  const kpis = [
+    { icon:'📋', val: Math.round(lerp(0, 47, easeOut(kpiAnim))), lbl:'Commandes', badge:'3 nouvelles' },
+    { icon:'💰', val: null, valStr: Math.round(lerp(0, 235, easeOut(kpiAnim)))+'k', lbl:'Revenus FCFA' },
+  ];
+  
+  kpis.forEach((k, i) => {
+    const x = 16 + i * (W/2 - 12);
+    const w = W/2 - 28;
+    
+    ctx.save();
+    ctx.globalAlpha = kpiAnim;
+    ctx.translate(0, lerp(20, 0, easeOut(kpiAnim)));
+    
+    drawRoundRect(x, kpiY, w, 82, 16, '#fff', 'rgba(196,151,58,.15)');
+    // Top accent
+    const g = ctx.createLinearGradient(x, kpiY, x+w, kpiY);
+    g.addColorStop(0, OR); g.addColorStop(1, BORDEAUX);
+    ctx.fillStyle = g;
+    ctx.fillRect(x+16, kpiY, w-32, 3);
+    ctx.beginPath();
+    ctx.arc(x+16, kpiY+1.5, 1.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x+w-16, kpiY+1.5, 1.5, 0, Math.PI*2); ctx.fill();
+    
+    ctx.font = '20px sans-serif';
+    ctx.fillText(k.icon, x+14, kpiY+32);
+    
+    const dispVal = k.valStr || String(k.val);
+    ctx.font = `bold 26px Georgia, serif`;
+    ctx.fillStyle = TEXTE;
+    ctx.textAlign = 'left';
+    ctx.fillText(dispVal, x+14, kpiY+60);
+    
+    ctx.font = '9px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.textAlign = 'left';
+    ctx.fillText(k.lbl.toUpperCase(), x+14, kpiY+74);
+    
+    if(k.badge && kpiAnim > 0.5) {
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillStyle = OR;
+      ctx.fillText(k.badge, x+14, kpiY+86);
+    }
+    
+    ctx.restore();
+  });
+  
+  // KPI row 2
+  const kpis2 = [
+    { icon:'👥', val: Math.round(lerp(0, 12, easeOut(kpiAnim))), lbl:'Clients' },
+    { icon:'⭐', valStr:'Thiébou', lbl:'Plat star' },
+  ];
+  kpis2.forEach((k, i) => {
+    const x = 16 + i * (W/2 - 12);
+    const w = W/2 - 28;
+    ctx.save();
+    ctx.globalAlpha = kpiAnim * 0.9;
+    ctx.translate(0, lerp(30, 0, easeOut(kpiAnim)));
+    drawRoundRect(x, kpiY+90, w, 70, 16, '#fff', 'rgba(196,151,58,.1)');
+    const g2 = ctx.createLinearGradient(x, kpiY+90, x+w, kpiY+90);
+    g2.addColorStop(0, OR); g2.addColorStop(1, BORDEAUX);
+    ctx.fillStyle = g2;
+    ctx.fillRect(x+16, kpiY+90, w-32, 2);
+    ctx.font = '18px sans-serif';
+    ctx.fillText(k.icon, x+14, kpiY+118);
+    const dv2 = k.valStr || String(k.val);
+    ctx.font = `bold ${k.valStr?'14':'22'}px Georgia, serif`;
+    ctx.fillStyle = TEXTE;
+    ctx.textAlign = 'left';
+    ctx.fillText(dv2, x+14, kpiY+140);
+    ctx.font = '9px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.fillText(k.lbl.toUpperCase(), x+14, kpiY+154);
+    ctx.restore();
+  });
+
+  // ── PHASE 3 (20-50): COMMANDE CARD ──
+  const cmdAnim = frame < 20 ? 0 : Math.min(1, (frame-20)/12);
+  if(cmdAnim > 0) {
+    const cmdY = 340;
+    ctx.save();
+    ctx.globalAlpha = cmdAnim;
+    ctx.translate(0, lerp(30, 0, easeOut(cmdAnim)));
+    
+    // Section title
+    ctx.font = 'bold 10px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.textAlign = 'left';
+    ctx.fillText('🕐 NOUVELLES COMMANDES', 16, cmdY);
+    
+    // Card
+    drawRoundRect(16, cmdY+8, W-32, 110, 14, '#fff', 'rgba(196,151,58,.12)');
+    ctx.fillStyle = OR;
+    ctx.fillRect(16, cmdY+8, 3, 110);
+    
+    // Ref + badge
+    ctx.font = 'bold 13px Georgia, serif';
+    ctx.fillStyle = BORDEAUX;
+    ctx.textAlign = 'left';
+    ctx.fillText('TR-FATOU001', 28, cmdY+28);
+    
+    drawRoundRect(W-90, cmdY+14, 68, 20, 10, 'rgba(196,151,58,.12)', null);
+    ctx.font = 'bold 9px sans-serif';
+    ctx.fillStyle = '#B8860B';
+    ctx.textAlign = 'center';
+    ctx.fillText('🕐 Nouveau', W-56, cmdY+27);
+    
+    // Client
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.textAlign = 'left';
+    ctx.fillText('Fatou Diallo · il y a 2 min', 28, cmdY+42);
+    
+    // Info box
+    drawRoundRect(28, cmdY+50, W-56, 36, 8, '#EFE9E0', null);
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillStyle = TEXTE;
+    ctx.fillText('2x Thiéboudienne · 1x Yassa', 38, cmdY+65);
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.fillText('📍 Médina, Rue 18', 38, cmdY+79);
+    
+    // Total + button
+    ctx.font = 'bold 16px Georgia, serif';
+    ctx.fillStyle = TEXTE;
+    ctx.textAlign = 'left';
+    ctx.fillText('35 000 FCFA', 28, cmdY+106);
+    
+    // Confirm button animation
+    const btnAnim = frame < 35 ? 0 : Math.min(1, (frame-35)/8);
+    if(btnAnim > 0) {
+      const bg = ctx.createLinearGradient(W-120, cmdY+90, W-20, cmdY+90);
+      bg.addColorStop(0, VERT);
+      bg.addColorStop(1, '#1a5c3a');
+      drawRoundRect(W-118, cmdY+90, 94, 28, 8, null, null);
+      ctx.fillStyle = bg;
+      ctx.fill();
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('✅ Confirmer', W-71, cmdY+108);
+    }
+    
+    ctx.restore();
+  }
+  
+  // ── PHASE 4 (45-65): LIVREUR ──
+  const livAnim = frame < 45 ? 0 : Math.min(1, (frame-45)/12);
+  if(livAnim > 0) {
+    const livY = 470;
+    ctx.save();
+    ctx.globalAlpha = livAnim;
+    ctx.translate(0, lerp(30, 0, easeOut(livAnim)));
+    
+    drawRoundRect(16, livY, W-32, 80, 14, '#fff', 'rgba(196,151,58,.12)');
+    
+    // Avatar
+    const avGrad = ctx.createLinearGradient(28, livY+14, 64, livY+50);
+    avGrad.addColorStop(0, BORDEAUX); avGrad.addColorStop(1, BORDEAUX2);
+    drawRoundRect(28, livY+14, 44, 44, 12, null, null);
+    ctx.fillStyle = avGrad; ctx.fill();
+    ctx.font = '22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏍️', 50, livY+43);
+    
+    ctx.font = 'bold 13px Georgia, serif';
+    ctx.fillStyle = TEXTE;
+    ctx.textAlign = 'left';
+    ctx.fillText('Pape Moussa', 82, livY+32);
+    
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = TEXTE3;
+    ctx.fillText('Médina · 📱 705538450', 82, livY+46);
+    
+    // Stats
+    const stats = [{v:'4',l:'Total'},{v:'3',l:'Livrées'},{v:'75%',l:'Taux'}];
+    stats.forEach((s,i)=>{
+      const sx = 82 + i*62;
+      drawRoundRect(sx, livY+54, 56, 22, 6, '#EFE9E0', null);
+      ctx.font = 'bold 12px Georgia, serif';
+      ctx.fillStyle = TEXTE;
+      ctx.textAlign = 'center';
+      ctx.fillText(s.v, sx+28, livY+68);
+      ctx.font = '8px sans-serif';
+      ctx.fillStyle = TEXTE3;
+      ctx.fillText(s.l, sx+28, livY+76);
+    });
+    
+    // Status badge
+    drawRoundRect(W-80, livY+14, 60, 20, 10, 'rgba(42,107,79,.1)', null);
+    ctx.font = 'bold 9px sans-serif';
+    ctx.fillStyle = VERT;
+    ctx.textAlign = 'center';
+    ctx.fillText('🟢 Dispo', W-50, livY+27);
+    
+    ctx.restore();
+  }
+
+  // ── PHASE 5 (65-80): CTA ──
+  const ctaAnim = frame < 65 ? 0 : Math.min(1, (frame-65)/8);
+  if(ctaAnim > 0) {
+    const ctaY = 570;
+    ctx.save();
+    ctx.globalAlpha = ctaAnim;
+    
+    const ctaGrad = ctx.createLinearGradient(16, ctaY, W-16, ctaY+60);
+    ctaGrad.addColorStop(0, BORDEAUX);
+    ctaGrad.addColorStop(1, BORDEAUX2);
+    drawRoundRect(16, ctaY, W-32, 58, 16, null, null);
+    ctx.fillStyle = ctaGrad; ctx.fill();
+    
+    ctx.font = 'bold 14px Georgia, serif';
+    ctx.fillStyle = '#F5EDD8';
+    ctx.textAlign = 'center';
+    ctx.fillText('🍽️ Démarrer gratuitement', W/2, ctaY+22);
+    
+    ctx.font = '10px sans-serif';
+    ctx.fillStyle = 'rgba(245,237,216,.6)';
+    ctx.fillText('Essai 14 jours · Sans carte bancaire · 0 FCFA', W/2, ctaY+38);
+    
+    const btnG = ctx.createLinearGradient(W/2-70, ctaY+42, W/2+70, ctaY+42);
+    btnG.addColorStop(0, OR); btnG.addColorStop(1, OR2);
+    drawRoundRect(W/2-70, ctaY+42, 140, 10, 5, null, null);
+    ctx.fillStyle = btnG; ctx.fill();
+    
+    ctx.restore();
+  }
+  
+  // ── WATERMARK ──
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = 'rgba(156,138,117,.4)';
+  ctx.textAlign = 'center';
+  ctx.fillText('TraiteurPro 🇸🇳 · traiteurpro-production.up.railway.app', W/2, H-8);
+}
+
+// Preview animation
+let previewFrame = 0;
+let previewTimer = null;
+
+function startPreview() {
+  if(previewTimer) clearInterval(previewTimer);
+  previewTimer = setInterval(()=>{
+    drawFrame(previewFrame);
+    previewFrame = (previewFrame + 1) % TOTAL_FRAMES;
+  }, 1000/FPS);
+}
+
+startPreview();
+
+// GIF Generation
+function genererGIF() {
+  if(typeof GIF === 'undefined') {
+    alert('La librairie GIF.js ne s\'est pas chargée. Vérifiez votre connexion internet.');
+    return;
+  }
+  
+  clearInterval(previewTimer);
+  document.getElementById('btn-gen').disabled = true;
+  document.getElementById('btn-gen').textContent = '⏳ Génération en cours...';
+  document.getElementById('progress').style.display = 'block';
+  document.getElementById('status').textContent = 'Capture des frames...';
+  
+  const gif = new GIF({
+    workers: 2,
+    quality: 8,
+    width: W,
+    height: H,
+    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+  });
+  
+  // Capture all frames
+  for(let f = 0; f < TOTAL_FRAMES; f++) {
+    drawFrame(f);
+    gif.addFrame(ctx, { copy: true, delay: 1000/FPS });
+    
+    if(f % 10 === 0) {
+      document.getElementById('progress-fill').style.width = (f/TOTAL_FRAMES*50)+'%';
+      document.getElementById('status').textContent = `Capture frame ${f}/${TOTAL_FRAMES}...`;
+    }
+  }
+  
+  gif.on('progress', p => {
+    document.getElementById('progress-fill').style.width = (50 + p*50)+'%';
+    document.getElementById('status').textContent = `Encodage GIF ${Math.round(p*100)}%...`;
+  });
+  
+  gif.on('finished', blob => {
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('status').textContent = '✅ GIF prêt à télécharger !';
+    document.getElementById('btn-gen').style.display = 'none';
+    
+    const url = URL.createObjectURL(blob);
+    const dlBtn = document.getElementById('btn-dl');
+    dlBtn.style.display = 'block';
+    dlBtn.onclick = () => {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'traiteurpro-demo.gif';
+      a.click();
+    };
+    
+    // Show GIF preview
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0);
+    };
+    
+    startPreview();
+  });
+  
+  gif.render();
+}
+</script>
+</body>
+</html>
