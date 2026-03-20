@@ -160,6 +160,12 @@ document.addEventListener('DOMContentLoaded', function(){
   var s = document.getElementById('splash');
   if(s) { s.style.display='flex'; s.style.opacity='1'; }
 });
+// Guide stub - will be overridden by full implementation below
+function _demarrerGuide(){ 
+  setTimeout(function(){
+    if(typeof GUIDE_STEPS !== 'undefined') _demarrerGuide();
+  }, 100);
+}
 </script>
 
 <!-- SPLASH SCREEN -->
@@ -185,8 +191,9 @@ document.addEventListener('DOMContentLoaded', function(){
 </style>
 
 <!-- Bannière démo -->
-<div class="demo-banner">
-  🎯 Démo interactive · <span id="live-count">3</span> traiteurs actifs en ce moment · <a href="https://traiteurpro-production.up.railway.app" target="_blank">Créer mon espace gratuit →</a>
+<div class="demo-banner" style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+  <span>🎯 <span id="live-count">47</span> traiteurs actifs · <a href="https://traiteurpro-production.up.railway.app" target="_blank" style="color:var(--or2)">Créer mon espace →</a></span>
+  <button onclick="demarrerGuide()" style="padding:4px 12px;background:var(--or);color:#1C0A0A;border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0">▶️ Visite guidée</button>
 </div>
 
 <!-- Notification simulée -->
@@ -881,7 +888,7 @@ const GUIDE_STEPS = [
 let guideStep = 0;
 let guideActive = false;
 
-function demarrerGuide(){
+function _demarrerGuide(){
   guideActive = true;
   guideStep = 0;
   document.getElementById('guide-overlay').style.display = 'block';
@@ -972,20 +979,10 @@ function afficherGuideStep(i){
 
 // Démarrer le guide automatiquement après 2s
 setTimeout(()=>{
-  // Afficher bouton "Démarrer la visite guidée"
-  const banner = document.querySelector('.demo-banner');
-  if(banner){
-    const btn = document.createElement('button');
-    btn.textContent = '🎯 Visite guidée';
-    btn.style.cssText = 'margin-left:10px;padding:3px 10px;background:var(--or);color:#1C0A0A;border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif';
-    btn.onclick = demarrerGuide;
-    banner.appendChild(btn);
-  }
-  
   // Auto-start after 2s if user hasn't interacted
   let userInteracted = false;
   document.addEventListener('click', ()=>userInteracted=true, {once:true});
-  setTimeout(()=>{ if(!userInteracted) demarrerGuide(); }, 2000);
+  setTimeout(()=>{ if(!userInteracted) _demarrerGuide(); }, 2000);
 }, 1000);
 </script>
 </body>
