@@ -160,12 +160,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var s = document.getElementById('splash');
   if(s) { s.style.display='flex'; s.style.opacity='1'; }
 });
-// Guide stub - will be overridden by full implementation below
-function _demarrerGuide(){ 
-  setTimeout(function(){
-    if(typeof GUIDE_STEPS !== 'undefined') _demarrerGuide();
-  }, 100);
-}
+// Guide loaded below
 </script>
 
 <!-- SPLASH SCREEN -->
@@ -888,7 +883,7 @@ const GUIDE_STEPS = [
 let guideStep = 0;
 let guideActive = false;
 
-function _demarrerGuide(){
+function demarrerGuide(){
   guideActive = true;
   guideStep = 0;
   document.getElementById('guide-overlay').style.display = 'block';
@@ -914,11 +909,9 @@ function guideTerminer(){
   document.getElementById('guide-tooltip').style.display = 'none';
   document.getElementById('guide-highlight').style.display = 'none';
   // Show CTA
-  showNotif('🎉','Vous avez vu l'essentiel !','Créez votre espace gratuit maintenant');
+  showNotif('🎉','Vous avez vu l\'essentiel !','Créez votre espace gratuit maintenant');
   setTimeout(()=>{
-    if(confirm('Vous avez vu comment ça marche !
-
-Voulez-vous créer votre espace TraiteurPro gratuit ?')){
+    if(confirm('Vous avez vu comment ça marche !\n\nVoulez-vous créer votre espace TraiteurPro gratuit ?')){
       window.open('https://traiteurpro-production.up.railway.app','_blank');
     }
   }, 3500);
@@ -982,7 +975,7 @@ setTimeout(()=>{
   // Auto-start after 2s if user hasn't interacted
   let userInteracted = false;
   document.addEventListener('click', ()=>userInteracted=true, {once:true});
-  setTimeout(()=>{ if(!userInteracted) _demarrerGuide(); }, 2000);
+  setTimeout(()=>{ if(!userInteracted) demarrerGuide(); }, 2000);
 }, 1000);
 </script>
 </body>
