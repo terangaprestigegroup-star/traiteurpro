@@ -136,6 +136,13 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
 </style>
 </head>
 <body>
+<script>
+// Force splash visible before page renders
+document.addEventListener('DOMContentLoaded', function(){
+  var s = document.getElementById('splash');
+  if(s) { s.style.display='flex'; s.style.opacity='1'; }
+});
+</script>
 
 <!-- SPLASH SCREEN -->
 <div id="splash" style="position:fixed;inset:0;background:linear-gradient(160deg,#1C0A0A,#2D1010,#1C0A0A);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease">
@@ -209,7 +216,7 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
     </div>
     <div class="kpi">
       <div class="kpi-icon">💰</div>
-      <div class="kpi-val" id="k-revenus"><span id="k-revenus-num">0</span>k</div>
+      <div class="kpi-val" id="k-revenus">235k</div>
       <div class="kpi-lbl">Revenus FCFA</div>
     </div>
     <div class="kpi">
@@ -769,7 +776,6 @@ window.addEventListener('load', ()=>{
       });
       // Animate KPI counters
       animerKPI('k-commandes', 0, 47, 1200);
-      animerKPI('k-revenus-num', 0, 235, 1500, 'k');
       animerKPI('k-clients', 0, 12, 1000);
     }, 500);
   }, 2000);
