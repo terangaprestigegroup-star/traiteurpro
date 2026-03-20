@@ -133,6 +133,24 @@ body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xm
 .empty-emoji{font-size:40px;margin-bottom:12px}
 .empty-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:6px}
 .empty-sub{font-size:12px;color:var(--texte3)}
+
+/* ── GUIDE INTERACTIF ── */
+.guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;pointer-events:none;transition:opacity .3s}
+.guide-tooltip{position:fixed;background:#fff;border-radius:16px;padding:20px;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);z-index:9999;transition:all .4s ease}
+.guide-tooltip::after{content:'';position:absolute;width:12px;height:12px;background:#fff;transform:rotate(45deg)}
+.guide-tooltip.arrow-top::after{top:-6px;left:50%;margin-left:-6px}
+.guide-tooltip.arrow-bottom::after{bottom:-6px;left:50%;margin-left:-6px}
+.guide-step-num{font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.guide-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:6px}
+.guide-desc{font-size:12px;color:var(--texte3);line-height:1.6;margin-bottom:16px}
+.guide-progress{display:flex;gap:4px;margin-bottom:14px}
+.guide-dot{height:3px;border-radius:3px;background:var(--border);transition:.3s;flex:1}
+.guide-dot.active{background:var(--b)}
+.guide-dot.done{background:var(--or)}
+.guide-actions{display:flex;gap:8px}
+.guide-next{flex:2;padding:10px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.guide-skip{flex:1;padding:10px;background:transparent;color:var(--texte3);border:1px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer}
+.guide-highlight{position:fixed;border:2px solid var(--or);border-radius:12px;z-index:9997;pointer-events:none;transition:all .4s ease;box-shadow:0 0 0 4px rgba(196,151,58,.15)}
 </style>
 </head>
 <body>
@@ -799,6 +817,176 @@ function animerKPI(id, from, to, duration, suffix=''){
 setTimeout(()=>showNotif('🍽️','Nouvelle commande reçue !','Mamadou — 2x Yassa · 24 000 FCFA'), 3000);
 setTimeout(()=>showNotif('📲','Client notifié automatiquement','Commande confirmée — WhatsApp envoyé'), 8000);
 setTimeout(()=>showNotif('🚚','Livreur en route','Ibou Diallo → Médina, Rue 18'), 13000);
+</script>
+
+<!-- GUIDE INTERACTIF -->
+<div id="guide-overlay" class="guide-overlay" style="display:none"></div>
+<div id="guide-highlight" class="guide-highlight" style="display:none"></div>
+<div id="guide-tooltip" class="guide-tooltip" style="display:none">
+  <div class="guide-progress" id="guide-progress"></div>
+  <div class="guide-step-num" id="guide-step-num">Étape 1/5</div>
+  <div class="guide-title" id="guide-title"></div>
+  <div class="guide-desc" id="guide-desc"></div>
+  <div class="guide-actions">
+    <button class="guide-next" id="guide-next" onclick="guideNext()">Suivant →</button>
+    <button class="guide-skip" onclick="guideSkip()">Passer</button>
+  </div>
+</div>
+
+<script>
+const GUIDE_STEPS = [
+  {
+    title: "📊 Votre tableau de bord",
+    desc: "Ici vous voyez tout en temps réel — commandes, revenus, clients. Tout sur votre téléphone.",
+    tab: 'accueil',
+    target: '.kpis',
+    arrow: 'top',
+    action: null
+  },
+  {
+    title: "📋 Gérez vos commandes",
+    desc: "Confirmez, préparez, assignez un livreur. Chaque bouton déclenche une notification WhatsApp automatique au client.",
+    tab: 'commandes',
+    target: '.cmd-card',
+    arrow: 'top',
+    action: null
+  },
+  {
+    title: "🤖 Testez le bot WhatsApp IA",
+    desc: "Vos clients commandent sur WhatsApp — le bot répond automatiquement, même quand vous dormez. Cliquez 'Commander' pour voir !",
+    tab: 'bot',
+    target: '#tab-bot',
+    arrow: 'top',
+    action: ()=>setTimeout(()=>testBot('je veux 2 thiéboudienne'), 800)
+  },
+  {
+    title: "🚚 Suivez vos livreurs",
+    desc: "Chaque livreur a sa page mobile dédiée. GPS en temps réel, calcul de paie automatique.",
+    tab: 'livreurs',
+    target: '.livreur-card',
+    arrow: 'top',
+    action: null
+  },
+  {
+    title: "🍽️ Votre menu digital",
+    desc: "Un lien unique à partager à vos clients. Ils voient vos plats et commandent directement. Prêt en 5 minutes.",
+    tab: 'menu',
+    target: '.menu-preview',
+    arrow: 'top',
+    action: null,
+    isLast: true
+  }
+];
+
+let guideStep = 0;
+let guideActive = false;
+
+function demarrerGuide(){
+  guideActive = true;
+  guideStep = 0;
+  document.getElementById('guide-overlay').style.display = 'block';
+  afficherGuideStep(0);
+}
+
+function guideNext(){
+  if(guideStep >= GUIDE_STEPS.length - 1){
+    guideTerminer();
+    return;
+  }
+  guideStep++;
+  afficherGuideStep(guideStep);
+}
+
+function guideSkip(){
+  guideTerminer();
+}
+
+function guideTerminer(){
+  guideActive = false;
+  document.getElementById('guide-overlay').style.display = 'none';
+  document.getElementById('guide-tooltip').style.display = 'none';
+  document.getElementById('guide-highlight').style.display = 'none';
+  // Show CTA
+  showNotif('🎉','Vous avez vu l'essentiel !','Créez votre espace gratuit maintenant');
+  setTimeout(()=>{
+    if(confirm('Vous avez vu comment ça marche !
+
+Voulez-vous créer votre espace TraiteurPro gratuit ?')){
+      window.open('https://traiteurpro-production.up.railway.app','_blank');
+    }
+  }, 3500);
+}
+
+function afficherGuideStep(i){
+  const step = GUIDE_STEPS[i];
+  const total = GUIDE_STEPS.length;
+  
+  // Switch tab
+  const navBtns = document.querySelectorAll('.nav-tab');
+  navBtns.forEach(b=>{
+    if(b.getAttribute('onclick')?.includes(step.tab)){
+      b.click();
+    }
+  });
+  
+  setTimeout(()=>{
+    // Progress dots
+    const prog = document.getElementById('guide-progress');
+    prog.innerHTML = GUIDE_STEPS.map((_,j)=>`<div class="guide-dot ${j<i?'done':j===i?'active':''}"></div>`).join('');
+    
+    // Content
+    document.getElementById('guide-step-num').textContent = `Étape ${i+1}/${total}`;
+    document.getElementById('guide-title').textContent = step.title;
+    document.getElementById('guide-desc').textContent = step.desc;
+    document.getElementById('guide-next').textContent = step.isLast ? '🎉 Créer mon espace gratuit !' : 'Suivant →';
+    
+    // Position tooltip
+    const tooltip = document.getElementById('guide-tooltip');
+    tooltip.style.display = 'block';
+    tooltip.style.left = '50%';
+    tooltip.style.transform = 'translateX(-50%)';
+    tooltip.style.bottom = '100px';
+    tooltip.style.top = 'auto';
+    tooltip.className = 'guide-tooltip arrow-bottom';
+    
+    // Highlight target
+    const target = document.querySelector(step.target);
+    const hl = document.getElementById('guide-highlight');
+    if(target){
+      const rect = target.getBoundingClientRect();
+      hl.style.display = 'block';
+      hl.style.top = (rect.top - 4)+'px';
+      hl.style.left = (rect.left - 4)+'px';
+      hl.style.width = (rect.width + 8)+'px';
+      hl.style.height = (rect.height + 8)+'px';
+      // Scroll to target
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+    } else {
+      hl.style.display = 'none';
+    }
+    
+    // Execute action
+    if(step.action) step.action();
+  }, 400);
+}
+
+// Démarrer le guide automatiquement après 2s
+setTimeout(()=>{
+  // Afficher bouton "Démarrer la visite guidée"
+  const banner = document.querySelector('.demo-banner');
+  if(banner){
+    const btn = document.createElement('button');
+    btn.textContent = '🎯 Visite guidée';
+    btn.style.cssText = 'margin-left:10px;padding:3px 10px;background:var(--or);color:#1C0A0A;border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif';
+    btn.onclick = demarrerGuide;
+    banner.appendChild(btn);
+  }
+  
+  // Auto-start after 2s if user hasn't interacted
+  let userInteracted = false;
+  document.addEventListener('click', ()=>userInteracted=true, {once:true});
+  setTimeout(()=>{ if(!userInteracted) demarrerGuide(); }, 2000);
+}, 1000);
 </script>
 </body>
 </html>
