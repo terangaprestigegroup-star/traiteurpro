@@ -1007,7 +1007,7 @@ app.get('/api/livreurs/:id/historique', async (req, res) => {
 // ============================================
 app.put('/api/traiteur/profil/:id', async (req, res) => {
   try {
-    const { nom_boutique, description, zone_livraison, type_cuisine, facebook, instagram, tiktok, youtube, site_web } = req.body;
+    const { nom_boutique, description, zone_livraison, type_cuisine, facebook, instagram, tiktok, youtube, site_web, whatsapp } = req.body;
     await pool.query(
       `UPDATE traiteurs SET
         nom_boutique=COALESCE($1,nom_boutique),
@@ -1018,11 +1018,12 @@ app.put('/api/traiteur/profil/:id', async (req, res) => {
         instagram=COALESCE($6,instagram),
         tiktok=COALESCE($7,tiktok),
         youtube=COALESCE($8,youtube),
-        site_web=COALESCE($9,site_web)
-      WHERE id=$10`,
+        site_web=COALESCE($9,site_web),
+        whatsapp=COALESCE($10,whatsapp)
+      WHERE id=$11`,
       [nom_boutique||null, description||null, zone_livraison||null,
        type_cuisine||null, facebook||null, instagram||null, tiktok||null, youtube||null, site_web||null,
-       req.params.id]
+       whatsapp||null, req.params.id]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -1051,6 +1052,49 @@ app.post('/api/traiteur/login', async (req, res) => {
     if (pin !== validPin) return res.status(401).json({ error: 'PIN incorrect' });
     const firstLogin = !t.pin;
     res.json({ ok: true, traiteur_id: t.id, nom: t.nom_boutique, plan: t.plan, first_login: firstLogin });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// OTP pour reset PIN
+const otpStore = {}; // { traiteur_id: { code, expire, whatsapp } }
+
+app.post('/api/traiteur/reset-pin-otp', async (req, res) => {
+  try {
+    const { whatsapp, traiteur_id } = req.body;
+    const phone = String(whatsapp||'').replace(/[^0-9]/g,'');
+    const wa = phone.startsWith('221')?phone:'221'+phone;
+    // Vérifier que ce numéro correspond au traiteur
+    const r = await pool.query('SELECT id, nom_boutique FROM traiteurs WHERE id=$1 AND whatsapp LIKE $2', [traiteur_id, '%'+phone.slice(-8)+'%']);
+    if(!r.rows[0]) return res.json({ ok: false, error: 'Numéro WhatsApp non associé à ce compte' });
+    // Générer OTP 6 chiffres
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[traiteur_id] = { code: otp, expire: Date.now() + 10*60*1000, whatsapp: wa };
+    // Envoyer OTP via WhatsApp
+    await envoyerWhatsApp(process.env.PHONE_NUMBER_ID, wa,
+      `🔑 *Code de réinitialisation TraiteurPro*
+
+Votre code : *${otp}*
+
+⏰ Valable 10 minutes.
+
+_Si vous n'avez pas demandé ce code, ignorez ce message._
+
+_TraiteurPro 🇸🇳_`
+    );
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/traiteur/reset-pin-confirm', async (req, res) => {
+  try {
+    const { traiteur_id, otp, nouveau_pin } = req.body;
+    const stored = otpStore[traiteur_id];
+    if(!stored || stored.expire < Date.now()) return res.json({ ok: false, error: 'Code expiré — demandez un nouveau code' });
+    if(stored.code !== String(otp).trim()) return res.json({ ok: false, error: 'Code incorrect' });
+    if(!nouveau_pin || nouveau_pin.length !== 4) return res.json({ ok: false, error: 'PIN doit être 4 chiffres' });
+    await pool.query('UPDATE traiteurs SET pin=$1 WHERE id=$2', [nouveau_pin, traiteur_id]);
+    delete otpStore[traiteur_id];
+    res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
