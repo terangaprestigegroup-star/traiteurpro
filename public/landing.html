@@ -28,8 +28,8 @@ nav{background:rgba(247,243,238,0.95);backdrop-filter:blur(20px);border-bottom:1
 
 /* HERO */
 .hero{background:linear-gradient(160deg,var(--dark) 0%,var(--dark2) 60%,#3D1515 100%);padding:60px 20px 70px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C4973A' fill-opacity='0.03'%3E%3Cpath d='M40 0C17.9 0 0 17.9 0 40s17.9 40 40 40 40-17.9 40-40S62.1 0 40 0zm0 70C23.4 70 10 56.6 10 40S23.4 10 40 10s30 13.4 30 30-13.4 30-30 30z'/%3E%3C/g%3E%3C/svg%3E")}
-.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(196,151,58,0.4),transparent)}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C4973A' fill-opacity='0.03'%3E%3Cpath d='M40 0C17.9 0 0 17.9 0 40s17.9 40 40 40 40-17.9 40-40S62.1 0 40 0zm0 70C23.4 70 10 56.6 10 40S23.4 10 40 10s30 13.4 30 30-13.4 30-30 30z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(196,151,58,0.4),transparent);pointer-events:none}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(196,151,58,0.1);border:1px solid rgba(196,151,58,0.2);border-radius:20px;padding:6px 16px;margin-bottom:24px}
 .hero-badge-dot{width:7px;height:7px;border-radius:50%;background:var(--or2);animation:pulse 2s infinite}
 .hero-badge-text{font-size:11px;font-weight:600;color:var(--or2);letter-spacing:1px;text-transform:uppercase}
@@ -37,7 +37,7 @@ nav{background:rgba(247,243,238,0.95);backdrop-filter:blur(20px);border-bottom:1
 .hero-title{font-family:'Playfair Display',serif;font-size:38px;font-weight:800;color:#F5EDD8;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
 .hero-title span{background:linear-gradient(135deg,var(--or),var(--or2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero-sub{font-size:15px;color:rgba(245,237,216,0.65);line-height:1.7;max-width:340px;margin:0 auto 32px}
-.hero-btns{display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto 40px}
+.hero-btns{display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto 40px;position:relative;z-index:10}
 .btn-primary{padding:16px 28px;background:var(--grad);color:#fff;border:none;border-radius:14px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.3px;box-shadow:0 8px 24px rgba(107,39,55,0.3)}
 .btn-secondary{padding:14px 28px;background:transparent;color:rgba(245,237,216,0.8);border:1.5px solid rgba(196,151,58,0.25);border-radius:14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
 .hero-stats{display:flex;justify-content:center;gap:32px;border-top:1px solid rgba(255,255,255,0.06);padding-top:32px}
@@ -159,7 +159,7 @@ footer{background:var(--dark);padding:28px 20px;text-align:center;border-top:1px
   <p class="hero-sub">Bot WhatsApp IA + Dashboard premium pour gérer vos commandes automatiquement. De Dakar à Saint-Louis.</p>
   <div class="hero-btns">
     <button class="btn-primary" onclick="document.getElementById('inscription').scrollIntoView({behavior:'smooth'})">🍽️ Démarrer gratuitement</button>
-    <a href="/demo" class="btn-secondary" style="text-decoration:none;display:inline-block">👀 Voir la démo interactive</a>
+    <button class="btn-secondary" onclick="location.href='/demo'">👀 Voir la démo interactive</button>
   </div>
   <div class="hero-stats">
     <div><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">Bot actif</div></div>
