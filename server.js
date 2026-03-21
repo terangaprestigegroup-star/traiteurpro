@@ -33,6 +33,10 @@ app.get('/demo', (req, res) => {
 });
 
 // Deployer tool
+app.get('/reset', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'reset.html'));
+});
+
 app.get('/deployer', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'deployer.html'));
 });
@@ -2720,3 +2724,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // deployer-112418
 // fix-181009
 // reset-192558
+// reset-page-192908
