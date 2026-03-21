@@ -1251,7 +1251,7 @@ app.post('/api/admin/reset-data', async (req, res) => {
     for(const t of tables){
       try { await pool.query(`DELETE FROM ${t}`); } catch(e) {}
     }
-    await pool.query('UPDATE livreurs SET disponible=true, nb_livrees=0, nb_total=0');
+    try { await pool.query('UPDATE livreurs SET disponible=true'); } catch(e) {}
     
     res.json({ 
       ok: true, 
@@ -2727,3 +2727,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // reset-page-192908
 // fix-secret-193942
 // fix-reset-194154
+// fix-liv-194604
