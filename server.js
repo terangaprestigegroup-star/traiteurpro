@@ -29,6 +29,19 @@ app.get('/demo', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'demo.html'));
 });
 
+// Deployer tool
+app.get('/deployer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'deployer.html'));
+});
+
+// Serve deploy outputs
+app.get('/outputs/:file', (req, res) => {
+  const allowed = ['traiteurpro-server.js','traiteurpro-dashboard.html','traiteurpro-landing.html','livreur.html','traiteurpro-demo.html','gif-maker.html'];
+  if (!allowed.includes(req.params.file)) return res.status(403).json({error:'Forbidden'});
+  const fp = path.join(__dirname, 'outputs', req.params.file);
+  res.sendFile(fp, err => { if(err) res.status(404).json({error:'File not found'}); });
+});
+
 app.get('/gif-maker', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'gif-maker.html'));
 });
@@ -2681,3 +2694,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // force-redeploy-214359
 // redeploy-215807
 // nocache-002623
+// deployer-112418
