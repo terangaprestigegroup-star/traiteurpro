@@ -1393,7 +1393,12 @@ async function chargerStatsLivreurs(){
   try{
     const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}/stats`);
     const stats = await r.json();
-    if(!stats.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--texte3)">Aucun livreur</div>'; return; }
+    if(!stats.length){ el.innerHTML='<div style="text-align:center;padding:30px 20px">
+          <div style="font-size:40px;margin-bottom:12px">🛵</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:6px">Aucun livreur pour le moment</div>
+          <div style="font-size:12px;color:var(--texte3);margin-bottom:16px">Ajoutez votre premier livreur pour commencer les livraisons</div>
+          <button onclick="afficherModalLivreur()" style="padding:10px 20px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer">+ Ajouter un livreur</button>
+        </div>'; return; }
     el.innerHTML = `
       <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🏆 Classement</div>
       ${stats.map((l,i)=>{
@@ -1471,7 +1476,12 @@ async function calculerCommissions(){
     const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
     const livs = await r.json();
     const el = document.getElementById('commissions-liste');
-    if(!livs.length){ el.innerHTML='<div style="text-align:center;color:var(--texte3);padding:20px">Aucun livreur</div>'; return; }
+    if(!livs.length){ el.innerHTML='<div style="text-align:center;padding:30px 20px">
+          <div style="font-size:40px;margin-bottom:12px">🛵</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--texte);margin-bottom:6px">Aucun livreur pour le moment</div>
+          <div style="font-size:12px;color:var(--texte3);margin-bottom:16px">Ajoutez votre premier livreur pour commencer les livraisons</div>
+          <button onclick="afficherModalLivreur()" style="padding:10px 20px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer">+ Ajouter un livreur</button>
+        </div>'; return; }
     let totalPaie = 0;
     el.innerHTML = livs.map(l=>{
       const nb = l.nb_livrees||0;
@@ -1528,7 +1538,7 @@ async function chargerSelectLivreurChat(){
   try{
     const r = await fetch(`${API}/api/livreurs/${TRAITEUR_ID}`);
     const livs = await r.json();
-    if(!livs.length){ el.innerHTML='<div style="color:var(--texte3);font-size:12px">Aucun livreur</div>'; return; }
+    if(!livs.length){ el.innerHTML='<div style="text-align:center;color:var(--texte3);font-size:12px;padding:10px">🛵 Aucun livreur — <button onclick="afficherModalLivreur()" style="background:none;border:none;color:var(--b);font-weight:700;cursor:pointer;font-size:12px">+ Ajouter</button></div>'; return; }
     if(!chatLivreurActif) chatLivreurActif = livs[0].id;
     el.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
       ${livs.map(l=>`<button onclick="selectionnerLivreurChat(${l.id})" style="padding:6px 12px;border-radius:8px;border:1.5px solid ${chatLivreurActif===l.id?'var(--b)':'var(--border)'};background:${chatLivreurActif===l.id?'var(--b)':'#fff'};color:${chatLivreurActif===l.id?'#fff':'var(--texte2)'};font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">${l.nom.trim()}</button>`).join('')}
