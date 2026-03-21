@@ -14,12 +14,15 @@ app.use((req, res, next) => {
 app.use(express.json());
 // Force no-cache sur tous les fichiers HTML
 app.use((req, res, next) => {
-  if (req.path.endsWith('.html') || req.path === '/') {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  }
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   next();
+});
+
+// Route racine — AVANT static pour éviter le cache
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1927,7 +1930,6 @@ app.put('/api/traiteur/:id/gps', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 
 // API CARTE TRAITEURS
 app.get('/api/traiteurs-public', async (req, res) => {
@@ -2695,3 +2697,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // redeploy-215807
 // nocache-002623
 // deployer-112418
+// fix-181009
