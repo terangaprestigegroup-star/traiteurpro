@@ -12,6 +12,16 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json());
+// Force no-cache sur tous les fichiers HTML
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html') || req.path === '/') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Route menu public — DOIT être après static pour éviter conflit
@@ -2670,3 +2680,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // redeploy 20260320-204822
 // force-redeploy-214359
 // redeploy-215807
+// nocache-002623
