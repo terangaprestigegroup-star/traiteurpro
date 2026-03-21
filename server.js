@@ -1246,12 +1246,11 @@ app.post('/api/admin/reset-data', async (req, res) => {
     const validSecret = process.env.ADMIN_SECRET || 'Teranga2026!';
     if (secret?.trim() !== validSecret?.trim()) return res.status(403).json({ error: 'Accès refusé' });
     
-    await pool.query('DELETE FROM avis');
-    await pool.query('DELETE FROM messages');
-    await pool.query('DELETE FROM livraisons');
-    await pool.query('DELETE FROM commandes_traiteur');
-    try { await pool.query('DELETE FROM evenements'); } catch(e) {}
-    try { await pool.query('DELETE FROM echelonnes'); } catch(e) {}
+    // Supprimer dans l'ordre (sans erreur si table inexistante)
+    const tables = ['avis','messages','chat_messages','livraisons','commandes_traiteur','evenements','echelonnes'];
+    for(const t of tables){
+      try { await pool.query(`DELETE FROM ${t}`); } catch(e) {}
+    }
     await pool.query('UPDATE livreurs SET disponible=true, nb_livrees=0, nb_total=0');
     
     res.json({ 
@@ -2727,3 +2726,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // reset-192558
 // reset-page-192908
 // fix-secret-193942
+// fix-reset-194154
