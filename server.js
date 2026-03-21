@@ -1243,7 +1243,8 @@ app.post('/api/traiteur/login', async (req, res) => {
 app.post('/api/admin/reset-data', async (req, res) => {
   try {
     const { secret } = req.body;
-    if (secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Accès refusé' });
+    const validSecret = process.env.ADMIN_SECRET || 'Teranga2026!';
+    if (secret?.trim() !== validSecret?.trim()) return res.status(403).json({ error: 'Accès refusé' });
     
     await pool.query('DELETE FROM avis');
     await pool.query('DELETE FROM messages');
@@ -2725,3 +2726,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // fix-181009
 // reset-192558
 // reset-page-192908
+// fix-secret-193942
