@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reset TraiteurPro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#1C0A0A;color:#F5EDD8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.card{background:#2D1010;border:1px solid #3D1A08;border-radius:20px;padding:28px;max-width:340px;width:100%;text-align:center}
+h1{font-size:20px;color:#E8C97E;margin-bottom:8px}
+.sub{font-size:12px;color:#9C8A75;margin-bottom:24px;line-height:1.6}
+.warning{background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:#FF6B6B;line-height:1.6}
+input{width:100%;padding:12px;background:#1C0A0A;border:1px solid #3D1A08;border-radius:10px;color:#F5EDD8;font-size:14px;margin-bottom:16px;text-align:center}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px}
+.btn-reset{background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff}
+.btn-cancel{background:transparent;color:#9C8A75;border:1px solid #3D1A08}
+.result{margin-top:16px;padding:12px;border-radius:10px;font-size:12px;line-height:1.6;display:none}
+.result.ok{background:rgba(42,107,79,.2);color:#6DEBB0;border:1px solid rgba(42,107,79,.3)}
+.result.err{background:rgba(192,57,43,.2);color:#FF6B6B;border:1px solid rgba(192,57,43,.3)}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🗑️ Reset TraiteurPro</h1>
+  <p class="sub">Supprime toutes les données de test — commandes, livraisons, avis, messages</p>
+  
+  <div class="warning">
+    ⚠️ Cette action est irréversible !<br>
+    Garde : traiteurs, livreurs, menus<br>
+    Supprime : commandes, livraisons, avis
+  </div>
+  
+  <input type="password" id="secret" placeholder="Entrez le secret admin" autocomplete="off">
+  
+  <button class="btn btn-reset" onclick="resetData()">🗑️ Supprimer les données de test</button>
+  <button class="btn btn-cancel" onclick="history.back()">Annuler</button>
+  
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+async function resetData(){
+  const secret = document.getElementById('secret').value.trim();
+  if(!secret){ alert('Entrez le secret admin'); return; }
+  
+  if(!confirm('⚠️ Confirmer la suppression de toutes les données de test ?')) return;
+  
+  const btn = document.querySelector('.btn-reset');
+  btn.textContent = '⏳ Suppression...';
+  btn.disabled = true;
+  
+  try{
+    const r = await fetch('https://traiteurpro-production.up.railway.app/api/admin/reset-data', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ secret })
+    });
+    const d = await r.json();
+    const el = document.getElementById('result');
+    el.style.display = 'block';
+    if(d.ok){
+      el.className = 'result ok';
+      el.textContent = d.message;
+      btn.textContent = '✅ Done';
+    } else {
+      el.className = 'result err';
+      el.textContent = '❌ ' + (d.error || 'Erreur');
+      btn.textContent = '🗑️ Réessayer';
+      btn.disabled = false;
+    }
+  }catch(e){
+    const el = document.getElementById('result');
+    el.style.display = 'block';
+    el.className = 'result err';
+    el.textContent = '❌ Erreur réseau: ' + e.message;
+    btn.textContent = '🗑️ Réessayer';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
