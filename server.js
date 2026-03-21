@@ -1235,6 +1235,27 @@ app.post('/api/traiteur/login', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── RESET DONNÉES TEST (admin only) ──
+app.post('/api/admin/reset-data', async (req, res) => {
+  try {
+    const { secret } = req.body;
+    if (secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Accès refusé' });
+    
+    await pool.query('DELETE FROM avis');
+    await pool.query('DELETE FROM messages');
+    await pool.query('DELETE FROM livraisons');
+    await pool.query('DELETE FROM commandes_traiteur');
+    try { await pool.query('DELETE FROM evenements'); } catch(e) {}
+    try { await pool.query('DELETE FROM echelonnes'); } catch(e) {}
+    await pool.query('UPDATE livreurs SET disponible=true, nb_livrees=0, nb_total=0');
+    
+    res.json({ 
+      ok: true, 
+      message: '✅ Données de test supprimées — plateforme prête pour production !'
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // OTP pour reset PIN
 const otpStore = {}; // { traiteur_id: { code, expire, whatsapp } }
 
@@ -2698,3 +2719,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // nocache-002623
 // deployer-112418
 // fix-181009
+// reset-192558
