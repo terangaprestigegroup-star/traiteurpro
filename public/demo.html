@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="wa-messages" id="wa-messages"></div>
   </div>
   <div style="padding:14px">
-    <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Testez le bot :</div>
+    <div style="font-size:11px;font-weight:700;color:var(--texte3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">👆 Testez le bot — cliquez un bouton :</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">
       <button onclick="testBot('bonjour')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">👋 Bonjour</button>
       <button onclick="testBot('menu')" style="padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--texte)">📋 Menu</button>
@@ -483,22 +483,22 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="plat-card">
       <div class="plat-emoji-wrap">🍚</div>
       <div style="flex:1"><div class="plat-nom">Thiéboudienne</div><div style="font-size:11px;color:var(--texte3)">Riz au poisson · 4 pers.</div><div class="plat-prix">15 000 FCFA</div></div>
-      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Thiéboudienne × 1')">+</button>
+      <button class="plat-add" onclick="ajouterPanier(this,'Thiéboudienne',15000)">+</button>
     </div>
     <div class="plat-card">
       <div class="plat-emoji-wrap">🍗</div>
       <div style="flex:1"><div class="plat-nom">Yassa Poulet</div><div style="font-size:11px;color:var(--texte3)">Poulet mariné · 2 pers.</div><div class="plat-prix">12 000 FCFA</div></div>
-      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Yassa Poulet × 1')">+</button>
+      <button class="plat-add" onclick="ajouterPanier(this,'Yassa Poulet',12000)">+</button>
     </div>
     <div class="plat-card">
       <div class="plat-emoji-wrap">🥘</div>
       <div style="flex:1"><div class="plat-nom">Mafé</div><div style="font-size:11px;color:var(--texte3)">Sauce arachide · 2 pers.</div><div class="plat-prix">10 000 FCFA</div></div>
-      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Mafé × 1')">+</button>
+      <button class="plat-add" onclick="ajouterPanier(this,'Mafé',10000)">+</button>
     </div>
     <div class="plat-card">
       <div class="plat-emoji-wrap">🐟</div>
       <div style="flex:1"><div class="plat-nom">Caldou</div><div style="font-size:11px;color:var(--texte3)">Poisson braisé · 2 pers.</div><div class="plat-prix">8 000 FCFA</div></div>
-      <button class="plat-add" onclick="showNotif('🛒','Ajouté au panier','Caldou × 1')">+</button>
+      <button class="plat-add" onclick="ajouterPanier(this,'Caldou',8000)">+</button>
     </div>
   </div>
 
@@ -753,16 +753,43 @@ function partagerDemo(){
   }
 }
 
+// ── PANIER MENU ──
+let panier = [];
+let panierTotal = 0;
+
+function ajouterPanier(btn, nom, prix){
+  panier.push({nom, prix});
+  panierTotal += prix;
+  // Animate button
+  btn.textContent = '✓';
+  btn.style.background = 'linear-gradient(135deg,var(--vert),#1a5c3a)';
+  setTimeout(()=>{
+    btn.textContent = '+';
+    btn.style.background = '';
+  }, 1500);
+  // Show panier total
+  let panierEl = document.getElementById('panier-total');
+  if(!panierEl){
+    panierEl = document.createElement('div');
+    panierEl.id = 'panier-total';
+    panierEl.style.cssText = 'background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border-radius:14px;padding:12px 16px;margin:10px 14px;display:flex;justify-content:space-between;align-items:center;font-family:DM Sans,sans-serif';
+    document.querySelector('.menu-preview').after(panierEl);
+  }
+  panierEl.innerHTML = `<div><div style="font-size:12px;font-weight:700"">🛒 Panier (${panier.length} article${panier.length>1?'s':''})</div><div style="font-size:10px;opacity:.7">${panier.map(p=>p.nom).join(', ')}</div></div><div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--or2)">${panierTotal.toLocaleString('fr-FR')} F</div>`;
+  showNotif('🛒', nom+' ajouté !', panierTotal.toLocaleString('fr-FR')+' FCFA au total');
+}
+
 // ── COMPTEUR LIVE ANIMÉ ──
 function animerCompteur(){
   const el = document.getElementById('live-count');
   if(!el) return;
+  el.textContent = '47';
   const base = 47;
   setInterval(()=>{
-    const variation = Math.floor(Math.random()*5) - 1;
-    const val = Math.max(1, base + variation);
+    const variation = Math.floor(Math.random()*4) - 1;
+    const val = Math.max(44, base + variation);
     el.textContent = val;
-  }, 8000);
+  }, 9000);
 }
 animerCompteur();
 
@@ -981,7 +1008,7 @@ setTimeout(()=>{
   // Auto-start after 2s if user hasn't interacted
   let userInteracted = false;
   document.addEventListener('click', ()=>userInteracted=true, {once:true});
-  setTimeout(()=>{ if(!userInteracted) demarrerGuide(); }, 2000);
+  setTimeout(()=>{ if(!userInteracted) demarrerGuide(); }, 5000);
 }, 1000);
 </script>
 </body>
