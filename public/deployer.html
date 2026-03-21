@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TraiteurPro Deployer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0D0806;color:#F5EDD8;min-height:100vh;padding:20px}
+h1{font-size:20px;color:#E8C97E;margin-bottom:4px}
+.sub{font-size:12px;color:#9C8A75;margin-bottom:24px}
+.card{background:#1A110A;border:1px solid #2A1F14;border-radius:14px;padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:700;color:#E8C97E;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.file-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0D0806;border-radius:10px;margin-bottom:8px;border:1px solid #2A1F14}
+.file-name{font-size:12px;font-weight:600;color:#F5EDD8}
+.file-path{font-size:10px;color:#9C8A75;margin-top:2px}
+.btn-deploy{padding:8px 14px;background:linear-gradient(135deg,#6B2737,#8B3A4A);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-deploy:disabled{opacity:.5;cursor:not-allowed}
+.btn-all{width:100%;padding:14px;background:linear-gradient(135deg,#C4973A,#E8C97E);color:#1C0A0A;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px}
+.status{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
+.status-ok{background:rgba(42,107,79,.2);color:#6DEBB0}
+.status-err{background:rgba(192,57,43,.2);color:#FF6B6B}
+.status-pending{background:rgba(196,151,58,.15);color:#E8C97E}
+.log{background:#0D0806;border-radius:10px;padding:12px;font-size:11px;color:#9C8A75;max-height:200px;overflow-y:auto;font-family:monospace;line-height:1.6;margin-top:12px;display:none}
+.log.show{display:block}
+input[type=password]{width:100%;padding:10px 12px;background:#0D0806;border:1px solid #2A1F14;border-radius:8px;color:#F5EDD8;font-size:12px;margin-bottom:10px}
+.progress{height:4px;background:#2A1F14;border-radius:2px;margin:12px 0;display:none}
+.progress-fill{height:4px;background:linear-gradient(90deg,#C4973A,#E8C97E);border-radius:2px;width:0%;transition:width .3s}
+</style>
+</head>
+<body>
+
+<h1>🚀 TraiteurPro Deployer</h1>
+<p class="sub">Déploie les fichiers directement sur GitHub sans copier/coller</p>
+
+<div class="card">
+  <div class="card-title">🔑 Configuration</div>
+  <input type="password" id="token" placeholder="Token GitHub (ghp_...)" value="">
+  <div style="font-size:10px;color:#9C8A75">Repo: terangaprestigegroup-star/traiteurpro</div>
+</div>
+
+<button class="btn-all" onclick="deployAll()">🚀 Déployer tous les fichiers</button>
+
+<div class="progress" id="progress"><div class="progress-fill" id="progress-fill"></div></div>
+
+<div class="card">
+  <div class="card-title">📁 Fichiers à déployer</div>
+  <div id="files-list"></div>
+</div>
+
+<div class="log" id="log"></div>
+
+<script>
+const REPO = 'terangaprestigegroup-star/traiteurpro';
+const API = 'https://api.github.com';
+
+const FILES = [
+  { name: 'server.js', path: 'server.js', local: 'traiteurpro-server.js' },
+  { name: 'dashboard.html', path: 'public/dashboard.html', local: 'traiteurpro-dashboard.html' },
+  { name: 'landing.html', path: 'public/landing.html', local: 'traiteurpro-landing.html' },
+  { name: 'livreur.html', path: 'public/livreur.html', local: 'livreur.html' },
+  { name: 'demo.html', path: 'public/demo.html', local: 'traiteurpro-demo.html' },
+  { name: 'gif-maker.html', path: 'public/gif-maker.html', local: 'gif-maker.html' },
+];
+
+// Track file statuses
+const statuses = {};
+FILES.forEach(f => statuses[f.path] = 'idle');
+
+function renderFiles() {
+  const el = document.getElementById('files-list');
+  el.innerHTML = FILES.map(f => {
+    const st = statuses[f.path];
+    const stEl = st === 'ok' ? '<span class="status status-ok">✅ Déployé</span>' :
+                 st === 'err' ? '<span class="status status-err">❌ Erreur</span>' :
+                 st === 'loading' ? '<span class="status status-pending">⏳ En cours...</span>' :
+                 '<span class="status status-pending">⏸ En attente</span>';
+    return `<div class="file-item">
+      <div>
+        <div class="file-name">${f.name}</div>
+        <div class="file-path">${f.path}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${stEl}
+        <button class="btn-deploy" onclick="deployFile('${f.path}')" ${st==='loading'?'disabled':''}>↑ Push</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderFiles();
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.classList.add('show');
+  el.innerHTML += `<div>${new Date().toLocaleTimeString()} — ${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function getFileSHA(token, path) {
+  const r = await fetch(`${API}/repos/${REPO}/contents/${path}`, {
+    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+  });
+  if (r.ok) {
+    const d = await r.json();
+    return d.sha;
+  }
+  return null;
+}
+
+async function fetchLocalFile(localName) {
+  // Fetch from Railway outputs
+  const r = await fetch(`/outputs/${localName}`);
+  if (r.ok) return await r.text();
+  return null;
+}
+
+async function deployFile(filePath) {
+  const token = document.getElementById('token').value.trim();
+  if (!token) { alert('Entrez votre token GitHub'); return; }
+  
+  const file = FILES.find(f => f.path === filePath);
+  if (!file) return;
+  
+  statuses[filePath] = 'loading';
+  renderFiles();
+  log(`⏳ Déploiement de ${file.name}...`);
+  
+  try {
+    // Get file content from Railway
+    const content = await fetchLocalFile(file.local);
+    if (!content) {
+      throw new Error(`Fichier ${file.local} introuvable sur le serveur`);
+    }
+    
+    // Get current SHA
+    const sha = await getFileSHA(token, filePath);
+    
+    // Encode to base64
+    const encoded = btoa(unescape(encodeURIComponent(content)));
+    
+    // Push to GitHub
+    const body = {
+      message: `🚀 Deploy ${file.name} via TraiteurPro Deployer`,
+      content: encoded,
+      branch: 'main'
+    };
+    if (sha) body.sha = sha;
+    
+    const r = await fetch(`${API}/repos/${REPO}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (r.ok) {
+      statuses[filePath] = 'ok';
+      log(`✅ ${file.name} déployé avec succès !`);
+    } else {
+      const err = await r.json();
+      throw new Error(err.message || 'Erreur GitHub API');
+    }
+  } catch(e) {
+    statuses[filePath] = 'err';
+    log(`❌ ${file.name}: ${e.message}`);
+  }
+  
+  renderFiles();
+}
+
+async function deployAll() {
+  const token = document.getElementById('token').value.trim();
+  if (!token) { alert('Entrez votre token GitHub'); return; }
+  
+  const progress = document.getElementById('progress');
+  const fill = document.getElementById('progress-fill');
+  progress.style.display = 'block';
+  
+  for (let i = 0; i < FILES.length; i++) {
+    fill.style.width = (i / FILES.length * 100) + '%';
+    await deployFile(FILES[i].path);
+    await new Promise(r => setTimeout(r, 500));
+  }
+  
+  fill.style.width = '100%';
+  log('🎉 Déploiement complet ! Railway redémarre automatiquement.');
+}
+</script>
+</body>
+</html>
