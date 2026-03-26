@@ -245,10 +245,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
     <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1A1008;margin-bottom:6px">TraiteurPro</div>
     <div style="font-size:13px;color:#6B5B45;margin-bottom:20px">Saisissez votre code PIN</div>
     <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="· · · ·" autocomplete="off"
-      style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block">
+      onkeyup="if(this.value.length===4) document.getElementById('btn-login').click()"
+      style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block;position:relative;z-index:100">
     <button id="btn-login" type="button"
       onclick="var p=(document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');validerPinInput(p);"
-      style="width:100%;padding:14px;background:var(--b);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block">
+      style="width:100%;padding:14px;background:var(--b);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block;position:relative;z-index:100;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,.1)">
       Accéder au tableau de bord
     </button>
     <div style="font-size:11px;color:#A89880">PIN par défaut : 1234</div>
