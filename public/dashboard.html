@@ -237,8 +237,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 </head>
 <body>
 
-<div id="login-overlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1A0A08,#2D0F0F);z-index:9999;display:flex;align-items:center;justify-content:center">
-  <div style="background:#FFF9F4;border-radius:20px;padding:36px 28px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+<div id="login-overlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1A0A08,#2D0F0F);z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:auto">
+  <div style="background:#FFF9F4;border-radius:20px;padding:36px 28px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);pointer-events:auto;position:relative;z-index:10000" onclick="void(0)">
     <div style="width:60px;height:60px;background:linear-gradient(135deg,var(--b),var(--b2));border-radius:14px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
       <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#E8C97E">TP</span>
     </div>
