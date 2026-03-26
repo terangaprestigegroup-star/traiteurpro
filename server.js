@@ -33,6 +33,29 @@ app.get('/demo', (req, res) => {
 });
 
 // Deployer tool
+// Reset PIN traiteur via URL (usage unique)
+app.get('/api/admin/reset-pin/:traiteur_id/:secret', async (req, res) => {
+  try {
+    const { traiteur_id, secret } = req.params;
+    const validSecret = process.env.ADMIN_SECRET || 'Teranga2026!';
+    if (secret !== validSecret) return res.status(403).json({ error: 'Accès refusé' });
+    await pool.query('UPDATE traiteurs SET pin=$1 WHERE id=$2', ['1234', traiteur_id]);
+    res.json({ ok: true, message: `PIN du traiteur ${traiteur_id} remis à 1234` });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Reset PIN d'urgence
+app.get('/api/admin/reset-pin-urgence', async (req, res) => {
+  try {
+    const { secret, id } = req.query;
+    const validSecret = process.env.ADMIN_SECRET || 'Teranga2026!';
+    if (secret?.trim() !== validSecret?.trim()) return res.status(403).json({ error: 'Accès refusé' });
+    const traiteurId = id || 2;
+    await pool.query('UPDATE traiteurs SET pin=$1 WHERE id=$2', ['1234', traiteurId]);
+    res.json({ ok: true, message: `✅ PIN remis à 1234 pour traiteur id=${traiteurId}` });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/reset', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reset.html'));
 });
@@ -1251,7 +1274,7 @@ app.post('/api/admin/reset-data', async (req, res) => {
     for(const t of tables){
       try { await pool.query(`DELETE FROM ${t}`); } catch(e) {}
     }
-    try { await pool.query('UPDATE livreurs SET disponible=true'); } catch(e) {}
+    try { await pool.query('DELETE FROM livreurs'); } catch(e) {}
     
     res.json({ 
       ok: true, 
@@ -2728,3 +2751,7 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // fix-secret-193942
 // fix-reset-194154
 // fix-liv-194604
+// del-livreurs-195036
+// only-livreurs-195046
+// pin-reset-071448
+// pin-urgence-071554
