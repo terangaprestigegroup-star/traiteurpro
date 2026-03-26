@@ -237,26 +237,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texte);min-
 </head>
 <body>
 
-<div id="login-overlay" style="position:fixed;inset:0;background:linear-gradient(160deg,#1A0A08,#2D0F0F);z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:auto">
-  <div style="background:#FFF9F4;border-radius:20px;padding:36px 28px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);pointer-events:auto;position:relative;z-index:10000" onclick="void(0)">
-    <div style="width:60px;height:60px;background:linear-gradient(135deg,var(--b),var(--b2));border-radius:14px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
-      <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#E8C97E">TP</span>
-    </div>
-    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1A1008;margin-bottom:6px">TraiteurPro</div>
+<div id="login-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A0A08,#2D0F0F);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#FFF9F4;border-radius:20px;padding:32px 24px;width:100%;max-width:300px;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🍽️</div>
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1A1008;margin-bottom:4px">TraiteurPro</div>
     <div style="font-size:13px;color:#6B5B45;margin-bottom:20px">Saisissez votre code PIN</div>
-    <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="· · · ·" autocomplete="off"
-      onkeyup="if(this.value.length===4) document.getElementById('btn-login').click()"
-      style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:12px;font-family:inherit;outline:none;background:#FAF7F2;color:#1A1008;display:block;position:relative;z-index:100">
-    <button id="btn-login" type="button"
-      onclick="var p=(document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'');validerPinInput(p);"
-      style="width:100%;padding:14px;background:var(--b);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;display:block;position:relative;z-index:100;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,.1)">
+    <input id="pin-input" type="number" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off"
+      style="width:100%;padding:14px;border:2px solid #E8DDD0;border-radius:10px;font-size:28px;text-align:center;letter-spacing:10px;margin-bottom:16px;outline:none;background:#FAF7F2;color:#1A1008;-moz-appearance:textfield">
+    <button type="button" onclick="loginPIN()"
+      style="width:100%;padding:14px;background:#6B2737;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px">
       Accéder au tableau de bord
     </button>
     <div style="font-size:11px;color:#A89880">PIN par défaut : 1234</div>
-    <div id="login-error" style="color:var(--b);font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
-    <button onclick="afficherResetPin()" style="margin-top:12px;background:none;border:none;color:var(--texte3);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline">🔑 PIN oublié ?</button>
+    <div id="login-error" style="color:#C0392B;font-size:12px;font-weight:700;margin-top:8px;display:none">PIN incorrect</div>
+    <button type="button" onclick="afficherResetPin()" style="margin-top:12px;background:none;border:none;color:#9C8A75;font-size:12px;cursor:pointer;text-decoration:underline">🔑 PIN oublié ?</button>
   </div>
-</div>
+</div>>
 
 <div id="setpin-overlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#c0392b,#e74c3c);z-index:998;display:none;align-items:center;justify-content:center">
   <div class="login-box">
@@ -928,6 +924,11 @@ function checkLogin(){
   }
   document.getElementById('login-overlay').style.display='flex';
   return false;
+}
+
+function loginPIN(){
+  const pin = (document.getElementById('pin-input').value||'').replace(/[^0-9]/g,'').substring(0,4);
+  validerPinInput(pin);
 }
 
 async function validerPinInput(pin){
