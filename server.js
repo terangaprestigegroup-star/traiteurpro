@@ -56,6 +56,29 @@ app.get('/api/admin/reset-pin-urgence', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Export backup
+app.get('/api/admin/backup', async (req, res) => {
+  try {
+    const secret = req.query.secret;
+    const validSecret = process.env.ADMIN_SECRET || 'Teranga2026!';
+    if (secret?.trim() !== validSecret?.trim()) return res.status(403).json({ error: 'Accès refusé' });
+    
+    const tables = ['traiteurs','menus','commandes_traiteur','livreurs','livraisons','avis','clients'];
+    const backup = { date: new Date().toISOString(), tables: {} };
+    
+    for(const t of tables){
+      try {
+        const r = await pool.query(`SELECT * FROM ${t}`);
+        backup.tables[t] = r.rows;
+      } catch(e) { backup.tables[t] = []; }
+    }
+    
+    res.setHeader('Content-Disposition', 'attachment; filename=traiteurpro-backup.json');
+    res.setHeader('Content-Type', 'application/json');
+    res.json(backup);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/reset', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'reset.html'));
 });
@@ -2755,3 +2778,4 @@ setInterval(relancerAbonnements, 24*60*60*1000);
 // only-livreurs-195046
 // pin-reset-071448
 // pin-urgence-071554
+// backup-191546
